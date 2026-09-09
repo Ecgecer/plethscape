@@ -1,0 +1,11 @@
+node_modules/
+dist/
+artifacts/
+test-results/
+playwright-report/
+scripts/
+tests/
+docs/
+*.tsbuildinfo
+.env*
+.DS_Store
