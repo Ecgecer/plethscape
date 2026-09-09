@@ -18,7 +18,7 @@ import {
 } from "@phosphor-icons/react";
 import { createAnatomy } from "./bodyparts";
 import type { Presentation } from "./bodyparts";
-import { SITES } from "./simulation";
+import { SITES, getCardiacState } from "./simulation";
 import type { Physiology, SiteId } from "./simulation";
 import { DEVICES, WEARABLE_SITES, isWearableSite } from "./devices";
 import { createSensorAuras } from "./sensorAuras";
@@ -580,15 +580,18 @@ export default function AnatomyViewer(props: Props) {
           value && !isolatedDeviceRef.current;
       });
       anatomy.heart.visible = !isolatedDeviceRef.current;
+      const cardiac = getCardiacState(p.clock.current.time, p.physiology);
       anatomy.animate(
         p.clock.current.time,
-        p.physiology.heartRate,
+        cardiac.heartRate,
         p.physiology.activity,
-        p.physiology.respiratoryRate,
+        cardiac,
       );
-      const respiratoryPhase =
-        ((p.clock.current.time * p.physiology.respiratoryRate) / 60) % 1;
-      const expansion = 0.5 - 0.5 * Math.cos(respiratoryPhase * Math.PI * 2);
+      const respiratoryPhase = cardiac.breathPhase;
+      const expansion = cardiac.breathExpansion;
+      element.dataset.cardiacPhase = String(cardiac.phase);
+      element.dataset.liveHeartRate = String(cardiac.heartRate);
+      element.dataset.simulationTime = String(p.clock.current.time);
       if (breathLabel.current) {
         const label = respiratoryPhase < 0.5 ? "Breathing in" : "Breathing out";
         if (breathLabel.current.textContent !== label)
@@ -896,7 +899,7 @@ export default function AnatomyViewer(props: Props) {
             <i />
             {props.running ? "Simulated stream" : "Simulation paused"}
             <span>
-              {props.physiology.heartRate} bpm ·{" "}
+              Mean {props.physiology.heartRate} bpm ·{" "}
               {SITES.find((s) => s.id === deviceFocus)!.name}
             </span>
           </div>

@@ -87,6 +87,11 @@ by the animation. No Innerbody or OpenStax illustrations are included as assets.
   respiratory signals extracted from ECG and PPG in 57 healthy subjects.
   This supports distinguishing respiratory signal modulation from sensor
   artifacts; it does not calibrate this app's chosen variability amplitudes.
+- [Dehkordi et al., 2018](https://www.frontiersin.org/journals/physiology/articles/10.3389/fphys.2018.00948/full)
+  describes respiratory-induced frequency, amplitude and baseline variation in
+  PPG. Inspiration typically accelerates the heart and can reduce pulse amplitude;
+  responses differ between people. This supports the types and direction of the
+  coupling used here, not our numerical coefficients or a person-specific prediction.
 - [PWDB overview](https://peterhcharlton.github.io/pwdb/pwdb.html): 4,374 virtual
   subjects, six age groups from 25 to 75, several arterial wave types, and public
   domain dataset licensing. The accompanying publication should be credited when
@@ -118,7 +123,8 @@ by the animation. No Innerbody or OpenStax illustrations are included as assets.
 
 ## What the controls do
 
-The period is `T = 60 / HR` seconds. One beat combines a gamma-shaped forward
+The mean period is `T = 60 / meanHR` seconds. Individual live intervals vary.
+One beat combines a gamma-shaped forward
 component, a broad runoff component, a delayed Gaussian reflected component,
 and a small negative Gaussian notch. Smooth start/end windows keep the stream continuous. These
 component choices and every numerical coefficient are artistic engineering
@@ -128,7 +134,7 @@ approximations, not equations fitted to the cited studies.
   factor. The modeled reflection moves earlier and merges into the downslope;
   the visible notch becomes smaller. The slider permits students to separate
   chronological age from one vascular property.
-- Heart rate changes period and mildly changes upstroke timing. Shorter cycles
+- Heart rate sets the long-term mean and mildly changes upstroke timing. Shorter cycles
   mostly compress the diastolic tail. The interface selects heart-rate presets
   of 72, 98, and 142 bpm for rest, walk, and run. Each remains independently
   adjustable afterward; the underlying activity parameter alone does not
@@ -136,9 +142,11 @@ approximations, not equations fitted to the cited studies.
 - Breathing rate sets respiratory modulation frequency (`rate / 60` Hz),
   bounded to 6–36 breaths/min. Interface activity presets are 16, 22, and 30
   breaths/min, and the breathing slider remains independently adjustable.
-  The stream has modest sinusoidal baseline and amplitude modulation plus a
-  small illustrative phase modulation. This is not a fitted respiratory sinus
-  arrhythmia or autonomic model. Breathing rate leaves the clean single-beat
+  The stream has respiratory baseline and amplitude modulation, plus a shared
+  respiratory sinus arrhythmia (RSA) clock. The model's instantaneous rate rises
+  during lung inflation and falls during expiration. Slower breathing strengthens
+  RSA; age and exertion attenuate it. These are illustrative tendencies, not a fitted
+  autonomic model. Breathing rate leaves the clean single-beat
   morphology unchanged; view the stream to see its effect.
 - Site changes relative arrival delay, contour width, reflected amplitude, and
   signal amplitude. Delays are schematic milliseconds from ejection and do not
@@ -151,9 +159,10 @@ approximations, not equations fitted to the cited studies.
   beat-to-beat amplitude/width changes, slight variation in the reflected
   component and notch, and slow amplitude/baseline drift. Timing perturbations
   are bounded phase offsets, so the selected HR remains the long-term mean.
-  The added amplitude factor is bounded to ±1.8%, contour width to ±1.2%, and
-  reflection/notch scaling to ±4.5%, in addition to respiratory modulation and
-  slow drift. These are design bounds, not clinical reference ranges.
+  The seeded amplitude factor is bounded to ±2.2%, contour width to ±1.2%, and
+  reflection/notch scaling to ±4.5%. Respiratory amplitude modulation is ±3.5%
+  at ejection, with a weak preceding-interval filling term and ±1.2% slow gain
+  drift. These are design bounds, not clinical reference ranges.
   Variation persists with sensor noise at zero. It is seeded and deterministic
   in the shared, propagation-delayed signal clock, so pause/replay, CSV export,
   and site comparison reproduce the same virtual beats without random resets.
@@ -162,6 +171,42 @@ approximations, not equations fitted to the cited studies.
   accelerometer stream in g, with gravity in its z component. The movement is
   not a biomechanical gait model. Noise and motion are rendered after the clean
   morphology to distinguish sensor artifacts from pulse physiology.
+
+### One central clock for heart, lungs and PPG
+
+For time `t`, mean rate `H` and respiratory angular frequency `w`, accumulated
+cardiac cycles are `C(t) = H*t/60 + A*(1-cos(w*t))/(60*w) + J(t)`.
+Instantaneous rate is its analytic derivative, `H + A*sin(w*t) + 60*J'(t)`.
+`J` is smooth seeded bounded phase variation. Its boundedness preserves the
+long-term mean, while the parameter bounds keep the derivative positive.
+Lung expansion is `(1-cos(w*t))/2`; positive respiratory rate modulation
+therefore coincides with inflation. The default illustrative RSA amplitude
+is about 3.1 bpm before the slower nonperiodic variation is added.
+
+Beat onsets are solved at integer crossings of `C(t)` using Newton iteration.
+Each optical site evaluates the same clock after its source-to-site delay.
+The live contour uses elapsed seconds within the actual interval, so jitter
+does not stretch the entire systolic upstroke. The animated heart uses those
+same central onsets, while the UI reports the analytic rate and last completed
+central inter-beat interval. The latter is not a clinical HRV measurement or
+necessarily identical to a peripheral peak-to-peak interval.
+
+The five-second optical plot retains a fixed amplitude scale and at least
+125 samples per second, including on narrow screens. A representative single
+beat intentionally omits variability for morphology comparisons; its UI label
+distinguishes it from the live stream. CSV retains `heart_rate_bpm` as the mean
+setting and adds `instantaneous_hr_bpm`, `previous_ibi_ms`, and
+`respiratory_phase` (fraction 0–1), evaluated at each exported `time_s`.
+
+Verification measures generated peak spacing and amplitude across all seven
+sites, tests monotonic timing over the supported controls, compares the displayed
+rate to the clock's numerical derivative, and checks pause and CSV consistency.
+For an illustrative age-32, 72-bpm, 16-breaths/min resting subject with sensor
+noise off, a 120-second sample at 125 Hz gave approximately 792–880 ms optical
+peak intervals and a 24.5 ms interval standard deviation. Instantaneous central
+rate ranged about 67.8–76.4 bpm; mean peak rate was 72.02 bpm. These are software
+verification results, not validation against human recordings. A calibrated
+digital twin would require individual recordings and model fitting.
 
 `reflectionIndex` is the modeled reflected-component amplitude as a percentage
 of the incident component. It is **not** a validated clinical reflection index.

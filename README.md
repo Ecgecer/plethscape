@@ -30,7 +30,8 @@ npm run test:e2e    # Browser interaction and layout checks; starts/reuses the d
 - Toggle the body, muscles, arteries, blood-flow trails, veins, available nervous structures, breathing lungs and skeleton independently. The presentation uses one orange anatomical view; open or close the chest cutaway.
 - Compare finger, wrist, ear, forehead, neck/carotid reference, upper arm and toe.
 - Drag the age and heart-rate dials vertically or horizontally. Arrow keys adjust by one, Shift + arrow by five; Home/End go to the bounds.
-- Adjust arterial stiffness, peripheral perfusion and breathing rate, then switch between the scrolling stream and a labeled cardiac cycle. Breathing rate changes the lungs, chest, rib cage and diaphragm together, as well as respiratory modulation in the live PPG; the clean single-beat view excludes those artifacts.
+- Adjust arterial stiffness, peripheral perfusion and breathing rate, then switch between the scrolling stream and a labeled representative cardiac cycle. Breathing rate drives lung/chest motion and respiratory sinus arrhythmia, as well as pulse-height and baseline modulation. The clean single-beat view excludes these variations for controlled morphology comparisons.
+- Watch a changing live heart-rate readout beside the breathing phase and last completed beat interval. The HR control sets the mean; slower breathing strengthens the illustrative coupling. Heart animation, delayed PPG signals and CSV rate/interval columns use one shared variable heartbeat clock.
 - Freeze a baseline to retain a comparison while changing the current subject or site. Single-beat comparisons are normalized by cardiac phase.
 - Pause the shared simulation clock. The heart, gait and stream stop together, while controls remain usable.
 - Use **Heart & lungs** to inspect the beating heart and expanding lungs close up. Reset the camera to return to the whole body.
@@ -76,7 +77,7 @@ The neutral presentation skin is generated with `scripts/build_neutral_skin.py` 
 
 Earlier verification (seven devices, orange anatomical presentation, revised skin, facial treatment and luminous flow trails): build passed, 18 Node tests passed, and all 19 browser tests passed. Browser checks include physical picking for all seven devices, off-center zoom, two-finger pinch/pan and the mobile learning flow. The source-arm comparison passed for over 26,000 surface vertices (99th percentile deviation below 0.0017 scene units). No browser errors were observed. Earlier frame-time measurements above predate this visual pass.
 
-Latest verification (Explore / Experiment / Understand): build passed, 19 Node tests passed, and all 20 browser checks passed across the regression run and the focused CSV-export rerun after updating its navigation to View options. Coverage includes the shared-clock pulse journey, age-comparison controls, retained state between areas, all seven wearable selections, zoom/pan, breathing, pause/resume and CSV export. Desktop and phone visual checks produced no browser errors; responsive checks cover 360 and 820 pixels.
+Latest verification (coupled live physiology): build passed, 23 Node tests passed and all 21 browser tests passed. Checks cover mean rate, beat spacing, respiratory coupling, pulse amplitude, display clipping at extreme settings, shared site timing, pause/resume and CSV values. The final waveform scale was also visually checked on desktop and phone. Responsive checks cover 360, 390, 820 and 1440 pixels, with no browser errors observed. These are software consistency checks, not clinical validation or fitting to individual recordings; see the simulation notes for measured model outputs.
 
 ## Deployment
 

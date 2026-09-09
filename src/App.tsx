@@ -28,6 +28,7 @@ import {
   X,
 } from "@phosphor-icons/react";
 import Waveform from "./Waveform";
+import LivePhysiology from "./LivePhysiology";
 import ExperienceGuide, { type ExperienceMode } from "./ExperienceGuide";
 import {
   DEFAULT_PHYSIOLOGY,
@@ -35,6 +36,7 @@ import {
   getInsight,
   getMetrics,
   samplePPG,
+  getCardiacState,
   sampleAccelerometer,
 } from "./simulation";
 import type { Activity, Physiology, SiteId } from "./simulation";
@@ -383,11 +385,12 @@ export default function App() {
   };
   const exportSignal = () => {
     const lines = [
-      "time_s,ppg_au,accel_x_g,accel_y_g,accel_z_g,site,age_years,heart_rate_bpm,respiratory_rate_bpm,stiffness_pct,perfusion_pct,noise_pct,activity,signal_origin",
+      "time_s,ppg_au,accel_x_g,accel_y_g,accel_z_g,site,age_years,heart_rate_bpm,respiratory_rate_bpm,stiffness_pct,perfusion_pct,noise_pct,activity,signal_origin,instantaneous_hr_bpm,previous_ibi_ms,respiratory_phase",
     ];
     for (let i = 0; i < 1250; i++) {
       const t = i / 125;
       const a = sampleAccelerometer(t, physiology);
+      const cardiac = getCardiacState(t, physiology);
       lines.push(
         [
           t.toFixed(3),
@@ -404,6 +407,9 @@ export default function App() {
           physiology.noise,
           physiology.activity,
           "synthetic_educational",
+          cardiac.heartRate.toFixed(6),
+          cardiac.intervalMs.toFixed(6),
+          cardiac.breathPhase.toFixed(6),
         ].join(","),
       );
     }
@@ -839,14 +845,12 @@ export default function App() {
                   <span className="chart-window">5 s window</span>
                 )}
               </div>
+              <LivePhysiology
+                physiology={physiology}
+                clock={clock}
+                representativeBeat={mode === "beat"}
+              />
               <div className="signal-metrics">
-                <div>
-                  <span>Heart rate</span>
-                  <strong>
-                    {physiology.heartRate}
-                    <small>bpm</small>
-                  </strong>
-                </div>
                 <div>
                   <span title="Illustrative travel delay from cardiac ejection to this site. Excludes ECG pre-ejection time; not a calibrated measurement.">
                     Modeled transit <Info size={11} />
@@ -916,6 +920,22 @@ export default function App() {
                 </p>
               </details>
               <details>
+                <summary>Why does the rhythm change with breathing?</summary>
+                <p>
+                  In this virtual subject, heart rate rises gently while
+                  breathing in and falls while breathing out. This is
+                  respiratory sinus arrhythmia. Breathing also changes pulse
+                  height and baseline. The live heart, beat spacing and rate
+                  display share one clock; the heart-rate control sets the mean.
+                  Try slower breathing in Live stream to make the coupling
+                  easier to see.
+                </p>
+                <p>
+                  These are illustrative responses, not a calibrated digital
+                  twin of a real person.
+                </p>
+              </details>
+              <details>
                 <summary>Why does the shape change with age?</summary>
                 <p>
                   This teaching model brings the reflected component earlier as
@@ -946,7 +966,8 @@ export default function App() {
                 </button>
               </div>
               <p className="panel-description">
-                Turn a dial. Watch the waveform respond.
+                Set a mean heart rate. Breathing adds a natural rhythm around
+                it.
               </p>
               <div className="dial-row">
                 <Dial
@@ -993,7 +1014,7 @@ export default function App() {
                 onChange={(n) => update("respiratoryRate", n)}
                 minLabel="6 · Slower"
                 maxLabel="36 · Faster"
-                description="Controls lung expansion and the respiratory modulation of the live PPG. The clean single-beat view excludes respiratory and motion artifacts."
+                description="Sets lung motion and breathing-related changes in heart rate, pulse height and baseline. Slower breathing strengthens the rhythm variation in this model. Switch to Live stream to see it."
               />
             </section>
           </aside>
@@ -1368,6 +1389,15 @@ export default function App() {
               <ArrowUpRight size={18} />
             </a>
           </div>
+          <a
+            className="text-button"
+            href="https://www.frontiersin.org/journals/physiology/articles/10.3389/fphys.2018.00948/full"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Respiratory modulation of PPG · Dehkordi et al., 2018
+            <ArrowUpRight size={18} />
+          </a>
           <p className="source-footnote">
             BodyParts3D, © The Database Center for Life Science licensed under{" "}
             <a

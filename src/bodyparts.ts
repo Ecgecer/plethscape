@@ -7,6 +7,7 @@ import { createWearables } from "./wearables";
 import { WEARABLE_SITES } from "./devices";
 import { createFlowTrails } from "./flowTrails";
 import { fitWearablesToSkin, upperSkinGeometry } from "./surfaceFit";
+import type { getCardiacState } from "./simulation";
 import {
   sculptNostrils,
   facialPigment,
@@ -844,7 +845,7 @@ export function createAnatomy() {
     time: number,
     heartRate: number,
     activity: Activity,
-    respiratoryRate = 16,
+    cardiac: ReturnType<typeof getCardiacState>,
   ) {
     const elapsed =
       priorTime === null ? 0 : THREE.MathUtils.clamp(time - priorTime, 0, 0.06);
@@ -857,19 +858,18 @@ export function createAnatomy() {
       1 - Math.exp(-elapsed * 3.4),
     );
     shared.atlasCadence.value = activity === "run" ? 8.8 : 5.5;
-    const phase = ((time * heartRate) / 60) % 1;
+    const phase = cardiac.phase;
     shared.atlasContraction.value = Math.exp(
       -Math.pow((phase - 0.16) / 0.115, 2),
     );
-    shared.atlasBreath.value =
-      0.5 - 0.5 * Math.cos(((time * respiratoryRate) / 60) * Math.PI * 2);
+    shared.atlasBreath.value = cardiac.breathExpansion;
     flowTime +=
       elapsed *
       0.7 *
       Math.sqrt(heartRate / 72) *
       (0.8 + shared.atlasContraction.value * 0.5);
     shared.atlasFlow.value = flowTime;
-    shared.atlasBeat.value = (time * heartRate) / 60;
+    shared.atlasBeat.value = cardiac.cycles;
     shared.atlasFlowEnabled.value = layers.flow.visible && !heartFocus ? 1 : 0;
     group.position.y =
       Math.abs(Math.sin(time * shared.atlasCadence.value)) *

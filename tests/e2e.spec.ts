@@ -1,5 +1,10 @@
 import { readFile } from "node:fs/promises";
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import {
+  DEFAULT_PHYSIOLOGY,
+  getCardiacState,
+  samplePPG,
+} from "../src/simulation";
 
 const browserErrors = new WeakMap<Page, string[]>();
 const ppg = (page: Page) =>
@@ -486,6 +491,9 @@ test("CSV export contains ten seconds of finite data and the selected physiology
     "noise_pct",
     "activity",
     "signal_origin",
+    "instantaneous_hr_bpm",
+    "previous_ibi_ms",
+    "respiratory_phase",
   ]);
   expect(rows).toHaveLength(1250);
   expect(rows[0][0]).toBe("0.000");
@@ -493,14 +501,14 @@ test("CSV export contains ten seconds of finite data and the selected physiology
   const values = rows.map((row) => Number(row[1]));
   expect(Math.max(...values) - Math.min(...values)).toBeGreaterThan(0.5);
   for (const [i, row] of rows.entries()) {
-    expect(row).toHaveLength(14);
+    expect(row).toHaveLength(17);
     expect(Number(row[0])).toBeCloseTo(i / 125, 3);
     expect(
       row
         .slice(0, 5)
         .every((value) => value !== "" && Number.isFinite(Number(value))),
     ).toBe(true);
-    expect(row.slice(5)).toEqual([
+    expect(row.slice(5, 14)).toEqual([
       "wrist",
       "33",
       "72",
@@ -511,7 +519,70 @@ test("CSV export contains ten seconds of finite data and the selected physiology
       "rest",
       "synthetic_educational",
     ]);
+    const physiology = { ...DEFAULT_PHYSIOLOGY, age: 33 };
+    const cardiac = getCardiacState(i / 125, physiology);
+    expect(Number(row[1])).toBeCloseTo(
+      samplePPG(i / 125, physiology, "wrist"),
+      5,
+    );
+    expect(Number(row[14])).toBeCloseTo(cardiac.heartRate, 5);
+    expect(Number(row[15])).toBeCloseTo(cardiac.intervalMs, 5);
+    expect(Number(row[16])).toBeCloseTo(cardiac.breathPhase, 5);
   }
+});
+
+test("live rate and breathing stay in sync with anatomy, freeze on pause, and retain the mean control", async ({
+  page,
+}) => {
+  const scene = page.getByTestId("anatomy-canvas");
+  const live = page.getByTestId("live-physiology");
+  await expect(live).toBeVisible();
+  const initial = await live.getAttribute("data-heart-rate");
+  await expect
+    .poll(() => live.getAttribute("data-heart-rate"))
+    .not.toBe(initial);
+  await page
+    .getByRole("button", { name: "Pause simulation", exact: true })
+    .click();
+  await page.waitForTimeout(300);
+  const rate = await live.getAttribute("data-heart-rate");
+  const interval = await live.getAttribute("data-interval-ms");
+  const phase = await scene.getAttribute("data-cardiac-phase");
+  await page.waitForTimeout(400);
+  expect(await live.getAttribute("data-heart-rate")).toBe(rate);
+  expect(await live.getAttribute("data-interval-ms")).toBe(interval);
+  expect(await scene.getAttribute("data-cardiac-phase")).toBe(phase);
+  const time = Number(await scene.getAttribute("data-simulation-time"));
+  const expected = getCardiacState(time, DEFAULT_PHYSIOLOGY);
+  expect(Number(rate)).toBeCloseTo(expected.heartRate, 2);
+  expect(Number(phase)).toBeCloseTo(expected.phase, 6);
+  expect(Number(await scene.getAttribute("data-breath-expansion"))).toBeCloseTo(
+    expected.breathExpansion,
+    6,
+  );
+  const breathing = page.getByRole("slider", {
+    name: "Breathing rate",
+    exact: true,
+  });
+  await breathing.press("Home");
+  await expect(breathing).toHaveValue("6");
+  await expect
+    .poll(async () => Number(await live.getAttribute("data-heart-rate")))
+    .toBeCloseTo(
+      getCardiacState(time, { ...DEFAULT_PHYSIOLOGY, respiratoryRate: 6 })
+        .heartRate,
+      2,
+    );
+  await expect(
+    page.getByRole("slider", { name: "Heart rate", exact: true }),
+  ).toHaveAttribute("aria-valuenow", "72");
+  await page
+    .getByRole("button", { name: "Resume simulation", exact: true })
+    .click();
+  const resumed = await live.getAttribute("data-heart-rate");
+  await expect
+    .poll(() => live.getAttribute("data-heart-rate"))
+    .not.toBe(resumed);
 });
 
 test("running reveals the accelerometer and produces live motion data", async ({
