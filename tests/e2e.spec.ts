@@ -46,7 +46,12 @@ test.beforeEach(async ({ page }) => {
     page.getByRole("heading", { name: "Every pulse has a story." }),
   ).toBeVisible();
   await waitForPaint(ppg(page));
+  await page.getByRole("button", { name: "Experiment", exact: true }).click();
+  await page.getByRole("button", { name: "View options", exact: true }).click();
   await page.getByRole("button", { name: "Sites", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Close view options", exact: true })
+    .click();
 });
 
 test.afterEach(async ({ page }, testInfo) => {
@@ -64,6 +69,7 @@ test.afterEach(async ({ page }, testInfo) => {
 test("selecting sensing sites updates the signal and selected control", async ({
   page,
 }) => {
+  await page.getByRole("button", { name: "View options", exact: true }).click();
   const sites = page.getByRole("group", { name: "PPG sensing sites" });
   for (const name of [
     "Top of wrist",
@@ -135,6 +141,7 @@ test("body hotspots, anatomy layers, and chest camera controls work together", a
   await cutaway.click();
   await expect(cutaway).toHaveAttribute("aria-pressed", "true");
 
+  await page.getByRole("button", { name: "View options", exact: true }).click();
   await page.getByRole("button", { name: "Layers", exact: true }).click();
   const muscles = page.getByRole("switch", {
     name: "Muscle anatomy",
@@ -174,6 +181,9 @@ test("body hotspots, anatomy layers, and chest camera controls work together", a
   await expect(lungs).toBeChecked();
   await expect(flow).toBeChecked();
   await expect.poll(drawCalls).toBeGreaterThan(reducedCalls);
+  await page
+    .getByRole("button", { name: "Close view options", exact: true })
+    .click();
 
   await page
     .getByRole("button", { name: "Heart & lungs", exact: true })
@@ -394,6 +404,7 @@ test("a baseline remains saved as physiology changes and can be removed", async 
 test("guided lessons configure young anatomy and an older comparison", async ({
   page,
 }) => {
+  await page.getByRole("button", { name: "Understand", exact: true }).click();
   await page.getByRole("button", { name: /Guided lessons/ }).click();
   await page
     .getByRole("dialog")
@@ -410,6 +421,7 @@ test("guided lessons configure young anatomy and an older comparison", async ({
   await page.waitForTimeout(120);
   const youngWaveform = await canvasHash(ppg(page));
 
+  await page.getByRole("button", { name: "Understand", exact: true }).click();
   await page.getByRole("button", { name: /Guided lessons/ }).click();
   await page
     .getByRole("dialog")
@@ -436,10 +448,12 @@ test("guided lessons configure young anatomy and an older comparison", async ({
 test("CSV export contains ten seconds of finite data and the selected physiology", async ({
   page,
 }) => {
+  await page.getByRole("button", { name: "View options", exact: true }).click();
   await page
     .getByRole("group", { name: "PPG sensing sites" })
     .getByRole("button", { name: /Top of wrist/ })
     .click();
+  await page.keyboard.press("Escape");
   await page
     .getByRole("slider", { name: "Age", exact: true })
     .press("ArrowRight");

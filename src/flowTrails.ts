@@ -1,6 +1,7 @@
 import * as THREE from "three";
 
 export type FlowRoute = {
+  id?: string;
   points: THREE.Vector3[];
   radius?: number;
   kind?: string;
@@ -11,6 +12,14 @@ export function buildFlowGeometry(routes: FlowRoute[]) {
   const position: number[] = [],
     tangent: number[] = [],
     color: number[] = [];
+  const journey: number[] = [];
+  const stages: Record<string, [number, number]> = {
+    FJ3413: [0.02, 0.12],
+    FJ3411: [0.14, 0.1],
+    FJ3479: [0.24, 0.14],
+    FJ2219: [0.38, 0.28],
+    FJ2242: [0.66, 0.2],
+  };
   const ribbon: number[] = [],
     indices: number[] = [];
   const direction = new THREE.Vector3();
@@ -79,6 +88,8 @@ export function buildFlowGeometry(routes: FlowRoute[]) {
         tangent.push(...direction.toArray());
         color.push(hue.r, hue.g, hue.b);
         ribbon.push(side, (length * i) / count, width, length);
+        const stage = stages[route.id ?? ""];
+        journey.push(stage ? stage[0] + (stage[1] * i) / count : -10);
       }
       if (i < count) {
         const a = base + i * 2;
@@ -100,6 +111,10 @@ export function buildFlowGeometry(routes: FlowRoute[]) {
     new THREE.Float32BufferAttribute(color, 3),
   );
   geometry.setAttribute("ribbon", new THREE.Float32BufferAttribute(ribbon, 4));
+  geometry.setAttribute(
+    "journeyPosition",
+    new THREE.Float32BufferAttribute(journey, 1),
+  );
   geometry.setIndex(indices);
   geometry.computeBoundingSphere();
   return geometry;
@@ -126,6 +141,8 @@ export function createFlowTrails(
     side: THREE.DoubleSide,
     vertexShader: /* glsl */ `
       ${movement}
+      attribute float journeyPosition;
+      varying float vJourney;
       attribute vec3 flowTangent;
       attribute vec3 flowColor;
       attribute vec4 ribbon;
@@ -141,12 +158,15 @@ export function createFlowTrails(
         across /= max(length(across), .000001);
         view.xy += across * ribbon.x * ribbon.z;
         gl_Position = projectionMatrix * view;
+        vJourney = journeyPosition;
         vRibbon = ribbon;
         vColor = flowColor;
         vFlowPosition = position;
       }
     `,
     fragmentShader: /* glsl */ `
+      uniform float atlasJourney;
+      varying float vJourney;
       uniform float atlasFlow;
       uniform float atlasBeat;
       varying vec4 vRibbon;
@@ -169,7 +189,9 @@ export function createFlowTrails(
         float intensity = ends * ((core*.48+halo*.34)*tail + halo*(.025+.10*pulse));
         float edge = 1.-smoothstep(.78,1.,abs(vRibbon.x));
         vec3 tint = mix(vColor, vec3(1.,.73,.48), core*.20);
-        gl_FragColor = vec4(tint * (1.05 + .25*pulse), min(.56,intensity*edge));
+        float story = atlasJourney>=0. && vJourney>=0. ? exp(-pow((vJourney-atlasJourney)/.055,2.)) : 0.;
+        tint = mix(tint, vec3(1.,.68,.28), story);
+        gl_FragColor = vec4(tint * (1.05 + .25*pulse + story*1.5), min(.9,(intensity + story*halo*.8)*edge));
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
       }

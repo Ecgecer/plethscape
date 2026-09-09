@@ -20,7 +20,10 @@ npm run test:e2e    # Browser interaction and layout checks; starts/reuses the d
 
 ## Explore
 
-- Start in **Play** for three discovery challenges: find signals with the ring, band and earring; predict how the older contour changes; then explore faster beat timing. **Sites** and **Layers** keep the exploration tools beside the model.
+- Start in **Explore** with the anatomy, a compact live waveform and **Follow a pulse**: an eight-second, explicitly slowed story from the heart along source arterial segments to the wrist. Pause freezes the narration, highlight and signal together.
+- **Experiment** reveals one discovery at a time: place, age and rhythm. Buttons change the actual simulation; the age comparison keeps a saved young trace and checks that other physiological settings stay fixed. Discoveries and comparison state survive switching areas during the visit.
+- **Understand** shows a labeled beat, contextual explanations, optional guided lessons, and the scientific sources. The first experience contains no quizzes.
+- **View options** opens the secondary site list and anatomy layer controls. The main equipment dock remains directly available on the body.
 - Tap a physical wearable or use the **Gear** dock to select its live simulated signal without moving the camera. An amber halo, selected equipment button and compact sensor card confirm the active site. Choose **Inspect device** explicitly for a close-up. The ring, textile-covered wristband, black huggie earring, slim forehead band, neck patch, bicep band and black toe band are built entirely with custom geometry and procedural materials. Orbit each close-up; **Full body** returns to the atlas. Attachments follow the same arm motion as the anatomy. **Optical side** isolates the device and reveals its underside; **On body** restores the fitted view.
 - Orbit and zoom detailed reference anatomy presented without reproductive structures; select sites on the body or in the site list.
 - Pinch or scroll over any body region to zoom toward it. Two-finger drag or right-drag pans the view; Reset camera returns to the full body.
@@ -32,7 +35,7 @@ npm run test:e2e    # Browser interaction and layout checks; starts/reuses the d
 - Pause the shared simulation clock. The heart, gait and stream stop together, while controls remain usable.
 - Use **Heart & lungs** to inspect the beating heart and expanding lungs close up. Reset the camera to return to the whole body.
 - Use **Heart detail** to isolate the beating heart and coronary vessels, with nearby great vessels shown faintly for context. **Full body** returns to the orange anatomical view. The head uses softer lighting and conceals skull, teeth and eye structures.
-- Choose **Amber** or **Blue** outline glow. The charcoal and amber interface follows the supplied SensorBio color reference; internal tissue colors retain their educational meaning.
+- The single charcoal-and-amber presentation follows the supplied SensorBio color reference; internal tissue colors retain their educational meaning.
 - Choose Rest, Walk or Run to set activity, an example heart rate and an example breathing rate. Both rates remain adjustable afterward. Expand the motion lab for wrist acceleration and sensor noise.
 - Export 10 seconds of synthetic PPG and three-axis wrist acceleration at 125 Hz, with physiological settings and provenance in the CSV.
 - Open four guided experiments and the source/methodology panel.
@@ -71,7 +74,9 @@ Earlier verification on 2026-09-08 (before the seven-device expansion): 15 Node 
 
 The neutral presentation skin is generated with `scripts/build_neutral_skin.py` from BodyParts3D FJ2810. It preserves the original arm and hand pose with palms forward and removes external reproductive contours. The previous artificial forearm twist has been removed from the skin, tissues, flow routes, and device attachments. `scripts/verify_neutral_skin.py` checks the reconstructed arm surfaces against the original source. The generated `public/models/neutral-skin.glb` replaces the reference skin at runtime; the original source GLB and metadata remain unchanged.
 
-Latest verification (seven devices, orange anatomical presentation, revised skin, facial treatment and luminous flow trails): build passed, 18 Node tests passed, and all 19 browser tests passed. Browser checks include physical picking for all seven devices, off-center zoom, two-finger pinch/pan and the mobile learning flow. The source-arm comparison passed for over 26,000 surface vertices (99th percentile deviation below 0.0017 scene units). No browser errors were observed. Earlier frame-time measurements above predate this visual pass.
+Earlier verification (seven devices, orange anatomical presentation, revised skin, facial treatment and luminous flow trails): build passed, 18 Node tests passed, and all 19 browser tests passed. Browser checks include physical picking for all seven devices, off-center zoom, two-finger pinch/pan and the mobile learning flow. The source-arm comparison passed for over 26,000 surface vertices (99th percentile deviation below 0.0017 scene units). No browser errors were observed. Earlier frame-time measurements above predate this visual pass.
+
+Latest verification (Explore / Experiment / Understand): build passed, 19 Node tests passed, and all 20 browser checks passed across the regression run and the focused CSV-export rerun after updating its navigation to View options. Coverage includes the shared-clock pulse journey, age-comparison controls, retained state between areas, all seven wearable selections, zoom/pan, breathing, pause/resume and CSV export. Desktop and phone visual checks produced no browser errors; responsive checks cover 360 and 820 pixels.
 
 ## Deployment
 
@@ -82,3 +87,5 @@ The default visual hierarchy emphasizes the heart, lungs and circulation with ri
 The forehead band and neck patch conform to the loaded skin rather than a fixed oval or plane (`src/surfaceFit.ts`). Fitting uses local triangle slices once at load time; the contact regression test uses curved synthetic surfaces. The head writes an occluding depth surface so far-side devices do not show through it. Facial pigment is shaded on the skin, replacing the former protruding lip tube. The larger black huggie and seven amber discovery halos improve discoverability. Halos respect depth, pause, and reduced-motion preferences, brighten on hover/selection, and soften during device inspection. They are interface cues, not emitted light or simulated optical transport.
 
 Interface text now uses scalable rem sizes: ordinary controls and copy are generally 16 px or larger at the default browser setting, with 14 px supporting labels. Narrow screens reflow the panels and put anatomy first. Flow uses a nearest-surface stencil mask to keep luminous trails beneath opaque wearable surfaces without hiding the trails inside vessel lumens. The featureless pelvic envelope is boolean-unioned into the source skin after correcting face normals, avoiding a separate internal filler surface.
+
+The Explore / Experiment / Understand redesign replaces the former expedition sidebar. Desktop anatomy stays alongside scrolling controls and explanations; the waveform stays visible while experimenting. Phones get an immediate journey action above the body and an accessible three-part navigation. The journey is an illustrative pressure-pulse story, not tracking a blood cell or reproducing calibrated transit time.

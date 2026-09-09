@@ -57,3 +57,28 @@ test("all source routes produce a small finite static mesh, including repeated-p
   );
   geometry.dispose();
 });
+
+test("the slowed story advances only along the ordered left-arm arterial segments", () => {
+  const ids = ["FJ3413", "FJ3411", "FJ3479", "FJ2219", "FJ2242", "FJ2966"];
+  let previous = -1;
+  for (const id of ids) {
+    const geometry = buildFlowGeometry([
+      { id, points: [new THREE.Vector3(), new THREE.Vector3(0, 0.1, 0)] },
+    ]);
+    const journey = geometry.getAttribute("journeyPosition");
+    assert.equal(journey.count, geometry.getAttribute("position").count);
+    if (id === "FJ2966")
+      assert(
+        Array.from(journey.array).every((v) => v < 0),
+        "Pulmonary flow must not be part of the wrist story",
+      );
+    else {
+      assert(journey.getX(0) >= previous - 1e-6);
+      for (let i = 1; i < journey.count; i++)
+        assert(journey.getX(i) >= journey.getX(i - 1));
+      previous = journey.getX(journey.count - 1);
+      assert(previous < 1);
+    }
+    geometry.dispose();
+  }
+});

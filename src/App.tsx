@@ -23,13 +23,12 @@ import {
   PersonSimpleWalk,
   Play,
   SlidersHorizontal,
-  Sparkle,
   Stack,
   WaveSine,
   X,
 } from "@phosphor-icons/react";
 import Waveform from "./Waveform";
-import DiscoveryQuest from "./DiscoveryQuest";
+import ExperienceGuide, { type ExperienceMode } from "./ExperienceGuide";
 import {
   DEFAULT_PHYSIOLOGY,
   SITES,
@@ -276,9 +275,30 @@ export default function App() {
   const [lesson, setLesson] = useState<number | null>(null);
   const [motionExpanded, setMotionExpanded] = useState(false);
   const [annotate, setAnnotate] = useState(true);
-  const [explorerPanel, setExplorerPanel] = useState<
-    "play" | "sites" | "layers"
-  >("play");
+  const [experience, setExperience] = useState<ExperienceMode>("explore");
+  const [toolsOpen, setToolsOpen] = useState(false);
+  const viewOptionsTrigger = useRef<HTMLButtonElement>(null);
+  const closeTools = () => {
+    setToolsOpen(false);
+    viewOptionsTrigger.current?.focus();
+  };
+  useEffect(() => {
+    if (!toolsOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setToolsOpen(false);
+        viewOptionsTrigger.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [toolsOpen]);
+  const [explorerPanel, setExplorerPanel] = useState<"sites" | "layers">(
+    "sites",
+  );
+  const [visited, setVisited] = useState<SiteId[]>([]);
+  const [anatomyReady, setAnatomyReady] = useState(false);
+  const [pulseStart, setPulseStart] = useState<number | null>(null);
   const clock = useRef({ time: 8, running: true });
   const selected = SITES.find((s) => s.id === site)!;
   const metrics = getMetrics(physiology, site);
@@ -293,7 +313,33 @@ export default function App() {
   const insight = getInsight(physiology, site);
   const update = (key: keyof Physiology, value: number | Activity) =>
     setPhysiology((p) => ({ ...p, [key]: value }));
-  const chooseSite = (id: SiteId) => setSite(id);
+  const chooseSite = (id: SiteId) => {
+    setSite(id);
+    setVisited((current) =>
+      current.includes(id) ? current : [...current, id],
+    );
+    setPulseStart(null);
+  };
+  const changeExperience = (next: ExperienceMode) => {
+    setExperience(next);
+    if (next !== "explore") setPulseStart(null);
+    setToolsOpen(false);
+    if (next === "understand") setMode("beat");
+    else if (next === "explore") setMode("stream");
+  };
+  const followPulse = () => {
+    chooseSite("wrist");
+    setPhysiology({
+      ...DEFAULT_PHYSIOLOGY,
+      age: 32,
+      heartRate: 72,
+      activity: "rest",
+    });
+    setMode("stream");
+    setLayers(INITIAL_LAYERS);
+    setRunning(true);
+    setPulseStart(clock.current.time);
+  };
   const reset = () => {
     setPhysiology({ ...DEFAULT_PHYSIOLOGY, age: 32, heartRate: 72 });
     setSite("finger");
@@ -428,7 +474,10 @@ export default function App() {
   ];
 
   return (
-    <div className="app-shell">
+    <div
+      className={`app-shell experience-shell experience-${experience}`}
+      data-experience={experience}
+    >
       <header className="app-header">
         <a
           className="brand"
@@ -436,6 +485,7 @@ export default function App() {
           onClick={(e) => {
             e.preventDefault();
             reset();
+            changeExperience("explore");
           }}
           aria-label="Plethscape home"
         >
@@ -448,31 +498,28 @@ export default function App() {
           </span>
         </a>
         <nav aria-label="Main navigation">
-          <button
-            className={!dialog ? "nav-item active" : "nav-item"}
-            onClick={() => setDialog(null)}
-          >
-            Explorer
-          </button>
-          <button
-            className={dialog === "learn" ? "nav-item active" : "nav-item"}
-            onClick={() => setDialog("learn")}
-          >
-            Guided lessons<span className="nav-count">4</span>
-          </button>
-          <button
-            className={dialog === "sources" ? "nav-item active" : "nav-item"}
-            onClick={() => setDialog("sources")}
-          >
-            Model & sources
-            <ArrowUpRight size={13} />
-          </button>
+          {(["explore", "experiment", "understand"] as const).map(
+            (item, index) => (
+              <button
+                key={item}
+                className={`nav-item ${experience === item ? "active" : ""}`}
+                aria-current={experience === item ? "page" : undefined}
+                onClick={() => changeExperience(item)}
+              >
+                <span className="nav-step" aria-hidden="true">
+                  0{index + 1}
+                </span>
+                {item[0].toUpperCase() + item.slice(1)}
+              </button>
+            ),
+          )}
         </nav>
         <div className="header-actions">
           <span className="simulation-badge">
             <span /> SIMULATION
           </span>
           <button
+            hidden={experience === "explore"}
             className="button secondary export-button"
             onClick={exportSignal}
           >
@@ -487,37 +534,61 @@ export default function App() {
           <div>
             <span className="workspace-kicker">THE SIGNAL WITHIN</span>
             <h1>Every pulse has a story.</h1>
-            <p>Explore the body. Change the physiology. See the signal.</p>
+            <p>
+              {experience === "explore"
+                ? "Start with a heartbeat. Follow it to the skin."
+                : experience === "experiment"
+                  ? "Play with place, age and rhythm."
+                  : "Connect the shape of a pulse to the physiology within."}
+            </p>
           </div>
-          <button
-            className="text-button lesson-start"
-            onClick={() => {
-              setExplorerPanel("play");
-              requestAnimationFrame(() =>
-                document
-                  .querySelector(".discovery-quest")
-                  ?.scrollIntoView({ block: "nearest" }),
-              );
-            }}
-          >
-            <BookOpen size={17} />
-            Start with guided play
-            <ArrowRight size={16} />
-          </button>
+          <div className="workspace-tools">
+            <button
+              ref={viewOptionsTrigger}
+              className="view-options-button"
+              aria-expanded={toolsOpen}
+              aria-controls="view-options"
+              onClick={() => setToolsOpen((v) => !v)}
+            >
+              <Stack size={17} /> View options
+            </button>
+            {experience === "explore" && (
+              <button
+                className="mobile-follow-button"
+                disabled={!anatomyReady}
+                onClick={followPulse}
+              >
+                {pulseStart === null ? "Follow a pulse" : "Replay journey"}
+                <ArrowRight size={17} />
+              </button>
+            )}
+            <span className="workspace-mode-note">
+              {experience === "explore"
+                ? "Your curiosity is the guide."
+                : experience === "experiment"
+                  ? "Change one thing. Notice the difference."
+                  : "A little science behind what you see."}
+            </span>
+          </div>
         </div>
         <div className="lab-workspace">
-          <aside className="left-panel">
+          <aside
+            className="left-panel view-options-panel"
+            id="view-options"
+            hidden={!toolsOpen}
+            aria-label="View options"
+          >
+            <div className="view-options-heading">
+              <strong>Make it your view</strong>
+              <button aria-label="Close view options" onClick={closeTools}>
+                <X size={18} />
+              </button>
+            </div>
             <div
               className="explorer-tabs"
               role="group"
               aria-label="Explorer tools"
             >
-              <button
-                aria-pressed={explorerPanel === "play"}
-                onClick={() => setExplorerPanel("play")}
-              >
-                <Sparkle size={13} /> Play
-              </button>
               <button
                 aria-pressed={explorerPanel === "sites"}
                 onClick={() => setExplorerPanel("sites")}
@@ -530,26 +601,6 @@ export default function App() {
               >
                 Layers
               </button>
-            </div>
-            <div hidden={explorerPanel !== "play"}>
-              <DiscoveryQuest
-                site={site}
-                physiology={physiology}
-                baseline={baseline}
-                onPrepare={(patch) => {
-                  setPhysiology((p) => ({ ...p, ...patch }));
-                  setMode(
-                    patch.heartRate && patch.heartRate >= 120
-                      ? "stream"
-                      : "beat",
-                  );
-                  setRunning(true);
-                }}
-                onCapture={() =>
-                  setBaseline({ physiology: { ...physiology }, site })
-                }
-                onSite={chooseSite}
-              />
             </div>
             <div hidden={explorerPanel !== "sites"}>
               <div className="panel-heading">
@@ -676,6 +727,8 @@ export default function App() {
                 layers={layers}
                 clock={clock}
                 running={running}
+                onReady={() => setAnatomyReady(true)}
+                pulseStart={experience === "explore" ? pulseStart : null}
               />
             </Suspense>
             <div className="body-status">
@@ -688,11 +741,35 @@ export default function App() {
           </section>
 
           <aside className="signal-panel">
+            <ExperienceGuide
+              ready={anatomyReady}
+              mode={experience}
+              site={site}
+              visited={visited}
+              physiology={physiology}
+              baseline={baseline}
+              clock={clock}
+              pulseStart={pulseStart}
+              onPulse={followPulse}
+              onMode={changeExperience}
+              onSite={chooseSite}
+              onPrepare={(next, saved) => {
+                setPhysiology(next);
+                if (saved) setBaseline(saved);
+                setMode(next.age === 25 || next.age === 70 ? "beat" : "stream");
+                if (next.heartRate === 120) setMode("stream");
+                setRunning(true);
+              }}
+              onWhy={() => changeExperience("understand")}
+            />
+
             <section className="signal-section">
               <div className="signal-header">
                 <div>
                   <span className="section-overline">
-                    SIMULATED PHOTOPLETHYSMOGRAPHY
+                    {experience === "explore"
+                      ? "THE SIGNAL AT THE SKIN"
+                      : "SIMULATED PHOTOPLETHYSMOGRAPHY"}
                   </span>
                   <h2>
                     {selected.name}
@@ -808,7 +885,57 @@ export default function App() {
               </button>
             </section>
 
-            <section className="physiology-section">
+            <section
+              className="understand-panel"
+              hidden={experience !== "understand"}
+            >
+              <details open>
+                <summary>What does PPG actually see?</summary>
+                <p>
+                  Light enters the skin. A detector measures how much returns or
+                  passes through. Blood-volume changes with each heartbeat
+                  modulate that light, creating the pulse waveform.
+                </p>
+              </details>
+              <details>
+                <summary>Why do different sites look different?</summary>
+                <p>
+                  The pulse travels through branching arteries. Local vessels,
+                  tissue and sensor placement shape the optical signal. The
+                  timing and contour here are illustrative, not calibrated
+                  measurements.
+                </p>
+              </details>
+              <details>
+                <summary>What are the peak and second rise?</summary>
+                <p>
+                  The systolic peak follows the initial upstroke. Later features
+                  reflect interacting forward and reflected waves. A dicrotic
+                  notch may be subtle or absent in real PPG; it is not a
+                  universal landmark.
+                </p>
+              </details>
+              <details>
+                <summary>Why does the shape change with age?</summary>
+                <p>
+                  This teaching model brings the reflected component earlier as
+                  age and stiffness rise, blending the later rise. Real people
+                  vary, so age cannot be read directly from a single trace.
+                </p>
+              </details>
+              <div className="understand-links">
+                <button onClick={() => setDialog("learn")}>
+                  <BookOpen size={17} /> Guided lessons
+                </button>
+                <button onClick={() => setDialog("sources")}>
+                  <Info size={17} /> Model & sources
+                </button>
+              </div>
+            </section>
+            <section
+              className="physiology-section"
+              hidden={experience !== "experiment"}
+            >
               <div className="panel-heading">
                 <h2>
                   <SlidersHorizontal size={16} />
@@ -872,7 +999,7 @@ export default function App() {
           </aside>
         </div>
 
-        <div className="under-workspace">
+        <div className="under-workspace" hidden={experience !== "experiment"}>
           <section className="insight-panel">
             <span className="insight-icon">
               <Lightbulb size={21} />
@@ -943,7 +1070,7 @@ export default function App() {
           </section>
         </div>
 
-        {motionExpanded && (
+        {motionExpanded && experience === "experiment" && (
           <section className="motion-panel">
             <div className="motion-explanation">
               <span className="section-overline">
@@ -1020,6 +1147,7 @@ export default function App() {
                 onClick={() => {
                   l.action();
                   setLesson(i);
+                  changeExperience("experiment");
                   setDialog(null);
                 }}
               >

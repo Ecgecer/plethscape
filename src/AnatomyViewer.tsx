@@ -41,6 +41,8 @@ interface Props {
   layers: Layers;
   clock: RefObject<{ time: number; running: boolean }>;
   running: boolean;
+  pulseStart?: number | null;
+  onReady?: () => void;
 }
 
 export default function AnatomyViewer(props: Props) {
@@ -66,6 +68,7 @@ export default function AnatomyViewer(props: Props) {
   const [cutaway, setCutaway] = useState(true);
   const cutawayRef = useRef(true);
   const breathLabel = useRef<HTMLSpanElement>(null);
+  const journeyLabel = useRef<HTMLDivElement>(null);
   const breathBar = useRef<HTMLSpanElement>(null);
   const [focus, setFocus] = useState(false);
   const [heartDetail, setHeartDetail] = useState(false);
@@ -81,6 +84,10 @@ export default function AnatomyViewer(props: Props) {
     if (isWearableSite(props.site)) actions.current?.select(props.site);
     else actions.current?.reset();
   }, [props.site]);
+
+  useEffect(() => {
+    if (props.pulseStart != null) actions.current?.reset();
+  }, [props.pulseStart]);
 
   useEffect(() => {
     if (!host.current) return;
@@ -530,11 +537,32 @@ export default function AnatomyViewer(props: Props) {
         if (anatomy.group.userData.bodyLoaded) {
           loaded = true;
           setReady(true);
+          p.onReady?.();
         }
         if (anatomy.group.userData.loadError) setError(true);
       }
       anatomy.setCutaway(deviceFocusRef.current ? false : cutawayRef.current);
       anatomy.setGlow("amber");
+      const journeyProgress =
+        p.pulseStart == null ? -1 : (p.clock.current.time - p.pulseStart) / 8;
+      anatomy.setJourney(
+        journeyProgress >= 0 && journeyProgress <= 1 ? journeyProgress : -1,
+      );
+      element.dataset.journeyProgress = String(journeyProgress);
+      const journeyActive = journeyProgress >= 0 && journeyProgress < 1;
+      if (element.parentElement)
+        element.parentElement.dataset.pulseActive = String(journeyActive);
+      if (journeyLabel.current) {
+        journeyLabel.current.hidden = !journeyActive;
+        const label =
+          journeyProgress < 0.25
+            ? "01 · A heartbeat begins the journey"
+            : journeyProgress < 0.75
+              ? "02 · Follow the pulse through the arm"
+              : "03 · Light detects the pulse at the wrist";
+        if (journeyLabel.current.textContent !== label)
+          journeyLabel.current.textContent = label;
+      }
       anatomy.setHeartFocus(heartDetailRef.current);
       const effectivePresentation: Presentation = "atlas";
       hemisphere.intensity = isolatedDeviceRef.current ? 0.8 : 0.85;
@@ -712,6 +740,12 @@ export default function AnatomyViewer(props: Props) {
 
   return (
     <div className={`anatomy-viewer ${deviceFocus ? "inspecting-device" : ""}`}>
+      <div
+        className="pulse-narration"
+        ref={journeyLabel}
+        hidden
+        aria-live="polite"
+      />
       <div className="scene-corner">
         <span className="cross-hair">+</span> ANATOMICAL ATLAS{" "}
         <span className="scene-corner-detail">BODYPARTS3D / REAL TIME</span>

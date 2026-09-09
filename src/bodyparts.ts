@@ -196,6 +196,7 @@ export function createAnatomy() {
   let heartFocus = false;
   const shared = {
     atlasTime: { value: 0 },
+    atlasJourney: { value: -1 },
     atlasMotion: { value: 0 },
     atlasCadence: { value: 5.5 },
     atlasCutaway: { value: 1 },
@@ -948,6 +949,9 @@ export function createAnatomy() {
       heartFocus = enabled;
       shared.atlasHeartFocus.value = enabled ? 1 : 0;
       setPresentation(mode);
+    },
+    setJourney: (progress: number) => {
+      shared.atlasJourney.value = progress;
     },
     setGlow: (color: "blue" | "amber") => {
       shared.atlasGlowColor.value.set(color === "blue" ? "#5babff" : "#ff933f");

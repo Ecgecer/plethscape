@@ -195,3 +195,7 @@ Pinch/scroll zoom follows the gesture position; two-finger drag or right-drag pa
 ### Facial presentation and sensor cues
 
 The added nostril recesses, eyebrows, lip pigment and iris detail are illustrative facial presentation, not additional source anatomy or an airway model. An opaque head depth surface hides far-side wearables; the torso remains translucent. The neck patch and forehead band are fitted to the loaded skin surface with a small display clearance. Amber wearable halos are discovery cues, not simulated optical propagation, and do not alter PPG values.
+
+### Introductory pulse journey
+
+The optional eight-second journey is explicitly slowed for storytelling. It highlights successive source segments of the ascending aorta, aortic arch, left subclavian, left brachial and left radial artery. Missing source segments are not joined by invented geometry. The highlight represents a schematic pressure-pulse sequence, not a blood parcel moving at that speed, and is not a calibrated propagation model. The wrist PPG remains the existing synthetic tissue-volume signal.
