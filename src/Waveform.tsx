@@ -8,6 +8,8 @@ import {
   type SiteId,
 } from "./simulation";
 
+import { analyzePulse, type FiducialId } from "./fiducials";
+
 type WaveformProps = {
   physiology: Physiology;
   site: SiteId;
@@ -15,9 +17,8 @@ type WaveformProps = {
   compare?: { physiology: Physiology; site: SiteId } | null;
   mode?: "stream" | "beat" | "accelerometer";
   annotate?: boolean;
+  selectedFiducial?: FiducialId;
 };
-
-type Landmark = { index: number; label: string; short: string; color: string };
 
 const COLORS = {
   trace: "#efaa70",
@@ -27,62 +28,6 @@ const COLORS = {
   text: "#a1978d",
   bright: "#f3ede7",
 };
-
-// Landmarks are measured from the generated cycle, never placed at fixed phases.
-// With a merged reflected wave there may be no discrete notch to annotate.
-function findLandmarks(samples: Float32Array): Landmark[] {
-  const n = samples.length;
-  const smooth = new Float32Array(n);
-  for (let i = 0; i < n; i++) {
-    let sum = 0;
-    let count = 0;
-    for (let j = Math.max(0, i - 2); j <= Math.min(n - 1, i + 2); j++) {
-      sum += samples[j];
-      count++;
-    }
-    smooth[i] = sum / count;
-  }
-  let peak = 1;
-  for (let i = 2; i < Math.floor(n * 0.56); i++) {
-    if (smooth[i] > smooth[peak]) peak = i;
-  }
-  const landmarks: Landmark[] = [
-    {
-      index: peak,
-      label: "Systolic peak",
-      short: "Systolic",
-      color: COLORS.trace,
-    },
-  ];
-  const threshold = Math.max(0.006, smooth[peak] * 0.012);
-  for (let i = peak + 5; i < Math.floor(n * 0.76); i++) {
-    if (smooth[i] > smooth[i - 1] || smooth[i] >= smooth[i + 1]) continue;
-    for (let j = i + 3; j < Math.floor(n * 0.9); j++) {
-      if (smooth[j] < smooth[j - 1] || smooth[j] <= smooth[j + 1]) continue;
-      if (
-        smooth[j] - smooth[i] > threshold &&
-        smooth[peak] - smooth[i] > threshold
-      ) {
-        landmarks.push(
-          {
-            index: i,
-            label: "Dicrotic notch",
-            short: "Notch",
-            color: COLORS.cyan,
-          },
-          {
-            index: j,
-            label: "Diastolic peak",
-            short: "Diastolic",
-            color: COLORS.comparison,
-          },
-        );
-        return landmarks;
-      }
-    }
-  }
-  return landmarks;
-}
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
@@ -148,7 +93,7 @@ export default function Waveform(props: WaveformProps) {
       const plotHeight = Math.max(1, height - pad.top - pad.bottom);
       // Keep at least 125 samples/s in a stream, even on narrow screens.
       const count = Math.max(
-        beat ? 256 : 626,
+        beat ? 1025 : 626,
         Math.min(1000, Math.ceil(plotWidth * 1.3)),
       );
       const minY = accelerometer ? -2 : PPG_DISPLAY_RANGE.min;
@@ -199,7 +144,7 @@ export default function Waveform(props: WaveformProps) {
           i === 0 ? "left" : i === divisions * 4 ? "right" : "center";
         const fraction = i / (divisions * 4);
         const label = beat
-          ? `${Math.round(fraction * 100)}${i === divisions * 4 ? "% cycle" : ""}`
+          ? `${Math.round(fraction * 100)}${i === divisions * 4 ? "%" : ""}`
           : i === divisions * 4
             ? "now"
             : `−${((1 - fraction) * span).toFixed(fraction === 0 ? 0 : 1)}s`;
@@ -315,7 +260,15 @@ export default function Waveform(props: WaveformProps) {
       ctx.restore();
 
       if (beat && annotate) {
-        const landmarks = findLandmarks(samples);
+        const landmarks = analyzePulse(samples).points.map((point) => ({
+          ...point,
+          label: point.id,
+          short: point.id,
+          color:
+            point.id === latestRef.current.selectedFiducial
+              ? COLORS.bright
+              : COLORS.trace,
+        }));
         const labels = landmarks.map((landmark) => {
           const label = width < 480 ? landmark.short : landmark.label;
           return {
@@ -364,14 +317,20 @@ export default function Waveform(props: WaveformProps) {
           ctx.globalAlpha = 1;
           ctx.fillStyle = "#151412";
           ctx.beginPath();
-          ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+          ctx.arc(
+            x,
+            y,
+            landmark.id === latestRef.current.selectedFiducial ? 5.5 : 3.5,
+            0,
+            Math.PI * 2,
+          );
           ctx.fill();
           ctx.stroke();
           ctx.fillStyle = landmark.color;
           ctx.textAlign = "center";
           ctx.fillText(landmark.label, landmark.labelX, 13);
         }
-        if (landmarks.length === 1 && width > 290) {
+        if (!landmarks.some((point) => point.id === "dn") && width > 290) {
           ctx.textAlign = "right";
           ctx.fillStyle = COLORS.text;
           ctx.fillText(

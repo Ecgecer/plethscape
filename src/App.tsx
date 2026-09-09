@@ -28,6 +28,8 @@ import {
   X,
 } from "@phosphor-icons/react";
 import Waveform from "./Waveform";
+import FiducialGuide from "./FiducialGuide";
+import type { FiducialId } from "./fiducials";
 import LivePhysiology from "./LivePhysiology";
 import ExperienceGuide, { type ExperienceMode } from "./ExperienceGuide";
 import {
@@ -277,6 +279,7 @@ export default function App() {
   const [lesson, setLesson] = useState<number | null>(null);
   const [motionExpanded, setMotionExpanded] = useState(false);
   const [annotate, setAnnotate] = useState(true);
+  const [selectedFiducial, setSelectedFiducial] = useState<FiducialId>("sp");
   const [experience, setExperience] = useState<ExperienceMode>("explore");
   const [toolsOpen, setToolsOpen] = useState(false);
   const viewOptionsTrigger = useRef<HTMLButtonElement>(null);
@@ -816,6 +819,7 @@ export default function App() {
                   compare={baseline}
                   mode={mode}
                   annotate={annotate}
+                  selectedFiducial={selectedFiducial}
                 />
               </div>
               <div className="chart-controls">
@@ -888,6 +892,15 @@ export default function App() {
                 {baseline ? <X size={13} /> : <PlusSmall />}
               </button>
             </section>
+
+            {mode === "beat" && annotate && (
+              <FiducialGuide
+                physiology={physiology}
+                site={site}
+                selected={selectedFiducial}
+                onSelect={setSelectedFiducial}
+              />
+            )}
 
             <section
               className="understand-panel"

@@ -244,3 +244,12 @@ The added nostril recesses, eyebrows, lip pigment and iris detail are illustrati
 ### Introductory pulse journey
 
 The optional eight-second journey is explicitly slowed for storytelling. It highlights successive source segments of the ascending aorta, aortic arch, left subclavian, left brachial and left radial artery. Missing source segments are not joined by invented geometry. The highlight represents a schematic pressure-pulse sequence, not a blood parcel moving at that speed, and is not a calibrated propagation model. The wrist PPG remains the existing synthetic tissue-volume signal.
+
+
+## Single-pulse fiducials
+
+The single-beat view uses the standard **on** (pulse onset/foot), **sp** (systolic peak), **dn** (dicrotic notch), **dp** (diastolic peak), and **off** (pulse offset/next onset) terminology. **u** is the maximum first-derivative upslope, projected onto the original PPG trace; second-derivative a–f labels are not applied to raw PPG peaks. Terminology follows Goda, Charlton and Behar, *pyPPG: a Python toolbox for comprehensive photoplethysmography signal analysis* (2024), https://doi.org/10.1088/1361-6579/ad33a2. Figure 3 illustrates variation in notch visibility; Plethscape does not assign clinical contour classes.
+
+A custom detector measures the generated clean pulse on a fixed 1,025-sample grid. On/off are the known segment boundaries, sp is the early systolic maximum, and u is the steepest central-difference upslope after light smoothing. A dn/dp pair is shown only when there is a resolved local minimum followed by a prominent local maximum; merged shoulders remain unmarked. This is a teaching detector, not the pyPPG algorithm or a validated clinical fiducial extractor. A peripheral optical notch is not a direct measurement of aortic valve closure.
+
+Crest time is on–sp, pulse duration is on–off, amplitude is foot-to-crest in arbitrary units, and width at 50% spans the first rising and last falling half-amplitude crossings (linearly interpolated). Times use the selected mean heart rate because this is a representative pulse; they are separate from the respiratory variability of the live stream. The saved comparison remains a dashed reference; annotations describe the active amber pulse only.

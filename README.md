@@ -92,3 +92,6 @@ Interface text now uses scalable rem sizes: ordinary controls and copy are gener
 The Explore / Experiment / Understand redesign replaces the former expedition sidebar. Desktop anatomy stays alongside scrolling controls and explanations; the waveform stays visible while experimenting. Phones get an immediate journey action above the body and an accessible three-part navigation. The journey is an illustrative pressure-pulse story, not tracking a blood cell or reproducing calibrated transit time.
 
 Pinch and wheel zoom capture a body-surface point once per gesture. That point remains beneath the touch midpoint or cursor as the camera moves; two-finger translation pans at the same depth. Client coordinates keep the interaction correct after page scrolling. Zoom has near/far limits, uses a view-plane fallback over empty space, and preserves ordinary device taps and orbit gestures. Surface depth comes from reference meshes; shader-only organ deformation is not a separate collision surface.
+
+
+Single-beat **Labels** opens an interactive fiducial guide: select on, u, sp, dn, dp, or off for the full name and explanation. Only resolved notch/diastolic peaks receive markers. Expand **Pulse timing & shape** for crest time, duration, half-amplitude width, and amplitude. Definitions and teaching-model limits are documented in [SCIENCE.md](docs/SCIENCE.md).

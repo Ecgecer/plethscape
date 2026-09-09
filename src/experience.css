@@ -882,3 +882,128 @@
     margin-top: 8px;
   }
 }
+
+/* Full names stay in a readable legend; short symbols keep the trace clear. */
+.fiducial-guide {
+  padding: 22px 0;
+  border-bottom: 1px solid #393127;
+  order: 1;
+}
+.fiducial-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.fiducial-heading h3 {
+  font-size: 1.25rem;
+  margin: 0;
+}
+.fiducial-heading > span,
+.fiducial-intro {
+  color: #b7aa9b;
+  font-size: 0.875rem;
+}
+.fiducial-intro {
+  line-height: 1.6;
+}
+.fiducial-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.fiducial-options button {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  align-items: center;
+  text-align: left;
+  gap: 6px;
+  padding: 12px 10px;
+  min-height: 60px;
+  border: 1px solid #40362b;
+  border-radius: 10px;
+  background: #191610;
+  color: #c7b9a8;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+.fiducial-options button b {
+  font-family: "Geist Mono Variable", monospace;
+  color: #efaa70;
+  font-size: 1rem;
+}
+.fiducial-options button small {
+  grid-column: 2;
+  color: #ac9c8b;
+  font-size: 0.75rem;
+}
+.fiducial-options button[aria-pressed="true"] {
+  background: #322316;
+  border-color: #efaa70;
+  color: #fff3e7;
+  box-shadow: inset 0 0 18px #efaa700a;
+}
+.fiducial-options button:focus-visible {
+  outline: 2px solid #f6ca9e;
+  outline-offset: 3px;
+}
+.fiducial-description {
+  margin-top: 16px;
+  padding: 16px;
+  background: #1b1711;
+  border-left: 2px solid #efaa70;
+  border-radius: 0 10px 10px 0;
+}
+.fiducial-description h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+.fiducial-description h4 span {
+  color: #efaa70;
+}
+.fiducial-description p,
+.pulse-measurements p {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: #c8bcad;
+  margin: 10px 0 0;
+}
+.fiducial-description .fiducial-reading {
+  color: #efc5a0;
+  font-size: 0.875rem;
+}
+.pulse-measurements {
+  margin-top: 20px;
+}
+.pulse-measurements summary {
+  cursor: pointer;
+  padding: 8px 0;
+  font-size: 1rem;
+}
+.pulse-measurements dl {
+  font-size: 0.875rem;
+}
+.pulse-measurements dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #332b23;
+}
+.pulse-measurements dd {
+  margin: 0;
+  white-space: nowrap;
+  color: #efc5a0;
+}
+.fiducial-source {
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  color: #ad9f90;
+  margin-top: 20px;
+}
+.fiducial-source a {
+  color: #e7ba93;
+  text-underline-offset: 3px;
+}
