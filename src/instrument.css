@@ -1,0 +1,1275 @@
+/* The workspace keeps the cause, anatomy and resulting signal together. */
+.instrument-shell {
+  max-width: 1920px;
+  padding: 0 28px;
+}
+.instrument-shell .app-header {
+  min-height: 76px;
+  padding-block: 14px;
+  gap: 20px;
+}
+.instrument-shell .nav-item.active:after {
+  bottom: -14px;
+}
+.instrument-shell .workspace-heading {
+  min-height: 134px;
+  padding: 24px 0;
+  gap: 24px;
+}
+.instrument-shell .workspace-heading h1 {
+  font-size: clamp(1.7rem, 2.1vw, 2.65rem);
+  max-width: 880px;
+  line-height: 1.12;
+  margin: 8px 0 10px;
+}
+.instrument-shell .workspace-heading p {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.instrument-shell .workspace-kicker {
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+}
+.instrument-shell .workspace-tools {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 10px;
+}
+.instrument-shell .lab-workspace {
+  grid-template-columns: 288px minmax(270px, 0.78fr) minmax(460px, 1.22fr);
+  gap: 18px;
+}
+.instrument-shell .control-rail {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  padding: 19px;
+  border: 1px solid #3b3025;
+  border-radius: 16px;
+  background: linear-gradient(160deg, #1b1713, #14120f);
+}
+.instrument-shell .location-selector .site-selector-heading {
+  display: block;
+  padding: 0 0 14px;
+}
+.instrument-shell .location-selector .site-selector-heading > span {
+  display: block;
+  font-size: 0.625rem;
+  letter-spacing: 0.13em;
+}
+.instrument-shell .location-selector .site-selector-heading h3 {
+  font-size: 1.125rem;
+  margin-top: 6px;
+}
+.instrument-shell .location-selector .site-selector-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  overflow: visible;
+  padding: 0;
+}
+.instrument-shell .location-selector .site-selector-list button {
+  width: 100%;
+  min-height: 65px;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 7px;
+  padding: 9px 7px;
+  border: 1px solid #3a3026;
+  background: #100f0d;
+  border-radius: 9px;
+}
+.instrument-shell .location-selector .site-selector-list button:last-child {
+  grid-column: 1/-1;
+}
+.instrument-shell
+  .location-selector
+  .site-selector-list
+  button[aria-pressed="true"] {
+  background: linear-gradient(115deg, #6a4227, #322318);
+  border-color: #d29964;
+  box-shadow: inset 0 1px #ffdab51c;
+}
+.instrument-shell .location-selector .site-selector-name strong {
+  font-size: 0.9375rem;
+  white-space: normal;
+}
+.instrument-shell .location-selector .site-selector-name small {
+  font-size: 0.6875rem;
+  white-space: normal;
+  color: #baa996;
+}
+.instrument-shell .location-selector .site-selector-icon {
+  width: 24px;
+  background: transparent;
+}
+.instrument-shell .location-selector .site-selector-preview {
+  display: none;
+}
+.instrument-shell .location-selector .site-selector-note {
+  display: none;
+}
+.instrument-shell .physiology-controls {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.instrument-shell .physiology-section {
+  background: transparent;
+  margin-top: 23px;
+  padding: 22px 0 0;
+  border: 0;
+  border-top: 1px solid #403225;
+  border-radius: 0;
+}
+.instrument-shell .control-rail .panel-heading {
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.instrument-shell .control-rail .panel-heading h2 {
+  font-size: 1rem;
+  line-height: 1.4;
+  gap: 6px;
+}
+.instrument-shell .control-rail .panel-heading h2 svg {
+  display: none;
+}
+.instrument-shell .quiet-button {
+  min-height: 40px;
+  font-size: 0.8125rem;
+}
+.instrument-shell .control-rail .panel-description {
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  margin: 0 0 16px;
+  color: #ab9c8d;
+}
+.instrument-shell .range-control {
+  margin: 0 0 18px;
+  display: block;
+}
+.instrument-shell .range-control > div {
+  margin-bottom: 0;
+  gap: 6px;
+}
+.instrument-shell .range-control > div > span {
+  font-size: 0.9375rem;
+  gap: 5px;
+}
+.instrument-shell .range-control output {
+  font-size: 1.2rem;
+  color: #f1c59d;
+  white-space: nowrap;
+}
+.instrument-shell .range-control output small {
+  font-size: 0.6875rem;
+  margin-left: 3px;
+}
+.instrument-shell .range-control input {
+  height: 32px;
+  margin: 2px 0 0;
+  padding: 0;
+  background: linear-gradient(
+      to right,
+      #eeb078 var(--range-value),
+      #44382e var(--range-value)
+    )
+    center/100% 4px no-repeat;
+  cursor: pointer;
+}
+.instrument-shell .range-control input::-webkit-slider-thumb {
+  width: 21px;
+  height: 21px;
+  border: 3px solid #302217;
+  background: #ffd0a0;
+  box-shadow:
+    0 0 0 1px #e1a875,
+    0 2px 6px #0008;
+}
+.instrument-shell .range-control input::-moz-range-thumb {
+  width: 17px;
+  height: 17px;
+  border: 2px solid #302217;
+  background: #ffd0a0;
+}
+.instrument-shell .range-labels {
+  font-size: 0.6875rem;
+  margin-top: 0;
+  color: #b5a28f;
+}
+.instrument-shell .activity-panel {
+  display: block;
+  border: 0;
+  background: transparent;
+  padding: 1px 0 17px;
+  border-radius: 0;
+}
+.instrument-shell .activity-panel h3 {
+  font-size: 0.9375rem;
+  margin: 0 0 10px;
+}
+.instrument-shell .activity-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+}
+.instrument-shell .activity-options button {
+  min-width: 0;
+  min-height: 48px;
+  padding: 8px 3px;
+  font-size: 0.875rem;
+  gap: 5px;
+}
+.instrument-shell .activity-options button svg {
+  width: 17px;
+}
+.instrument-shell .motion-disclosure {
+  min-height: 40px;
+  margin-top: 5px;
+  font-size: 0.8125rem;
+}
+.instrument-shell .more-settings {
+  border-top: 1px solid #403225;
+  padding-top: 8px;
+}
+.instrument-shell .more-settings > summary {
+  cursor: pointer;
+  padding: 12px 0;
+  color: #e7c5a4;
+  font-size: 0.9375rem;
+}
+.instrument-shell .more-settings > summary > span {
+  display: block;
+  margin-top: 6px;
+  color: #a79787;
+  font-size: 0.75rem;
+}
+.instrument-shell .more-settings .range-control {
+  margin-top: 18px;
+}
+.instrument-shell .rhythm-lab {
+  margin: 8px 0 0;
+  padding: 14px 0;
+  border: 0;
+}
+.instrument-shell .rhythm-options {
+  grid-template-columns: 1fr;
+}
+.instrument-shell .capture-control-note {
+  color: #e1b288;
+  font-size: 0.875rem;
+  padding: 12px 0;
+}
+.instrument-shell .body-panel {
+  grid-column: 2;
+  grid-row: 1;
+  height: calc(100dvh - 235px);
+  min-height: 640px;
+  max-height: 900px;
+  top: 18px;
+  background: #080807;
+}
+.instrument-shell .signal-panel {
+  grid-column: 3;
+  grid-row: 1;
+  border: 1px solid #453426;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #1b1611, #110f0d);
+  padding: 23px;
+}
+.instrument-shell .signal-section {
+  padding: 0;
+  border: 0;
+  margin: 0;
+}
+.instrument-shell .signal-header h2 {
+  font-size: clamp(1.3rem, 1.65vw, 1.8rem);
+  margin-top: 8px;
+  letter-spacing: -0.04em;
+}
+.instrument-shell .signal-title-separator {
+  color: #78624c;
+  padding: 0 5px;
+}
+.instrument-shell .section-overline {
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+}
+.instrument-shell .signal-meta {
+  font-size: 0.8125rem;
+  margin-top: 10px;
+}
+.instrument-shell .play-button {
+  min-width: 44px;
+  min-height: 44px;
+}
+.instrument-shell .baseline-button {
+  display: flex;
+  min-height: 44px;
+  margin: 20px 0 0;
+  padding: 10px 13px;
+  font-size: 0.875rem;
+  border-color: #59412d;
+}
+.instrument-shell .signal-chart {
+  height: 280px;
+  margin-top: 16px;
+  background: radial-gradient(ellipse at 50% 95%, #aa6b2710, transparent 70%);
+}
+.instrument-shell .chart-controls {
+  display: flex;
+  margin-top: 6px;
+  gap: 8px;
+}
+.instrument-shell .segmented button {
+  min-height: 42px;
+  font-size: 0.875rem;
+  padding: 9px 15px;
+}
+.instrument-shell .chart-window {
+  font-size: 0.75rem;
+}
+.instrument-shell .trace-scale-controls {
+  font-size: 0.75rem;
+  margin: 10px 0 16px;
+}
+.instrument-shell .trace-scale-controls > span {
+  flex-basis: auto;
+  margin-left: auto;
+}
+.instrument-shell .signal-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 10px;
+  padding: 0;
+}
+.instrument-shell .signal-metrics > div,
+.instrument-shell .signal-metrics > div:not(:first-child) {
+  display: block;
+  padding: 10px 12px;
+  border: 1px solid #3c3024;
+}
+.instrument-shell .signal-metrics strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.2rem;
+}
+.instrument-shell .signal-metrics > div > span {
+  font-size: 0.75rem;
+}
+.instrument-shell .signal-change-note {
+  margin: 20px 0;
+  padding: 12px 15px;
+  border-left: 2px solid #d99a65;
+  background: #d5975210;
+  color: #cbb9a7;
+  font-size: 0.875rem;
+  line-height: 1.65;
+}
+.instrument-shell .signal-change-note > span {
+  display: block;
+  color: #f2c79e;
+  font-weight: 550;
+  margin-bottom: 4px;
+}
+.instrument-shell .representative-panel {
+  border-top: 1px solid #473525;
+  padding-top: 20px;
+}
+.instrument-shell .representative-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.instrument-shell .representative-heading h3 {
+  font-size: 1rem;
+  margin: 0;
+  font-weight: 500;
+}
+.instrument-shell .representative-heading > span {
+  font-size: 0.6875rem;
+  color: #a9947f;
+}
+.instrument-shell .representative-chart {
+  height: 205px;
+  margin-top: 15px;
+}
+.instrument-shell .pulse-guide summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding-top: 14px;
+  font-size: 0.875rem;
+  color: #edbc8c;
+}
+.instrument-shell .selected-device-card {
+  left: 12px;
+  right: 12px;
+  bottom: 54px;
+  width: auto;
+  padding: 13px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 12px;
+}
+.instrument-shell .selected-device-card strong {
+  font-size: 0.9375rem;
+}
+.instrument-shell .selected-device-card > span {
+  font-size: 0.75rem;
+}
+.instrument-shell .selected-device-card button {
+  font-size: 0.8125rem;
+  min-height: 36px;
+  padding: 4px 0;
+}
+.instrument-shell .selected-device-card .selected-device-status {
+  width: 100%;
+}
+.instrument-shell .anatomy-viewer .device-inspector {
+  left: 12px;
+  right: 12px;
+  bottom: 54px;
+  padding: 15px;
+}
+.instrument-shell .scene-label {
+  left: 16px;
+  top: 18px;
+  font-size: 0.6875rem;
+}
+.instrument-shell .scene-label small {
+  font-size: 0.5625rem;
+}
+.instrument-shell .body-status {
+  padding: 9px 12px;
+  font-size: 0.625rem;
+}
+.instrument-shell .body-status > span:last-child {
+  display: none;
+}
+.instrument-shell .view-options-panel {
+  left: auto;
+  right: 0;
+  z-index: 12;
+}
+.instrument-shell .learning-drawer {
+  margin: 18px 18px 18px auto;
+  width: min(500px, calc(100% - 36px));
+  max-width: none;
+  height: calc(100dvh - 36px);
+  max-height: none;
+  border-radius: 18px;
+}
+.instrument-shell .learning-drawer .modal-header {
+  padding: 20px 24px;
+}
+.instrument-shell .learning-drawer .modal-header h2 {
+  font-size: 1.2rem;
+}
+.instrument-shell .learning-drawer .modal-body {
+  padding: 22px 24px;
+}
+.instrument-shell .learning-modes {
+  display: flex;
+  gap: 6px;
+  border-bottom: 1px solid #493727;
+  padding-bottom: 16px;
+  margin-bottom: 20px;
+}
+.instrument-shell .learning-modes button {
+  flex: 1;
+  padding: 11px 7px;
+  border: 1px solid #493727;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+}
+.instrument-shell .learning-modes button[aria-pressed="true"] {
+  background: #4c3220;
+  color: #ffcd9e;
+  border-color: #a77549;
+}
+.instrument-shell .experience-guide {
+  border: 0;
+  padding: 0;
+}
+.instrument-shell .experience-guide h2 {
+  font-size: 1.8rem;
+}
+.instrument-shell :is(button, summary, input, select):focus-visible {
+  outline: 2px solid #ffc58e;
+  outline-offset: 3px;
+}
+@media (min-width: 1600px) {
+  .instrument-shell .lab-workspace {
+    grid-template-columns: 310px minmax(370px, 0.8fr) minmax(550px, 1.2fr);
+    gap: 24px;
+  }
+  .instrument-shell .signal-chart {
+    height: 320px;
+  }
+}
+@media (max-width: 1199px) {
+  .instrument-shell {
+    padding: 0 20px;
+  }
+  .instrument-shell .lab-workspace {
+    grid-template-columns: 270px minmax(0, 1fr);
+  }
+  .instrument-shell .signal-panel {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .instrument-shell .body-panel {
+    grid-column: 2;
+    grid-row: 2;
+    position: relative;
+    top: auto;
+    height: 660px;
+    min-height: 660px;
+  }
+  .instrument-shell .control-rail {
+    grid-row: 1/3;
+    position: sticky;
+    top: 18px;
+  }
+  .instrument-shell .workspace-tools {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .instrument-shell .workspace-heading h1 {
+    max-width: 600px;
+  }
+}
+@media (max-width: 700px) {
+  .instrument-shell {
+    padding: 0 14px;
+  }
+  .instrument-shell .app-header {
+    flex-wrap: wrap;
+    padding: 14px 0 10px;
+    gap: 10px;
+  }
+  .instrument-shell .brand small {
+    display: none;
+  }
+  .instrument-shell .app-header nav {
+    order: 0;
+    width: auto;
+    gap: 18px;
+    margin-left: auto;
+  }
+  .instrument-shell .nav-item {
+    font-size: 0.875rem;
+  }
+  .instrument-shell .nav-item.active:after {
+    display: none;
+  }
+  .instrument-shell .header-actions {
+    display: none;
+  }
+  .instrument-shell .workspace-heading {
+    display: block;
+    padding: 22px 0;
+  }
+  .instrument-shell .workspace-heading h1 {
+    font-size: 1.9rem;
+  }
+  .instrument-shell .workspace-tools {
+    flex-direction: row;
+    margin-top: 18px;
+  }
+  .instrument-shell .workspace-tools .studio-launch {
+    width: auto;
+  }
+  .instrument-shell .lab-workspace {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .instrument-shell .control-rail {
+    grid-column: 1;
+    grid-row: 1;
+    position: static;
+    padding: 17px;
+  }
+  .instrument-shell .location-selector .site-selector-list {
+    display: flex;
+    overflow-x: auto;
+    padding: 3px 2px 8px;
+  }
+  .instrument-shell .location-selector .site-selector-list button {
+    width: 136px;
+    flex: 0 0 136px;
+  }
+  .instrument-shell .physiology-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 20px;
+    margin-top: 13px;
+    padding-top: 12px;
+  }
+  .instrument-shell .physiology-section > .panel-heading,
+  .instrument-shell .physiology-section > .panel-description {
+    grid-column: 1/-1;
+  }
+  .instrument-shell .range-control > div {
+    flex-wrap: wrap;
+  }
+  .instrument-shell .range-control > div > span {
+    font-size: 0.8125rem;
+  }
+  .instrument-shell .range-control output {
+    font-size: 1rem;
+  }
+  .instrument-shell .range-labels {
+    font-size: 0.625rem;
+  }
+  .instrument-shell .activity-options button {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+  }
+  .instrument-shell .signal-panel {
+    grid-column: 1;
+    grid-row: 2;
+    padding: 18px;
+  }
+  .instrument-shell .body-panel {
+    grid-column: 1;
+    grid-row: 3;
+    height: 660px;
+    min-height: 660px;
+  }
+  .instrument-shell .signal-chart {
+    height: 270px;
+  }
+  .instrument-shell .signal-header h2 {
+    font-size: 1.4rem;
+  }
+  .instrument-shell .trace-scale-controls > span {
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+  .instrument-shell .selected-device-card {
+    display: flex;
+  }
+  .instrument-shell .learning-drawer {
+    margin: 8px;
+    width: calc(100% - 16px);
+    height: calc(100dvh - 16px);
+  }
+}
+/* Scroll controls without losing the signal that they affect. */
+@media (min-width: 1200px) {
+  .instrument-shell .control-rail,
+  .instrument-shell .signal-panel {
+    position: sticky;
+    top: 18px;
+    max-height: max(640px, calc(100dvh - 235px));
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #735336 transparent;
+    overscroll-behavior-y: contain;
+  }
+  .instrument-shell .location-selector .site-selector-list button {
+    min-height: 55px;
+  }
+  .instrument-shell .control-rail .panel-description {
+    display: none;
+  }
+  .instrument-shell .range-control {
+    margin-bottom: 12px;
+  }
+  .instrument-shell .activity-options button {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+.instrument-shell .signal-header h2 {
+  display: block;
+}
+.instrument-shell .signal-site-dot {
+  display: inline-block;
+  margin-left: 10px;
+}
+.instrument-shell .selected-device-card {
+  bottom: 80px;
+}
+.instrument-shell .interaction-hint {
+  max-width: 155px;
+}
+.instrument-shell .activity-options button {
+  width: 100%;
+}
+
+.instrument-shell .mobile-export {
+  display: none;
+}
+@media (max-width: 700px) {
+  .instrument-shell .mobile-export {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    margin-top: 18px;
+    min-height: 44px;
+  }
+}
+
+/* Keep the knees and ankles visible while studying gait. */
+.instrument-shell .anatomy-viewer[data-moving="true"] .selected-device-card {
+  bottom: 10px;
+  padding: 9px 12px;
+  align-items: center;
+  gap: 3px 12px;
+}
+.instrument-shell
+  .anatomy-viewer[data-moving="true"]
+  .selected-device-card
+  > span {
+  display: none;
+}
+.instrument-shell
+  .anatomy-viewer[data-moving="true"]
+  .selected-device-card
+  button {
+  min-height: 30px;
+}
+.instrument-shell .anatomy-viewer[data-moving="true"] .scene-hint {
+  display: none;
+}
+.instrument-shell .anatomy-viewer[data-moving="true"] .scene-bottom {
+  bottom: 69px;
+  justify-content: flex-end;
+}
+
+/* Location choice lesson: evidence and everyday use, without a site leaderboard. */
+.site-lesson-feature {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 24px;
+  margin-bottom: 24px;
+  border: 1px solid #826044;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #352519, #1b1713);
+  color: #f7eee5;
+  cursor: pointer;
+}
+.site-lesson-feature > span:first-child,
+.site-lesson-kicker {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: #e8b98b;
+}
+.site-lesson-feature strong {
+  font-size: 26px;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+}
+.site-lesson-feature > span:last-child {
+  font-size: 16px;
+  line-height: 1.5;
+  color: #cbbbaa;
+}
+.site-lesson-feature svg {
+  vertical-align: middle;
+  margin-left: 6px;
+}
+.site-choice-lesson {
+  color: #e8dfd5;
+  font-size: 17px;
+  line-height: 1.65;
+}
+.site-choice-lesson button {
+  font: inherit;
+  cursor: pointer;
+}
+.site-lesson-back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: 0;
+  color: #cbbbaa;
+  padding: 8px 0;
+  margin-bottom: 20px;
+}
+.site-choice-lesson h3 {
+  font-size: 32px;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  margin: 10px 0 16px;
+}
+.site-lesson-intro {
+  color: #c7b8aa;
+  margin-bottom: 24px;
+}
+.site-lesson-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 24px 0;
+}
+.site-lesson-steps button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 80px;
+  border: 1px solid #45382d;
+  border-radius: 10px;
+  background: #191613;
+  color: #cbbbaa;
+  padding: 12px 8px;
+  font-size: 13px;
+  line-height: 1.3;
+  text-align: left;
+}
+.site-lesson-steps button span {
+  font-size: 12px;
+  color: #bda48b;
+}
+.site-lesson-steps button[aria-current="step"] {
+  background: #3d2a1b;
+  border-color: #efad72;
+  color: #ffe2c5;
+}
+.site-lesson-content {
+  padding: 22px 0 10px;
+  border-top: 1px solid #483a2d;
+}
+.site-lesson-content > svg {
+  color: #efad72;
+}
+.site-choice-lesson h4 {
+  font-size: 25px;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  margin: 12px 0 16px;
+}
+.site-lesson-content p {
+  margin: 12px 0 18px;
+}
+.site-evidence {
+  background: #201b16;
+  border-left: 2px solid #bd9069;
+  padding: 18px;
+  margin: 22px 0;
+  border-radius: 0 10px 10px 0;
+}
+.site-evidence b {
+  color: #e7be97;
+}
+.site-evidence p {
+  font-size: 16px;
+  color: #cbbdad;
+  margin: 8px 0;
+}
+.site-evidence a {
+  color: #f5bb88;
+  font-size: 15px;
+  text-underline-offset: 4px;
+}
+.site-lesson-try {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 16px 18px;
+  background: #eeb17d;
+  color: #25170d;
+  border: 0;
+  border-radius: 12px;
+  font-weight: 600 !important;
+  text-align: left;
+}
+.site-choice-lesson .site-lesson-caption {
+  color: #b4a698;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.site-routines {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.site-routines button {
+  padding: 10px 14px;
+  border-radius: 24px;
+  border: 1px solid #5b4633;
+  background: #191511;
+  color: #d5c5b5;
+}
+.site-routines button[aria-pressed="true"] {
+  color: #ffe1c5;
+  background: #47301e;
+  border-color: #d29a68;
+}
+.site-routine-note {
+  padding: 16px;
+  background: #241d17;
+  border-radius: 12px;
+}
+.site-format-list > div {
+  padding: 16px 0;
+  border-bottom: 1px solid #43372c;
+}
+.site-format-list dt {
+  font-weight: 600;
+  color: #f1d0af;
+}
+.site-format-list dd {
+  margin: 4px 0 0;
+  color: #c9bbad;
+  font-size: 16px;
+}
+.site-choice-lesson blockquote {
+  margin: 24px 0;
+  font-size: 26px;
+  line-height: 1.3;
+  color: #f5c79d;
+  letter-spacing: -0.025em;
+}
+.site-lesson-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid #4b3c2e;
+  padding-top: 18px;
+  margin-top: 16px;
+}
+.site-lesson-navigation button {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid #66503b;
+  border-radius: 8px;
+  background: #2b2119;
+  color: #f4d1b0;
+}
+.site-lesson-navigation button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.site-lesson-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #cfb99f;
+  font-size: 14px;
+}
+.site-choice-lesson button:focus-visible,
+.site-lesson-feature:focus-visible {
+  outline: 2px solid #ffd3a7;
+  outline-offset: 4px;
+}
+@media (max-width: 480px) {
+  .site-choice-lesson h3 {
+    font-size: 28px;
+  }
+  .site-lesson-feature {
+    padding: 20px;
+  }
+  .site-lesson-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .site-lesson-steps button {
+    min-height: 60px;
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.site-evidence summary {
+  cursor: pointer;
+  color: #e7be97;
+  font-weight: 600;
+}
+
+.instrument-shell .selected-device-card,
+.instrument-shell .anatomy-viewer[data-moving="true"] .selected-device-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  padding: 16px;
+  align-items: stretch;
+}
+.instrument-shell .selected-device-details {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+.instrument-shell .selected-device-details strong {
+  font-size: 17px;
+  line-height: 1.3;
+}
+.instrument-shell .selected-device-details span {
+  font-size: 14px;
+  color: #c3b5a8;
+  line-height: 1.45;
+}
+.instrument-shell .selected-device-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid #ffc28b25;
+}
+.instrument-shell .selected-device-actions button,
+.instrument-shell
+  .anatomy-viewer[data-moving="true"]
+  .selected-device-actions
+  button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 10px 8px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.3;
+  border: 1px solid #bb885040;
+  border-radius: 8px;
+  background: #bd885015;
+  text-align: center;
+}
+.instrument-shell .selected-device-actions button:hover {
+  background: #bd885030;
+  border-color: #e6b47a80;
+}
+.instrument-shell .selected-device-actions button:focus-visible {
+  outline: 2px solid #ffd3a7;
+  outline-offset: 3px;
+}
+.instrument-shell .anatomy-viewer[data-moving="true"] .selected-device-card {
+  gap: 8px;
+  padding: 12px;
+}
+.instrument-shell
+  .anatomy-viewer[data-moving="true"]
+  .selected-device-details
+  span {
+  display: none;
+}
+.instrument-shell .anatomy-viewer[data-moving="true"] .selected-device-actions {
+  padding-top: 8px;
+}
+.instrument-shell .anatomy-viewer[data-moving="true"] .scene-bottom {
+  bottom: 130px;
+}
+
+.instrument-shell .selected-device-actions button:first-of-type,
+.instrument-shell .selected-device-actions button:nth-of-type(2) {
+  grid-column: auto;
+  grid-row: auto;
+}
+
+.selected-site-panel {
+  margin: 0 0 24px;
+  padding: 16px;
+  border: 1px solid #8a63413d;
+  border-radius: 12px;
+  background: #271e1666;
+}
+.selected-site-panel strong {
+  display: block;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.selected-site-panel span {
+  display: block;
+  color: #bdaf9f;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 4px;
+}
+.selected-site-panel .selected-device-actions {
+  margin-top: 12px;
+}
+.selected-site-panel button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.more-settings h3 {
+  margin: 0 0 6px;
+  font-size: 17px;
+  color: #efd1b3;
+}
+.instrument-shell .anatomy-viewer[data-moving="true"] .scene-bottom {
+  bottom: 24px;
+}
+
+/* ChatPPG typography, adapted to Plethscape's dark canvas. */
+h1,
+h2,
+h3,
+.brand,
+.footer-brand {
+  font-family: "Space Grotesk Variable", "Inter Variable", sans-serif;
+}
+:root {
+  --mono: "Inter Variable", system-ui, sans-serif;
+}
+output,
+.signal-meta {
+  font-variant-numeric: tabular-nums;
+}
+.mobile-adjust-bar {
+  display: none;
+}
+@media (max-width: 700px) {
+  .instrument-shell .body-panel {
+    grid-row: 1;
+    height: 430px;
+    min-height: 430px;
+  }
+  .instrument-shell .signal-panel {
+    grid-row: 2;
+  }
+  .instrument-shell .control-rail {
+    grid-row: 3;
+  }
+  .desktop-physiology {
+    display: none;
+  }
+  .mobile-adjust-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0 0 12px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .mobile-adjust-bar button {
+    min-height: 44px;
+    padding: 10px 14px;
+    background: #352419;
+    border: 1px solid #a5764c;
+    border-radius: 10px;
+    color: #ffd3ab;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .instrument-shell .workspace-heading {
+    padding: 16px 0;
+  }
+  .instrument-shell .workspace-heading h1 {
+    font-size: 1.65rem;
+  }
+  .instrument-shell .workspace-kicker {
+    font-size: 10px;
+  }
+  .instrument-shell .workspace-heading p {
+    font-size: 14px;
+  }
+  .instrument-shell .workspace-tools {
+    margin-top: 12px;
+  }
+  .learning-drawer .physiology-section {
+    display: block;
+  }
+  .learning-drawer .range-control {
+    margin-bottom: 24px;
+  }
+}
+.landing-guide {
+  max-width: 1120px;
+  padding: 64px 24px 80px;
+  margin: auto;
+  border-top: 1px solid var(--line);
+  line-height: 1.75;
+}
+.landing-guide h2 {
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  line-height: 1.2;
+  margin: 0 0 18px;
+}
+.landing-guide h3 {
+  font-size: 1.25rem;
+  margin: 0 0 12px;
+}
+.landing-guide p {
+  color: #c3b9b0;
+  max-width: 75ch;
+}
+.landing-guide a {
+  color: #ffc58f;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.landing-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+  margin: 36px 0;
+}
+.landing-guide section {
+  padding: 24px 0;
+  border-top: 1px solid var(--line);
+}
+.landing-guide .landing-grid section {
+  margin: 0;
+}
+@media (max-width: 700px) {
+  .landing-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .landing-guide {
+    padding: 36px 20px;
+  }
+}
+
+.mobile-site-picker {
+  display: grid;
+  gap: 4px;
+}
+.mobile-site-picker select {
+  max-width: 180px;
+  min-height: 40px;
+  color: #f3ede7;
+  background: #211a15;
+  border: 1px solid #604b38;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font:
+    500 14px "Inter Variable",
+    sans-serif;
+}
+@media (max-width: 700px) {
+  .instrument-shell .anatomy-viewer .three-host {
+    top: 60px;
+    bottom: 42px;
+  }
+  .instrument-shell .scene-corner {
+    display: none;
+  }
+  .instrument-shell .cutaway-button {
+    top: 14px;
+    left: 10px;
+    font-size: 10px;
+  }
+  .instrument-shell .focus-chest-button {
+    top: 10px;
+    right: 108px;
+    font-size: 10px;
+    padding: 8px 6px;
+  }
+  .instrument-shell .focus-heart-button {
+    top: 10px;
+    right: 8px;
+    font-size: 10px;
+    padding: 8px 6px;
+  }
+}
