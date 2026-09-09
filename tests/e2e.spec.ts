@@ -76,6 +76,10 @@ test("selecting sensing sites updates the signal and selected control", async ({
 }) => {
   await page.getByRole("button", { name: "View options", exact: true }).click();
   const sites = page.getByRole("group", { name: "PPG sensing sites" });
+  await expect(ppg(page)).toHaveAttribute("aria-label", /at the wrist/);
+  await expect(
+    sites.getByRole("button", { name: /Top of wrist/ }),
+  ).toHaveAttribute("aria-pressed", "true");
   for (const name of [
     "Top of wrist",
     "Carotid / neck",
@@ -384,7 +388,7 @@ test("a baseline remains saved as physiology changes and can be removed", async 
     .getByRole("button", { name: /Freeze a baseline to compare/ })
     .click();
   const comparison = page.getByRole("button", {
-    name: "Comparing: Index finger · 32y · 72 bpm",
+    name: "Comparing: Top of wrist · 32y · 72 bpm",
   });
   await expect(comparison).toBeVisible();
   await expect(ppg(page)).toHaveAttribute(

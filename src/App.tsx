@@ -287,7 +287,7 @@ export default function App() {
     null,
   );
   const studioTrigger = useRef<HTMLButtonElement>(null);
-  const [site, setSite] = useState<SiteId>("finger");
+  const [site, setSite] = useState<SiteId>("wrist");
   const [layers, setLayers] = useState<Layers>(INITIAL_LAYERS);
   const [running, setRunning] = useState(true);
   const [mode, setMode] = useState<"stream" | "beat">("stream");
@@ -398,7 +398,7 @@ export default function App() {
   };
   const reset = () => {
     setPhysiology({ ...DEFAULT_PHYSIOLOGY, age: 32, heartRate: 72 });
-    setSite("finger");
+    setSite("wrist");
     setBaseline(null);
     setLesson(null);
     setMode("stream");
