@@ -195,3 +195,9 @@ it is not a patient-specific digital twin. Colors, transparency, animations, and
 or acceleration traces are educational adaptations; anatomical detail does not
 validate the simulated physiology or make the interface suitable for clinical
 measurements, diagnosis, or surgical planning.
+
+## Scanned head (2026-09-09)
+
+The presentation head uses Renderpeople **Eric Rigged 001** from the creator's free FBX download. The project owner explicitly confirmed permission for public interactive learning-site use in the implementation conversation on 2026-09-09, after being informed of Renderpeople Terms §§4.2(c) and 4.3(b). This confirmation is the project's authorization basis; the default free-model license must not be assumed to permit this deployment or reuse elsewhere. Keep the underlying written permission with the project's licensing records.
+
+Rebuild with `scripts/build_scanned_head.py` in Blender, using the authorized FBX and `tex` folder at `artifacts/eric-source`. Source files remain untracked and are not shipped. The pipeline isolates the head, preserves its UVs and textures, bridges the neck to BodyParts3D, and compresses the resulting GLB. The head follows the existing head joint; it does not replace the locomotion skeleton or imply that the external face and internal anatomy are from the same person.

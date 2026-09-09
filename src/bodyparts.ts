@@ -14,6 +14,7 @@ import {
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
+import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { createTissueMaterial, enhanceTissueShader } from "./tissueMaterials";
 import { createWearables } from "./wearables";
@@ -21,11 +22,6 @@ import { WEARABLE_SITES } from "./devices";
 import { createFlowTrails } from "./flowTrails";
 import { fitWearablesToSkin, upperSkinGeometry } from "./surfaceFit";
 import type { getCardiacState, SiteId } from "./simulation";
-import {
-  sculptNostrils,
-  facialPigment,
-  createEyeMaterial,
-} from "./faceDetails";
 
 export type Presentation = "atlas" | "xray" | "surface";
 
@@ -111,6 +107,7 @@ export function createAnatomy() {
   ) as Record<Layer, THREE.Group>;
   group.add(heart);
   const headOccluders: THREE.Mesh[] = [];
+  const headTextures = new Set<THREE.Texture>();
   const wearables = createWearables();
   group.add(wearables.group);
   // Fitted to the source skin and left proximal index phalanx (FJ3313).
@@ -129,7 +126,7 @@ export function createAnatomy() {
     },
     ear: {
       // Piercing anchor on the lower anterior lobe of the visible neutral skin.
-      position: new THREE.Vector3(0.136, 3.323, -0.006),
+      position: new THREE.Vector3(0.172, 3.335, -0.042),
       axis: new THREE.Vector3(0, 1, 0),
       rotation: Math.PI / 2,
     },
@@ -389,6 +386,7 @@ export function createAnatomy() {
         .replace(
           "#include <color_fragment>",
           `#include <color_fragment>
+        if (atlasPosition.y > 3.105) discard;
         ${
           tissue === "eyes"
             ? "discard;"
@@ -449,14 +447,14 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
             float rim = pow(1.-abs(dot(normalize(normal),normalize(vViewPosition))),2.1);
             diffuseColor.a = mix(.012+rim*.42,1.,atlasSurface)*(1.-atlasHeartFocus);
             totalEmissiveRadiance = atlasGlowColor*(.035+pow(rim,1.5)*2.1)*(1.-atlasSurface)*(1.-atlasHeartFocus);
-            float gentleHead = smoothstep(3.04,3.15,atlasPosition.y);
+            float gentleHead = smoothstep(3.0,3.10,atlasPosition.y);
             diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.32,.21,.145), gentleHead);
             diffuseColor.a = mix(diffuseColor.a, 1.*(1.-atlasHeartFocus), gentleHead);
             totalEmissiveRadiance = mix(totalEmissiveRadiance, vec3(.018,.009,.006)+atlasGlowColor*pow(rim,2.)*.12, gentleHead);
             float patchSkin = 1.-smoothstep(.038,.073,distance(atlasPosition,atlasNeckPatch));
             diffuseColor.a = max(diffuseColor.a,patchSkin*.42*(1.-atlasHeartFocus));
             diffuseColor.rgb = mix(diffuseColor.rgb,vec3(.32,.21,.145),patchSkin*.65);
-            ${facialPigment}
+
           `,
           );
       }
@@ -639,10 +637,11 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
       return r.json() as Promise<Metadata>;
     }),
     loader.loadAsync(import.meta.env.BASE_URL + "models/neutral-skin.glb"),
+    loader.loadAsync(import.meta.env.BASE_URL + "models/scanned-head.glb"),
   ])
-    .then(([gltf, metadata, skin]) => {
+    .then(([gltf, metadata, skin, scanned]) => {
       if (disposed) {
-        for (const source of [gltf, skin])
+        for (const source of [gltf, skin, scanned])
           source.scene.traverse((o) => {
             if (o instanceof THREE.Mesh) {
               o.geometry.dispose();
@@ -655,6 +654,87 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
       }
       gltf.scene.updateMatrixWorld(true);
       skin.scene.updateMatrixWorld(true);
+      scanned.scene.updateMatrixWorld(true);
+      let scannedHead: THREE.Mesh | undefined;
+      scanned.scene.traverse((object) => {
+        if (!(object instanceof THREE.Mesh)) return;
+        const geometry = object.geometry;
+        for (const name of ["position", "normal"]) {
+          const attribute = geometry.getAttribute(name);
+          if (!attribute) continue;
+          const unpacked = new Float32Array(attribute.count * 3);
+          for (let i = 0; i < attribute.count; i++) {
+            unpacked[i * 3] = attribute.getX(i);
+            unpacked[i * 3 + 1] = attribute.getY(i);
+            unpacked[i * 3 + 2] = attribute.getZ(i);
+          }
+          geometry.setAttribute(name, new THREE.BufferAttribute(unpacked, 3));
+        }
+        geometry.applyMatrix4(object.matrixWorld);
+        geometry.computeBoundingBox();
+        geometry.computeBoundingSphere();
+        const material = object.material as THREE.MeshStandardMaterial;
+        material.roughness = 0.7;
+        material.emissive.setRGB(0.018, 0.009, 0.006);
+        material.side = THREE.FrontSide;
+        material.onBeforeCompile = (shader) => {
+          Object.assign(shader.uniforms, shared);
+          shader.vertexShader = shader.vertexShader
+            .replace(
+              "#include <common>",
+              `#include <common>\nvarying float headHeight;\n${movement}`,
+            )
+            .replace(
+              "#include <begin_vertex>",
+              "#include <begin_vertex>\nheadHeight = position.y; transformed = atlasGait(transformed);",
+            )
+            .replace(
+              "#include <defaultnormal_vertex>",
+              "objectNormal = normalize(mat3(atlasSkinMatrix()) * objectNormal);\n#include <defaultnormal_vertex>",
+            );
+          shader.fragmentShader = shader.fragmentShader
+            .replace(
+              "#include <common>",
+              "#include <common>\nvarying float headHeight; uniform float atlasHeartFocus;",
+            )
+            .replace(
+              "#include <color_fragment>",
+              "#include <color_fragment>\nif(atlasHeartFocus > .5) discard; diffuseColor.rgb = mix(vec3(.32,.21,.145), diffuseColor.rgb, smoothstep(3.185,3.215,headHeight));",
+            );
+        };
+        const headFinish = material.onBeforeCompile;
+        material.onBeforeCompile = (shader, renderer) => {
+          headFinish.call(material, shader, renderer);
+          shader.fragmentShader = shader.fragmentShader.replace(
+            "#include <normal_fragment_maps>",
+            "vec3 neckNormal = normal;\n#include <normal_fragment_maps>\nnormal = normalize(mix(neckNormal,normal,smoothstep(3.22,3.30,headHeight)));",
+          );
+        };
+        material.customProgramCacheKey = () => "scanned-head-neck-blend-v2";
+        for (const texture of [material.map, material.normalMap])
+          if (texture) {
+            texture.anisotropy = 4;
+            headTextures.add(texture);
+          }
+        geometries.add(geometry);
+        materials.add(material);
+        bindRigGeometry(geometry);
+        scannedHead = new THREE.Mesh(geometry, material);
+        const headVertex = scannedHead.getVertexPosition.bind(scannedHead);
+        scannedHead.getVertexPosition = (index, target) => {
+          headVertex(index, target);
+          return rig.transformVertex(geometry, index, target);
+        };
+        scannedHead.name = "Scanned presentation head";
+        scannedHead.userData.tissue = "presentationHead";
+        scannedHead.frustumCulled = false;
+        layers.body.add(scannedHead);
+
+        headOccluders.push(scannedHead);
+      });
+      if (!scannedHead)
+        throw new Error("Scanned presentation head unavailable");
+      group.userData.headSource = "Renderpeople Eric Rigged 001";
       let presentationSkin: THREE.Mesh | undefined;
       skin.scene.traverse((o) => {
         if (o instanceof THREE.Mesh) presentationSkin = o;
@@ -695,7 +775,25 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
           positions.setXYZ(i, point.x, point.y, point.z);
           if (normals) normals.setXYZ(i, normal.x, normal.y, normal.z);
         }
-        if (bakedSkin) sculptNostrils(geometry);
+        if (bakedSkin) {
+          // Remove the original head from rendering AND surface picking.
+          const indices = geometry.getIndex()!;
+          const kept: number[] = [];
+          for (let i = 0; i < indices.count; i += 3) {
+            const a = indices.getX(i),
+              b = indices.getX(i + 1),
+              c = indices.getX(i + 2);
+            if (
+              Math.min(
+                positions.getY(a),
+                positions.getY(b),
+                positions.getY(c),
+              ) <= 3.105
+            )
+              kept.push(a, b, c);
+          }
+          geometry.setIndex(kept);
+        }
         geometry.computeBoundingBox();
         geometry.computeBoundingSphere();
         if (!geometry.getAttribute("normal")) geometry.computeVertexNormals();
@@ -767,30 +865,6 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
           materials.add(samplingMaterial);
           fittingSkin = new THREE.Mesh(samplingGeometry, samplingMaterial);
           fittingSkin.updateMatrixWorld(true);
-          const headGeometry = upperSkinGeometry(geometry, 3.14);
-          const depthMaterial = new THREE.ShaderMaterial({
-            colorWrite: false,
-            polygonOffset: true,
-            polygonOffsetFactor: 2,
-            polygonOffsetUnits: 3,
-            depthWrite: true,
-            depthTest: true,
-            vertexShader: `varying float headY;void main(){headY=position.y;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-            fragmentShader: `varying float headY;void main(){if(headY<3.15)discard;gl_FragColor=vec4(0.);}`,
-          });
-          geometries.add(headGeometry);
-          materials.add(depthMaterial);
-          const occluder = new THREE.Mesh(headGeometry, depthMaterial);
-          occluder.name = "Opaque head depth surface";
-          occluder.renderOrder = -10;
-          layers.body.add(occluder);
-          rigidDetails.push({
-            object: occluder,
-            position: new THREE.Vector3(),
-            quaternion: new THREE.Quaternion(),
-            joint: 4,
-          });
-          headOccluders.push(occluder);
         }
         if (tissue === "heart" || tissue === "valves") {
           heartBounds.union(geometry.boundingBox!);
@@ -807,6 +881,22 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
       ).forEach((m) => m.dispose());
       if (!fittingSkin)
         throw new Error("Skin surface unavailable for wearable fitting");
+      // Fit the temple against the new head, while retaining the original neck surface.
+      const fitParts = [fittingSkin.geometry, scannedHead.geometry].map(
+        (source) => {
+          const geometry = new THREE.BufferGeometry();
+          geometry.setAttribute("position", source.getAttribute("position"));
+          geometry.setIndex(source.getIndex());
+          return geometry;
+        },
+      );
+      const fittedGeometry = mergeGeometries(fitParts)!;
+      fittedGeometry.computeVertexNormals();
+      fittedGeometry.computeBoundingBox();
+      fittedGeometry.computeBoundingSphere();
+      geometries.add(fittedGeometry);
+      fittingSkin.geometry = fittedGeometry;
+      fitParts.forEach((geometry) => geometry.dispose());
       const fitted = fitWearablesToSkin(
         fittingSkin,
         wearables.devices.forehead,
@@ -818,22 +908,6 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
       attachmentPoses.carotid.position.copy(fitted.neck.position);
       shared.atlasNeckPatch.value.copy(fitted.neck.position);
       attachmentTurns.carotid.copy(fitted.neck.quaternion);
-      const eyeMaterial = createEyeMaterial();
-      materials.add(eyeMaterial);
-      for (const x of [-0.065, 0.062]) {
-        const eyeGeometry = new THREE.SphereGeometry(0.026, 48, 32);
-        geometries.add(eyeGeometry);
-        const eye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-        eye.name = "Detailed eye with procedural iris";
-        eye.position.set(x, 3.388, 0.108);
-        layers.body.add(eye);
-        rigidDetails.push({
-          object: eye,
-          position: eye.position.clone(),
-          quaternion: eye.quaternion.clone(),
-          joint: 4,
-        });
-      }
       if (!heartBounds.isEmpty()) {
         shared.atlasHeart.value.copy(
           heartBounds.getCenter(new THREE.Vector3()),
@@ -970,6 +1044,7 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
     rig.dispose();
     geometries.forEach((g) => g.dispose());
     materials.forEach((m) => m.dispose());
+    headTextures.forEach((texture) => texture.dispose());
     wearables.dispose();
     group.clear();
   }

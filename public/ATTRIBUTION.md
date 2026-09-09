@@ -44,3 +44,9 @@ SOFTWARE.
 ## Neutral presentation skin
 
 `models/neutral-skin.glb` is adapted from BodyParts3D FJ2810 under the same CC BY 4.0 license. Custom processing changes the hand pose, reconstructs the forearm surface, removes external reproductive contours, and remeshes the skin for interactive display. See `scripts/build_neutral_skin.py`.
+
+## Scanned presentation head
+
+`models/scanned-head.glb` is adapted from **Eric Rigged 001**, © Renderpeople. Source: https://renderpeople.com/free-3d-people/ (FBX package), referenced at https://free3d.com/3d-model/eric-rigged-001-771956.html.
+
+The head is a separate photographic scan, not the individual represented by the internal anatomy. Adaptations: head extraction, neck fitting, subdivision, texture cropping/resizing and browser compression. Renderpeople does not endorse Plethscape. This asset is not covered by the application's code license or the anatomy's CC BY license; reuse requires appropriate permission from Renderpeople.

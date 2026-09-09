@@ -811,6 +811,9 @@ export default function AnatomyViewer(props: Props) {
       element.dataset.bodyLoaded = String(
         Boolean(anatomy.group.userData.bodyLoaded),
       );
+      element.dataset.headSource = String(
+        anatomy.group.userData.headSource ?? "loading",
+      );
       element.dataset.anatomySource = String(
         anatomy.group.userData.source ?? "loading",
       );
