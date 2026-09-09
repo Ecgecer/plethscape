@@ -3099,20 +3099,80 @@ main {
   }
   .inspecting-device .presentation-controls,
   .inspecting-device .focus-chest-button,
-  .inspecting-device .focus-heart-button { display:none; }
-  .inspecting-device .wearable-dock { top:64px; }
+  .inspecting-device .focus-heart-button {
+    display: none;
+  }
+  .inspecting-device .wearable-dock {
+    top: 64px;
+  }
 }
 
 /* A compact equipment rail keeps the central anatomical view unobstructed. */
 @media (min-width: 701px) {
   .anatomy-viewer:not(.inspecting-device) .wearable-dock {
-    top: 112px; bottom: auto; width: 112px; flex-direction: column; align-items: stretch;
+    top: 112px;
+    bottom: auto;
+    width: 112px;
+    flex-direction: column;
+    align-items: stretch;
   }
-  .anatomy-viewer:not(.inspecting-device) .wearable-dock > span { padding: 7px 9px 3px; }
+  .anatomy-viewer:not(.inspecting-device) .wearable-dock > span {
+    padding: 7px 9px 3px;
+  }
 }
-.device-icon-forehead { width: 17px; height: 9px; border-radius: 50%; }
-.device-icon-carotid { width: 12px; height: 16px; border-radius: 5px; background: #bda48640; }
-.device-icon-upperarm { width: 16px; height: 13px; border-width: 3px; }
-.device-icon-toe { width: 12px; height: 10px; border-radius: 50%; border-width: 3px; }
+.device-icon-forehead {
+  width: 17px;
+  height: 9px;
+  border-radius: 50%;
+}
+.device-icon-carotid {
+  width: 12px;
+  height: 16px;
+  border-radius: 5px;
+  background: #bda48640;
+}
+.device-icon-upperarm {
+  width: 16px;
+  height: 13px;
+  border-width: 3px;
+}
+.device-icon-toe {
+  width: 12px;
+  height: 10px;
+  border-radius: 50%;
+  border-width: 3px;
+}
 
-.cutaway-button { top: 64px; }
+.cutaway-button {
+  top: 64px;
+}
+
+.breathing-cue {
+  position: absolute;
+  left: 24px;
+  bottom: 156px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border: 1px solid rgba(217, 151, 131, 0.18);
+  border-radius: 6px;
+  color: #e1b7a8;
+  background: rgba(12, 10, 9, 0.8);
+  font-size: 10px;
+  pointer-events: none;
+}
+.breathing-track {
+  display: block;
+  width: 44px;
+  height: 3px;
+  overflow: hidden;
+  background: rgba(225, 183, 168, 0.15);
+  border-radius: 2px;
+}
+.breathing-track > span {
+  display: block;
+  height: 100%;
+  background: #dc9a87;
+  transform-origin: left;
+}

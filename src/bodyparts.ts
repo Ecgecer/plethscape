@@ -5,7 +5,6 @@ import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import { createTissueMaterial, enhanceTissueShader } from "./tissueMaterials";
 import { createWearables } from "./wearables";
 import { WEARABLE_SITES } from "./devices";
-import { handRotation, poseHand } from "./handPose";
 import { createFlowTrails } from "./flowTrails";
 
 export type Presentation = "atlas" | "xray" | "surface";
@@ -139,7 +138,7 @@ export function createAnatomy() {
       rotation: Math.PI / 2,
     },
     forehead: {
-      position: new THREE.Vector3(0, 3.5, -0.004),
+      position: new THREE.Vector3(0, 3.5, -0.045),
       axis: new THREE.Vector3(0, 1, 0),
       rotation: 0,
     },
@@ -173,14 +172,6 @@ export function createAnatomy() {
         ),
     ]),
   ) as Record<(typeof WEARABLE_SITES)[number], THREE.Quaternion>;
-  for (const id of ["finger", "wrist"] as const) {
-    const turn = handRotation(
-      attachmentPoses[id].position,
-      new THREE.Quaternion(),
-    );
-    attachmentTurns[id].premultiply(turn);
-    poseHand(attachmentPoses[id].position);
-  }
   const attachmentSwing = new THREE.Quaternion();
   const baseSites = Object.fromEntries(
     Object.entries(defaults).map(([key, p]) => [key, new THREE.Vector3(...p)]),
@@ -219,15 +210,15 @@ export function createAnatomy() {
   const colors: Record<Tissue, string> = {
     body: "#cfb59e",
     muscles: "#965046",
-    arteries: "#a8272b",
-    veins: "#44698d",
+    arteries: "#bd303b",
+    veins: "#497faa",
     nerves: "#d7b971",
-    skeleton: "#d8c9aa",
-    lungs: "#b78380",
-    heart: "#963c39",
+    skeleton: "#756e61",
+    lungs: "#cf9095",
+    heart: "#ba484c",
     airways: "#d6baa7",
     brain: "#bdab9c",
-    cartilage: "#bdc1af",
+    cartilage: "#77786e",
     flow: "#ffa888",
     pulmonaryArteries: "#44698d",
     pulmonaryVeins: "#b02e32",
@@ -303,12 +294,12 @@ export function createAnatomy() {
           tissue === "lungs"
             ? `
           vec3 offset = transformed-atlasOrganCenter;
-          transformed = atlasOrganCenter + offset*vec3(1.+atlasBreath*.055,1.+atlasBreath*.035,1.+atlasBreath*.075);
-          transformed.y -= atlasBreath*.009;
+          transformed = atlasOrganCenter + offset*vec3(1.+atlasBreath*.10,1.+atlasBreath*.055,1.+atlasBreath*.13);
+          transformed.y -= atlasBreath*.016;
         `
             : ""
         }
-        ${tissue === "diaphragm" ? "transformed.y -= atlasBreath*.018;" : ""}
+        ${tissue === "diaphragm" ? "transformed.y -= atlasBreath*.038;" : ""}
         ${
           [
             "arteries",
@@ -321,6 +312,17 @@ export function createAnatomy() {
             ? `
           float cardiac = 1.-smoothstep(.11,.25,distance(transformed,atlasHeart));
           transformed -= (transformed-atlasHeart)*atlasContraction*.04*cardiac;
+        `
+            : ""
+        }
+        ${
+          ["body", "muscles", "skeleton", "cartilage"].includes(tissue)
+            ? `
+          float thorax = smoothstep(2.18,2.40,position.y)*(1.-smoothstep(2.98,3.10,position.y))
+            *(1.-smoothstep(.28,.38,abs(position.x)));
+          transformed.x *= 1.+atlasBreath*.055*thorax;
+          transformed.z += (position.z+.12)*atlasBreath*.085*thorax;
+          transformed.y += atlasBreath*.008*thorax;
         `
             : ""
         }
@@ -400,8 +402,8 @@ export function createAnatomy() {
             "#include <emissivemap_fragment>",
             `#include <emissivemap_fragment>
             float rim = pow(1.-abs(dot(normalize(normal),normalize(vViewPosition))),2.1);
-            diffuseColor.a = mix(.018+rim*.7,1.,atlasSurface)*(1.-atlasHeartFocus);
-            totalEmissiveRadiance = atlasGlowColor*(.035+pow(rim,1.5)*4.2)*(1.-atlasSurface)*(1.-atlasHeartFocus);
+            diffuseColor.a = mix(.012+rim*.42,1.,atlasSurface)*(1.-atlasHeartFocus);
+            totalEmissiveRadiance = atlasGlowColor*(.035+pow(rim,1.5)*2.1)*(1.-atlasSurface)*(1.-atlasHeartFocus);
             float gentleHead = smoothstep(3.13,3.26,atlasPosition.y);
             diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.32,.21,.145), gentleHead);
             diffuseColor.a = mix(diffuseColor.a, .97*(1.-atlasHeartFocus), gentleHead);
@@ -409,12 +411,25 @@ export function createAnatomy() {
           `,
           );
       }
-      if (["arteries", "pulmonaryArteries", "pulmonaryVeins", "coronaryArteries"].includes(tissue)) {
+      if (
+        [
+          "arteries",
+          "pulmonaryArteries",
+          "pulmonaryVeins",
+          "coronaryArteries",
+        ].includes(tissue)
+      ) {
         shader.fragmentShader = shader.fragmentShader
-          .replace("uniform float atlasFlow;", "uniform float atlasFlow;\nuniform float atlasContraction;\nuniform float atlasFlowEnabled;")
-          .replace("#include <emissivemap_fragment>", `#include <emissivemap_fragment>
+          .replace(
+            "uniform float atlasFlow;",
+            "uniform float atlasFlow;\nuniform float atlasContraction;\nuniform float atlasFlowEnabled;",
+          )
+          .replace(
+            "#include <emissivemap_fragment>",
+            `#include <emissivemap_fragment>
             totalEmissiveRadiance += diffuseColor.rgb * atlasFlowEnabled * (.035 + .16 * atlasContraction);
-          `);
+          `,
+          );
       }
       enhanceTissueShader(shader, tissue);
     };
@@ -440,7 +455,8 @@ export function createAnatomy() {
       ].includes(tissue);
       if (tissue === "body" && next === "surface" && !heartFocus)
         transparent = false;
-      if (heartFocus && tissue === "nerves") transparent = true;
+      if (tissue === "nerves" || tissue === "airways" || tissue === "diaphragm")
+        transparent = true;
       if (
         heartFocus &&
         ["arteries", "veins", "pulmonaryArteries", "pulmonaryVeins"].includes(
@@ -464,25 +480,28 @@ export function createAnatomy() {
           ? 0.12
           : tissue === "muscles"
             ? mode === "atlas"
-              ? 0.095
+              ? 0.035
               : 0.025
             : tissue === "skeleton"
               ? mode === "atlas"
-                ? 0.46
+                ? 0.14
                 : 0.22
               : tissue === "cartilage"
                 ? mode === "atlas"
-                  ? 0.3
+                  ? 0.1
                   : 0.12
                 : tissue === "lungs"
                   ? mode === "atlas"
-                    ? 0.82
+                    ? 0.78
                     : 0.22
                   : tissue === "brain"
                     ? mode === "atlas"
-                      ? 0.55
+                      ? 0.12
                       : 0.25
                     : 1;
+      if (tissue === "nerves") material.opacity = 0.22;
+      if (tissue === "airways") material.opacity = 0.58;
+      if (tissue === "diaphragm") material.opacity = 0.65;
       if (heartFocus) {
         if (
           ["arteries", "veins", "pulmonaryArteries", "pulmonaryVeins"].includes(
@@ -606,7 +625,6 @@ export function createAnatomy() {
         for (let i = 0; i < positions.count; i++) {
           point.fromBufferAttribute(positions, i);
           if (normals) normal.fromBufferAttribute(normals, i);
-          if (!bakedSkin) poseHand(point, normals ? normal : undefined);
           positions.setXYZ(i, point.x, point.y, point.z);
           if (normals) normals.setXYZ(i, normal.x, normal.y, normal.z);
         }
@@ -739,7 +757,7 @@ export function createAnatomy() {
       )) {
         const point = Array.isArray(value) ? value : value.position;
         if (Array.isArray(point) && point.length === 3 && baseSites[key])
-          poseHand(baseSites[key].set(...point));
+          baseSites[key].set(...point);
       }
       // Device markers follow the fitted sensor, rather than the original
       // fingertip pad / radial landmark used for bare anatomical hotspots.
@@ -752,9 +770,9 @@ export function createAnatomy() {
               finger: 0.031,
               wrist: 0.088,
               ear: 0.0022,
-              forehead: 0.19,
+              forehead: 0.235,
               carotid: 0.006,
-              upperarm: 0.16,
+              upperarm: 0.151,
               toe: 0.031,
             }[id],
           )
@@ -770,9 +788,14 @@ export function createAnatomy() {
         ) ??
         0;
       group.userData.source = "BodyParts3D 4.0";
-      flowTrails = createFlowTrails((metadata.flowPaths ?? []).map(route => ({
-        ...route, points: route.points.map(p => poseHand(new THREE.Vector3(...p))),
-      })), shared, movement);
+      flowTrails = createFlowTrails(
+        (metadata.flowPaths ?? []).map((route) => ({
+          ...route,
+          points: route.points.map((p) => new THREE.Vector3(...p)),
+        })),
+        shared,
+        movement,
+      );
       geometries.add(flowTrails.geometry);
       materials.add(flowTrails.material);
       layers.flow.add(flowTrails);
@@ -837,7 +860,7 @@ export function createAnatomy() {
       Math.sqrt(heartRate / 72) *
       (0.8 + shared.atlasContraction.value * 0.5);
     shared.atlasFlow.value = flowTime;
-    shared.atlasBeat.value = time * heartRate / 60;
+    shared.atlasBeat.value = (time * heartRate) / 60;
     shared.atlasFlowEnabled.value = layers.flow.visible && !heartFocus ? 1 : 0;
     group.position.y =
       Math.abs(Math.sin(time * shared.atlasCadence.value)) *

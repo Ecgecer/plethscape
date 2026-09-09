@@ -761,11 +761,11 @@ export function createWearables(): {
     }
     add(site, geo, finish, `${site} continuous band`);
   }
-  softBand("forehead", 0.15, 0.184, 0.029, 0.002, cloth);
+  softBand("forehead", 0.176, 0.229, 0.029, 0.002, cloth);
   for (const y of [-0.014, 0.014]) {
-    const seam = new THREE.TorusGeometry(0.151, 0.00065, 6, 128);
+    const seam = new THREE.TorusGeometry(0.177, 0.00065, 6, 128);
     seam.rotateX(Math.PI / 2);
-    seam.scale(1, 1, 0.184 / 0.15);
+    seam.scale(1, 1, 0.229 / 0.176);
     add("forehead", seam, thread, "Fine stitched edge", at(0, y, 0));
   }
   add(
@@ -773,14 +773,14 @@ export function createWearables(): {
     roundedSolid(0.036, 0.02, 0.006, 0.006),
     housing,
     "Forehead optical pod",
-    at(0, 0, 0.185),
+    at(0, 0, 0.23),
   );
   add(
     "forehead",
     roundedSolid(0.012, 0.008, 0.001, 0.003, 0.0002),
     opticalGlass,
     "Inner forehead optical window",
-    at(0, 0, 0.181),
+    at(0, 0, 0.226),
   );
 
   const patchFinish = physical({ color: "#d9c7af", roughness: 0.85 });
@@ -810,7 +810,16 @@ export function createWearables(): {
     const mesh = object as THREE.Mesh<THREE.BufferGeometry, THREE.Material>;
     mesh.updateMatrix();
     const geo = mesh.geometry.clone().applyMatrix4(mesh.matrix);
-    geo.scale(1.5, 1.15, 1.9);
+    const isStrap = /woven|stitched/i.test(mesh.name);
+    if (isStrap) {
+      geo.scale(1.5, 1.15, 1.9);
+    } else {
+      // Keep the cuff circumference; shrink the module around its skin-facing
+      // center instead of scaling the housing up with the upper arm.
+      geo.translate(0, 0, -0.07);
+      geo.scale(1.12, 0.95, 1.0);
+      geo.translate(0, 0, 0.137);
+    }
     add("upperarm", geo, mesh.material, `Bicep ${mesh.name}`);
   }
   softBand("toe", 0.031, 0.027, 0.021, 0.0025, rubber);

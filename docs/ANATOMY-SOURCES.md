@@ -184,8 +184,12 @@ structures, artist-built or adjusted parts, and possible assignment errors.
 Plethscape uses anatomical surfaces to explain spatial relationships. Omitting
 reproductive structures creates a neutral presentation but does not change the
 references' sex, population coverage, or biological variation. The displayed
-palms face backward using an illustrative distal-forearm pose applied to tissues, flow routes and wearable attachments. The elbow remains in its source pose. A separately reconstructed skin envelope removes surface folds and external reproductive contours; it is generated from source FJ2810 by `scripts/build_neutral_skin.py`. This presentation pose
-is not a biomechanical model of radioulnar joint motion. This assembly
+arms and hands retain the original source pose with palms forward. The earlier
+180-degree distal-forearm deformation has been removed from the skin, internal
+tissues, flow routes and wearable attachments. A separately reconstructed skin
+envelope removes external reproductive contours; it is generated from source
+FJ2810 by `scripts/build_neutral_skin.py`. The arm surfaces are checked against
+the original source with `scripts/verify_neutral_skin.py`. This assembly
 uses BodyParts3D and Visible Human Male lungs from different reference sources;
 it is not a patient-specific digital twin. Colors, transparency, animations, and PPG
 or acceleration traces are educational adaptations; anatomical detail does not

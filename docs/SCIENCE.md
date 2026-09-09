@@ -187,3 +187,7 @@ data would additionally be needed to validate the optical/noise model.
 ### Displayed wearable concepts
 
 All seven sensing sites now have custom device geometry: finger ring, wrist band, gold huggie earring, thin forehead band, neck patch, bicep band and black great-toe band. The toe band illustrates reflectance rather than a transmission clip; the synthetic timing and waveform model are unchanged. The neck trace remains a model reference, not direct deep-carotid flow sensing. The head hides internal structures and uses simplified eyes and a relaxed mouth for an approachable teaching presentation; those facial additions are illustrative.
+
+### Navigation and visual emphasis
+
+Pinch/scroll zoom follows the gesture position; two-finger drag or right-drag pans. The arms use the original source pose with palms forward, with no software forearm pronation. The heart, lungs and circulation have stronger color while supporting tissues are translucent context. Lungs expand, the diaphragm descends, and the thoracic skin and ribs expand together on the respiratory clock. This motion is deliberately amplified to be visible in an educational overview; it is not calibrated tidal volume, respiratory mechanics or a lung-function measurement.

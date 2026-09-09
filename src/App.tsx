@@ -1129,10 +1129,11 @@ export default function App() {
             <li>
               <Check size={16} />
               <span>
-                The breathing slider drives lung expansion and modest
-                respiratory variation in the live PPG. The clean single-beat
-                view excludes breathing and sensor artifacts. Walking, running
-                and acceleration are procedural demonstrations; physiological
+                The breathing slider drives lung and chest expansion, diaphragm
+                movement, and modest respiratory variation in the live PPG. The
+                clean single-beat view excludes breathing and sensor artifacts.
+                Chest motion is amplified for visibility. Walking, running and
+                acceleration are procedural demonstrations; physiological
                 adaptation and disease are outside the model.
               </span>
             </li>

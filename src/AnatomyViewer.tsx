@@ -63,6 +63,8 @@ export default function AnatomyViewer(props: Props) {
   const [loadProgress, setLoadProgress] = useState(0);
   const [cutaway, setCutaway] = useState(true);
   const cutawayRef = useRef(true);
+  const breathLabel = useRef<HTMLSpanElement>(null);
+  const breathBar = useRef<HTMLSpanElement>(null);
   const [focus, setFocus] = useState(false);
   const [heartDetail, setHeartDetail] = useState(false);
   const heartDetailRef = useRef(false);
@@ -99,7 +101,7 @@ export default function AnatomyViewer(props: Props) {
     renderer.info.autoReset = false;
     renderer.domElement.setAttribute(
       "aria-label",
-      "Interactive BodyParts3D anatomical reference, presented without reproductive anatomy. Drag to orbit; scroll to zoom. Select sensing sites with the labeled controls.",
+      "Interactive BodyParts3D anatomical reference, presented without reproductive anatomy. Drag to orbit; pinch or scroll at any body part to zoom; use two fingers or right-drag to pan. Select sensing sites with the labeled controls.",
     );
     element.prepend(renderer.domElement);
     const scene = new THREE.Scene();
@@ -109,7 +111,10 @@ export default function AnatomyViewer(props: Props) {
     controls.target.set(0, 1.82, 0);
     controls.enableDamping = true;
     controls.dampingFactor = 0.07;
-    controls.enablePan = false;
+    controls.enablePan = true;
+    controls.screenSpacePanning = true;
+    controls.zoomToCursor = true;
+    controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
     controls.minDistance = 0.1;
     controls.maxDistance = 8.5;
     controls.minPolarAngle = 0.3;
@@ -437,9 +442,9 @@ export default function AnatomyViewer(props: Props) {
       finger: new THREE.Vector3(0, 0, 0.0288),
       wrist: new THREE.Vector3(0, 0, 0.084),
       ear: new THREE.Vector3(0, -0.022, 0.001),
-      forehead: new THREE.Vector3(0, 0, 0.19),
+      forehead: new THREE.Vector3(0, 0, 0.235),
       carotid: new THREE.Vector3(0, 0, 0.006),
-      upperarm: new THREE.Vector3(0, 0, 0.157),
+      upperarm: new THREE.Vector3(0, 0, 0.151),
       toe: new THREE.Vector3(0, 0, 0.031),
     };
     let last = 0;
@@ -499,6 +504,17 @@ export default function AnatomyViewer(props: Props) {
         p.physiology.activity,
         p.physiology.respiratoryRate,
       );
+      const respiratoryPhase =
+        ((p.clock.current.time * p.physiology.respiratoryRate) / 60) % 1;
+      const expansion = 0.5 - 0.5 * Math.cos(respiratoryPhase * Math.PI * 2);
+      if (breathLabel.current) {
+        const label = respiratoryPhase < 0.5 ? "Breathing in" : "Breathing out";
+        if (breathLabel.current.textContent !== label)
+          breathLabel.current.textContent = label;
+      }
+      if (breathBar.current)
+        breathBar.current.style.transform = `scaleX(${0.08 + expansion * 0.92})`;
+      element.dataset.breathExpansion = String(expansion);
       anatomy.wearables.group.visible = loaded && !heartDetailRef.current;
       for (const id of WEARABLE_SITES)
         anatomy.wearables.devices[id].visible =
@@ -568,6 +584,10 @@ export default function AnatomyViewer(props: Props) {
       renderer.info.reset();
       composer.render(delta);
       sceneDirty = false;
+      element.dataset.cameraDistance = String(
+        camera.position.distanceTo(controls.target),
+      );
+      element.dataset.cameraTarget = controls.target.toArray().join(",");
       element.dataset.drawCalls = String(renderer.info.render.calls);
       element.dataset.triangles = String(renderer.info.render.triangles);
       element.dataset.heartFocus = String(heartDetailRef.current);
@@ -791,11 +811,23 @@ export default function AnatomyViewer(props: Props) {
         </span>
         <small>Illustrative vessel colors</small>
       </div>
+      {focus && !heartDetail && !deviceFocus && (
+        <div
+          className="breathing-cue"
+          aria-label="Illustrative breathing cycle"
+        >
+          <span ref={breathLabel}>Breathing in</span>
+          <span className="breathing-track">
+            <span ref={breathBar} />
+          </span>
+        </div>
+      )}
       <div className="scene-bottom">
         <div className="scene-hint">
           <ArrowsOut size={14} />
           <span>
-            Drag to orbit <i>·</i> Scroll to zoom
+            Drag to orbit <i>·</i> Pinch / scroll to zoom <i>·</i> Two fingers
+            to pan
           </span>
         </div>
         <div className="scene-toolbar">

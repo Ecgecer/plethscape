@@ -629,3 +629,84 @@ test("wearable close-ups select their optical site and the actual 3D meshes acce
     page.getByRole("button", { name: "Select Upper arm on body", exact: true }),
   ).toBeVisible();
 });
+
+test("off-center wheel zoom follows the body region and right-drag pans", async ({
+  page,
+}) => {
+  const scene = page.locator("[data-body-loaded='true']");
+  await expect(scene).toBeVisible();
+  const canvas = scene.locator("canvas").first();
+  const rect = (await canvas.boundingBox())!;
+  const before = Number(await scene.getAttribute("data-camera-distance"));
+  const targetBefore = (await scene.getAttribute("data-camera-target"))!;
+  await page.mouse.move(
+    rect.x + rect.width * 0.64,
+    rect.y + rect.height * 0.34,
+  );
+  await page.mouse.wheel(0, -450);
+  await expect
+    .poll(async () => Number(await scene.getAttribute("data-camera-distance")))
+    .toBeLessThan(before * 0.9);
+  await expect(scene).not.toHaveAttribute("data-camera-target", targetBefore);
+  const zoomTarget = (await scene.getAttribute("data-camera-target"))!;
+  await page.mouse.down({ button: "right" });
+  await page.mouse.move(
+    rect.x + rect.width * 0.53,
+    rect.y + rect.height * 0.43,
+    { steps: 8 },
+  );
+  await page.mouse.up({ button: "right" });
+  await expect(scene).not.toHaveAttribute("data-camera-target", zoomTarget);
+  await expect(scene).toHaveAttribute("data-device-focus", "none");
+  await page.getByRole("button", { name: "Reset camera", exact: true }).click();
+  await expect
+    .poll(async () => Number(await scene.getAttribute("data-camera-distance")))
+    .toBeGreaterThan(6);
+});
+
+test("two-finger pinch and pan zoom into a body region without selecting a device", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const scene = page.locator("[data-body-loaded='true']");
+  await expect(scene).toBeVisible();
+  const canvas = scene.locator("canvas").first();
+  await canvas.scrollIntoViewIfNeeded();
+  const rect = (await canvas.boundingBox())!;
+  const before = Number(await scene.getAttribute("data-camera-distance"));
+  const targetBefore = (await scene.getAttribute("data-camera-target"))!;
+  const client = await page.context().newCDPSession(page);
+  await client.send("Emulation.setTouchEmulationEnabled", {
+    enabled: true,
+    maxTouchPoints: 2,
+  });
+  const center = {
+    x: rect.x + rect.width * 0.6,
+    y: Math.min(620, Math.max(180, rect.y + rect.height * 0.48)),
+  };
+  const points = (spread: number, shift: number) => [
+    { x: center.x - spread + shift, y: center.y - 8, id: 0 },
+    { x: center.x + spread + shift, y: center.y + 8, id: 1 },
+  ];
+  await client.send("Input.dispatchTouchEvent", {
+    type: "touchStart",
+    touchPoints: points(18, 0),
+  });
+  for (let i = 1; i <= 8; i++) {
+    await client.send("Input.dispatchTouchEvent", {
+      type: "touchMove",
+      touchPoints: points(18 + i * 5, -i * 2),
+    });
+    await page.waitForTimeout(25);
+  }
+  await client.send("Input.dispatchTouchEvent", {
+    type: "touchEnd",
+    touchPoints: [],
+  });
+  await expect
+    .poll(async () => Number(await scene.getAttribute("data-camera-distance")))
+    .toBeLessThan(before * 0.8);
+  await expect(scene).not.toHaveAttribute("data-camera-target", targetBefore);
+  await expect(scene).toHaveAttribute("data-device-focus", "none");
+  await client.detach();
+});

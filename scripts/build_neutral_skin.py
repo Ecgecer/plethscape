@@ -1,4 +1,4 @@
-"""Build the neutral, palms-posterior presentation skin from BodyParts3D FJ2810.
+"""Build the neutral presentation skin in the original anatomical arm pose from BodyParts3D FJ2810.
 
 Run with Blender --background --python scripts/build_neutral_skin.py.
 Source anatomy is CC BY 4.0; internal tissues remain in bodyparts-atlas.glb.
@@ -24,24 +24,7 @@ x,y,z=p.T.copy()
 w=(1-smooth(.065,.17,np.abs(x)))*smooth(1.53,1.64,y)*(1-smooth(1.92,2.08,y))*smooth(-.035,.025,z)
 p[:,2]=z*(1-.94*w)
 
-# Leave elbows untouched; rotate the distal forearm and rigid hand together.
-for side in [-1,1]:
-    pivot=np.array([side*.532,1.935,.018])
-    axis=np.array([-side*.2,.946,-.26]);axis/=np.linalg.norm(axis)
-    relative=p-pivot
-    along=relative@axis
-    gap=.41+(.33-.41)*smooth(2,2.3,p[:,1])
-    selected=(p[:,0]*side>gap)&(p[:,1]>1.25)&(p[:,1]<2.5)
-    angle=-side*math.pi*(1-smooth(-.015,.26,along))*selected
-    c=np.cos(angle)[:,None];s=np.sin(angle)[:,None]
-    p=pivot+relative*c+np.cross(axis,relative)*s+along[:,None]*axis*(1-c)
-    # Preserve a relaxed, tapered skin envelope while the internal orientation
-    # changes. This prevents twisting the source's superficial muscle ridges.
-    q=p-pivot-along[:,None]*axis
-    radius=np.linalg.norm(q,axis=1)
-    envelope=smooth(-.02,.04,along)*(1-smooth(.23,.33,along))*selected
-    target_radius=.067+.085*np.clip(along,0,.33)
-    p+=q*((target_radius/np.maximum(radius,1e-6)-1)*envelope)[:,None]
+# Preserve every source arm and hand coordinate; never twist an unrigged mesh.
 
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
 mesh=bpy.data.meshes.new('Neutral source skin')
@@ -71,6 +54,6 @@ bmesh.ops.recalc_face_normals(clean,faces=list(clean.faces))
 clean.to_mesh(obj.data);clean.free();obj.data.validate();obj.data.update()
 for poly in obj.data.polygons:poly.use_smooth=True
 obj['source']='BodyParts3D FJ2810, CC BY 4.0'
-obj['adaptation']='Neutral external pelvis, illustrative posterior-palms pose, watertight surface reconstruction'
+obj['adaptation']='Neutral external pelvis, source arm pose preserved, watertight surface reconstruction'
 bpy.ops.export_scene.gltf(filepath=str(ROOT/'public/models/neutral-skin.glb'),export_format='GLB',use_selection=True,export_draco_mesh_compression_enable=True,export_draco_mesh_compression_level=6,export_draco_position_quantization=16,export_draco_normal_quantization=12)
 print('Neutral presentation skin:',len(obj.data.vertices),'vertices,',len(obj.data.polygons),'triangles',flush=True)
