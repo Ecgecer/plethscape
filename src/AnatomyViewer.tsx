@@ -22,6 +22,7 @@ import { SITES, getCardiacState } from "./simulation";
 import type { Physiology, SiteId } from "./simulation";
 import { DEVICES, WEARABLE_SITES, isWearableSite } from "./devices";
 import { createSensorAuras } from "./sensorAuras";
+import { installBodyGestures } from "./bodyGestures";
 import type { WearableSite } from "./devices";
 
 export type Layers = {
@@ -397,7 +398,11 @@ export default function AnatomyViewer(props: Props) {
       dragged: boolean;
     } | null = null;
     const onPointerDown = (event: PointerEvent) => {
-      if (event.button !== 0 || event.target !== renderer.domElement) return;
+      if (
+        event.button !== 0 ||
+        (event.target !== renderer.domElement && event.pointerType !== "touch")
+      )
+        return;
       activePointers.add(event.pointerId);
       if (activePointers.size > 1) {
         pointerStart = null;
@@ -475,11 +480,31 @@ export default function AnatomyViewer(props: Props) {
       activePointers.delete(event.pointerId);
       pointerStart = null;
     };
+    const gestures = installBodyGestures(
+      element,
+      camera,
+      controls,
+      () => {
+        anatomy.group.updateMatrixWorld(true);
+        return isolatedDeviceRef.current
+          ? [anatomy.wearables.group]
+          : [anatomy.layers.body, anatomy.heart, anatomy.wearables.group];
+      },
+      () => {
+        cameraFlight = null;
+        pointerStart = null;
+        hoveredDevice = null;
+      },
+      () => {
+        sceneDirty = true;
+      },
+    );
     // Preserve normal left-click activation on marker buttons. Right-drag and
     // wheel gestures still reach the shared orbit surface behind the markers.
     const preserveMarkerClick = (event: PointerEvent) => {
       if (
         event.button === 0 &&
+        event.pointerType !== "touch" &&
         event.target instanceof Element &&
         event.target.closest("button")
       )
@@ -629,8 +654,9 @@ export default function AnatomyViewer(props: Props) {
         );
         if (t >= 1) cameraFlight = null;
       }
-      controls.autoRotate = rotateRef.current && p.clock.current.running;
-      controls.update(delta);
+      controls.autoRotate =
+        rotateRef.current && p.clock.current.running && !gestures.active;
+      if (!gestures.active) controls.update(delta);
       inspectionLight.intensity = isolatedDeviceRef.current ? 2.2 : 0;
       inspectionLight.visible = isolatedDeviceRef.current;
       inspectionLight.position.copy(camera.position);
@@ -700,6 +726,7 @@ export default function AnatomyViewer(props: Props) {
         camera.position.distanceTo(controls.target),
       );
       element.dataset.cameraTarget = controls.target.toArray().join(",");
+      element.dataset.cameraPosition = camera.position.toArray().join(",");
       element.dataset.drawCalls = String(renderer.info.render.calls);
       element.dataset.triangles = String(renderer.info.render.triangles);
       element.dataset.heartFocus = String(heartDetailRef.current);
@@ -718,6 +745,7 @@ export default function AnatomyViewer(props: Props) {
       observer.disconnect();
       visibilityObserver.disconnect();
       controls.removeEventListener("start", onOrbitStart);
+      gestures.dispose();
       element.removeEventListener("pointerdown", preserveMarkerClick, true);
       auras.dispose();
       controls.dispose();
