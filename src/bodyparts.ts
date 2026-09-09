@@ -846,6 +846,7 @@ export function createAnatomy() {
     heartRate: number,
     activity: Activity,
     cardiac: ReturnType<typeof getCardiacState>,
+    inspection = false,
   ) {
     const elapsed =
       priorTime === null ? 0 : THREE.MathUtils.clamp(time - priorTime, 0, 0.06);
@@ -868,7 +869,7 @@ export function createAnatomy() {
       0.7 *
       Math.sqrt(heartRate / 72) *
       (0.8 + shared.atlasContraction.value * 0.5);
-    shared.atlasFlow.value = flowTime;
+    shared.atlasFlow.value = inspection ? time * 0.7 : flowTime;
     shared.atlasBeat.value = cardiac.cycles;
     shared.atlasFlowEnabled.value = layers.flow.visible && !heartFocus ? 1 : 0;
     group.position.y =

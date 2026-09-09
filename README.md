@@ -98,3 +98,30 @@ Single-beat **Labels** opens an interactive fiducial guide: select on, u, sp, dn
 
 
 In **Experiment → Rhythm & conditions**, choose AFib, PACs, PVCs, ventricular bigeminy or trigeminy. The shared heartbeat clock drives the anatomy and each site's 10-second PPG stream. Compare with sinus rhythm or enable the weak peripheral pulse example for ventricular ectopy. The single-beat view stays a reference contour; rhythm effects require multiple beats. Research, parameter choices and limitations are in [SCIENCE.md](docs/SCIENCE.md).
+
+
+## Inside the signal
+
+Open **Inside the signal** above the body (or **Inside the sensor** on the selected
+device card) to capture one heartbeat. Scrub time, replay at 0.2× / 0.5× / 1×,
+or jump to a resolved pulse landmark. **Inside sensor** displays a custom-coded
+3D light/tissue cutaway; **Whole body** shares the same replay time. Compare up to
+four site traces using arrival timing or aligned pulse feet without normalizing
+away amplitude differences. **Back to live** resumes exploration.
+
+Green/red/infrared controls illustrate relative light sampling depth. An expandable
+research note explains why real wavelength-dependent pulse shapes cannot be reduced
+to three universal templates. The synthetic PPG is not recalibrated by these controls.
+
+The live HR readout now shows a whole-number two-beat average, refreshed once per
+second; the physiological clock remains unsmoothed. A taller main chart, a 2.5-second
+close view, and **See beat-to-beat changes** make the actual differences in recent
+pulse heights and durations easier to inspect. The default sinus stream is still
+five seconds; irregular-rhythm examples default to ten seconds.
+
+Verification for the signal studio and calmer readout: production build passed,
+43 simulation/unit tests passed, and 33 browser tests passed. This includes
+shared replay time, fiducial jumps, site alignment, mobile layout, recent-pulse
+comparison, and the existing anatomy/gesture/rhythm/export regressions. Desktop
+and phone-size Chrome views were visually checked with no reported browser errors.
+These checks establish software behavior, not clinical validation.

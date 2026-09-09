@@ -36,6 +36,9 @@ export type Layers = {
   muscles: boolean;
 };
 interface Props {
+  active?: boolean;
+  inspection?: boolean;
+  onSensor?: () => void;
   physiology: Physiology;
   site: SiteId;
   onSite: (id: SiteId) => void;
@@ -544,7 +547,12 @@ export default function AnatomyViewer(props: Props) {
     };
     renderer.domElement.addEventListener("webglcontextlost", onLost);
     renderer.setAnimationLoop((now) => {
-      if (disposed || document.hidden || (!sceneVisible && !sceneDirty)) {
+      if (
+        disposed ||
+        current.current.active === false ||
+        document.hidden ||
+        (!sceneVisible && !sceneDirty)
+      ) {
         last = now;
         return;
       }
@@ -611,6 +619,7 @@ export default function AnatomyViewer(props: Props) {
         cardiac.heartRate,
         p.physiology.activity,
         cardiac,
+        p.inspection,
       );
       const respiratoryPhase = cardiac.breathPhase;
       const expansion = cardiac.breathExpansion;
@@ -770,7 +779,10 @@ export default function AnatomyViewer(props: Props) {
   }, []);
 
   return (
-    <div className={`anatomy-viewer ${deviceFocus ? "inspecting-device" : ""}`}>
+    <div
+      hidden={props.active === false}
+      className={`anatomy-viewer ${deviceFocus ? "inspecting-device" : ""}`}
+    >
       <div
         className="pulse-narration"
         ref={journeyLabel}
@@ -886,6 +898,9 @@ export default function AnatomyViewer(props: Props) {
           >
             Inspect device <ArrowsOut size={16} />
           </button>
+          {!props.inspection && (
+            <button onClick={props.onSensor}>Inside the sensor ↗</button>
+          )}
         </div>
       )}
       {deviceFocus && (

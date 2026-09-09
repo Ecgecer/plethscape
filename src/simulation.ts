@@ -595,3 +595,53 @@ export function getInsight(
     body: "Follow the systolic upstroke, the small dicrotic depression, and the later diastolic rise. Change the site or age to see how pulse propagation and reflection reshape the contour.",
   };
 }
+
+export interface CapturedBeat {
+  start: number;
+  end: number;
+  index: number;
+}
+/** Capture one ventricular event, including negative-time history. */
+export function captureBeat(time: number, p: Physiology): CapturedBeat {
+  time = safe(time, 0);
+  const m = model(p, "finger");
+  const c =
+    m.rhythm === "sinus"
+      ? beatContext(Math.floor(cardiacCycles(time, m)), m)
+      : rhythmContext(time, m.cycle, m.rhythm, m.pulseDeficit);
+  return { start: c.start, end: c.end, index: c.index };
+}
+export function siteDelay(p: Physiology, site: SiteId) {
+  return model(p, site).delay;
+}
+/** Isolate this captured optical pulse; omit adjacent beats, drift and sensor noise. */
+export function sampleCapturedBeat(
+  time: number,
+  p: Physiology,
+  site: SiteId,
+  captured: CapturedBeat,
+  aligned = false,
+) {
+  const m = model(p, site);
+  const c =
+    m.rhythm === "sinus"
+      ? beatContext(captured.index, m)
+      : rhythmContext(
+          (captured.start + captured.end) / 2,
+          m.cycle,
+          m.rhythm,
+          m.pulseDeficit,
+        );
+  const duration = captured.end - captured.start;
+  const phase = (time - captured.start - (aligned ? 0 : m.delay)) / duration;
+  return beat(phase, m, c.width, c.reflection, duration) * c.gain;
+}
+
+/** A display-only rate from two completed central intervals. The simulation
+ * clock and raw event timings are never smoothed by this readout. */
+export function getDisplayHeartRate(time: number, p: Physiology): number {
+  const current = captureBeat(time, p);
+  const previous = captureBeat(current.start - 1e-5, p);
+  const before = captureBeat(previous.start - 1e-5, p);
+  return 120 / (current.start - before.start);
+}

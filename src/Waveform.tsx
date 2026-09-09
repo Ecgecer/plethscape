@@ -18,6 +18,7 @@ type WaveformProps = {
   compare?: { physiology: Physiology; site: SiteId } | null;
   mode?: "stream" | "beat" | "accelerometer";
   annotate?: boolean;
+  windowSeconds?: number;
   selectedFiducial?: FiducialId;
 };
 
@@ -82,6 +83,10 @@ export default function Waveform(props: WaveformProps) {
         annotate = false,
       } = latestRef.current;
       const time = displayTime;
+      canvas.dataset.windowSeconds = String(
+        latestRef.current.windowSeconds ??
+          (getRhythm(physiology.rhythm) !== "sinus" ? 10 : 5),
+      );
       const beat = mode === "beat";
       const accelerometer = mode === "accelerometer";
       const pad = {
@@ -93,10 +98,11 @@ export default function Waveform(props: WaveformProps) {
       const plotWidth = Math.max(1, width - pad.left - pad.right);
       const plotHeight = Math.max(1, height - pad.top - pad.bottom);
       const streamSpan =
-        !accelerometer && getRhythm(physiology.rhythm) !== "sinus" ? 10 : 5;
+        latestRef.current.windowSeconds ??
+        (!accelerometer && getRhythm(physiology.rhythm) !== "sinus" ? 10 : 5);
       // Keep at least 125 samples/s in a stream, even on narrow screens.
       const count = Math.max(
-        beat ? 1025 : streamSpan * 125 + 1,
+        beat ? 1025 : Math.ceil(streamSpan * 125) + 1,
         Math.min(1000, Math.ceil(plotWidth * 1.3)),
       );
       const minY = accelerometer ? -2 : PPG_DISPLAY_RANGE.min;
@@ -150,7 +156,7 @@ export default function Waveform(props: WaveformProps) {
           ? `${Math.round(fraction * 100)}${i === divisions * 4 ? "%" : ""}`
           : i === divisions * 4
             ? "now"
-            : `−${((1 - fraction) * span).toFixed(fraction === 0 ? 0 : 1)}s`;
+            : `−${((1 - fraction) * span).toFixed(fraction === 0 && Number.isInteger(span) ? 0 : 1)}s`;
         ctx.fillText(label, x, height - 12);
       }
 

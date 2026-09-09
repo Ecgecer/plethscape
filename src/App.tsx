@@ -32,9 +32,12 @@ import RhythmLab from "./RhythmLab";
 import { getRhythm, RHYTHMS, type Rhythm } from "./rhythm";
 import FiducialGuide from "./FiducialGuide";
 import type { FiducialId } from "./fiducials";
+import RecentBeats from "./RecentBeats";
 import LivePhysiology from "./LivePhysiology";
 import ExperienceGuide, { type ExperienceMode } from "./ExperienceGuide";
 import {
+  captureBeat,
+  siteDelay,
   DEFAULT_PHYSIOLOGY,
   SITES,
   getInsight,
@@ -43,10 +46,13 @@ import {
   getCardiacState,
   sampleAccelerometer,
 } from "./simulation";
-import type { Activity, Physiology, SiteId } from "./simulation";
+import type { CapturedBeat, Activity, Physiology, SiteId } from "./simulation";
 import type { Layers } from "./AnatomyViewer";
 import { DEVICES, isWearableSite } from "./devices";
 
+import type { Wavelength } from "./optics";
+const SensorCutaway = lazy(() => import("./SensorCutaway"));
+const SignalStudio = lazy(() => import("./SignalStudio"));
 const AnatomyViewer = lazy(() => import("./AnatomyViewer"));
 const INITIAL_LAYERS: Layers = {
   body: true,
@@ -271,6 +277,16 @@ export default function App() {
     age: 32,
     heartRate: 72,
   });
+  const [streamWindow, setStreamWindow] = useState<number | null>(null);
+  const [captured, setCaptured] = useState<CapturedBeat | null>(null);
+  const [studioView, setStudioView] = useState<"sensor" | "body">("sensor");
+  const [wavelength, setWavelength] = useState<Wavelength>("green");
+  const [opticalStage, setOpticalStage] = useState(0);
+  const [playbackSpeed, setPlaybackSpeed] = useState(0.2);
+  const playback = useRef<{ start: number; end: number; speed: number } | null>(
+    null,
+  );
+  const studioTrigger = useRef<HTMLButtonElement>(null);
   const [site, setSite] = useState<SiteId>("finger");
   const [layers, setLayers] = useState<Layers>(INITIAL_LAYERS);
   const [running, setRunning] = useState(true);
@@ -333,7 +349,33 @@ export default function App() {
     setPulseStart(null);
     setRunning(true);
   };
+  const closeStudio = () => {
+    setCaptured(null);
+    playback.current = null;
+    setRunning(true);
+    studioTrigger.current?.focus();
+  };
+  const openStudio = () => {
+    const beat = captureBeat(clock.current.time, physiology);
+    const end =
+      beat.end + Math.max(...SITES.map((s) => siteDelay(physiology, s.id)));
+    setCaptured(beat);
+    setStudioView("sensor");
+    setPlaybackSpeed(0.2);
+    playback.current = { start: beat.start, end, speed: 0.2 };
+    clock.current.time = beat.start;
+    clock.current.running = false;
+    setRunning(false);
+    setPulseStart(null);
+    setToolsOpen(false);
+  };
+  const seekStudio = (time: number) => {
+    clock.current.time = time;
+    clock.current.running = false;
+    setRunning(false);
+  };
   const changeExperience = (next: ExperienceMode) => {
+    if (captured) closeStudio();
     setExperience(next);
     if (next !== "explore") setPulseStart(null);
     setToolsOpen(false);
@@ -374,8 +416,14 @@ export default function App() {
     const frame = (now: number) => {
       const elapsed = Math.min((now - last) / 1000, 0.08);
       last = now;
-      if (clock.current.running && !document.hidden)
-        clock.current.time += elapsed;
+      if (clock.current.running && !document.hidden) {
+        const replay = playback.current;
+        clock.current.time += elapsed * (replay?.speed ?? 1);
+        if (replay && clock.current.time > replay.end)
+          clock.current.time =
+            replay.start +
+            ((clock.current.time - replay.start) % (replay.end - replay.start));
+      }
       raf = requestAnimationFrame(frame);
     };
     raf = requestAnimationFrame(frame);
@@ -496,7 +544,7 @@ export default function App() {
 
   return (
     <div
-      className={`app-shell experience-shell experience-${experience}`}
+      className={`app-shell experience-shell experience-${experience} ${captured ? "studio-open" : ""}`}
       data-experience={experience}
     >
       <header className="app-header">
@@ -554,7 +602,11 @@ export default function App() {
         <div className="workspace-heading">
           <div>
             <span className="workspace-kicker">THE SIGNAL WITHIN</span>
-            <h1>Every pulse has a story.</h1>
+            <h1>
+              {captured
+                ? "One heartbeat. Every perspective."
+                : "Every pulse has a story."}
+            </h1>
             <p>
               {experience === "explore"
                 ? "Start with a heartbeat. Follow it to the skin."
@@ -565,7 +617,17 @@ export default function App() {
           </div>
           <div className="workspace-tools">
             <button
+              ref={studioTrigger}
+              className="studio-launch"
+              aria-expanded={!!captured}
+              disabled={!anatomyReady}
+              onClick={captured ? closeStudio : openStudio}
+            >
+              {captured ? "← Back to live" : "Inside the signal ↗"}
+            </button>
+            <button
               ref={viewOptionsTrigger}
+              hidden={!!captured}
               className="view-options-button"
               aria-expanded={toolsOpen}
               aria-controls="view-options"
@@ -573,7 +635,7 @@ export default function App() {
             >
               <Stack size={17} /> View options
             </button>
-            {experience === "explore" && (
+            {experience === "explore" && !captured && (
               <button
                 className="mobile-follow-button"
                 disabled={!anatomyReady}
@@ -742,6 +804,9 @@ export default function App() {
               }
             >
               <AnatomyViewer
+                active={!captured || studioView === "body"}
+                inspection={!!captured}
+                onSensor={openStudio}
                 physiology={physiology}
                 site={site}
                 onSite={chooseSite}
@@ -752,16 +817,89 @@ export default function App() {
                 pulseStart={experience === "explore" ? pulseStart : null}
               />
             </Suspense>
+            {captured && studioView === "sensor" && (
+              <Suspense
+                fallback={
+                  <div className="studio-loading">
+                    Preparing the optical view…
+                  </div>
+                }
+              >
+                <SensorCutaway
+                  clock={clock}
+                  physiology={physiology}
+                  site={site}
+                  captured={captured}
+                  wavelength={wavelength}
+                  stage={opticalStage}
+                />
+              </Suspense>
+            )}
+            {captured && (
+              <div
+                className="studio-view-switch"
+                role="group"
+                aria-label="Inspection view"
+              >
+                <button
+                  aria-pressed={studioView === "sensor"}
+                  onClick={() => setStudioView("sensor")}
+                >
+                  Inside sensor
+                </button>
+                <button
+                  aria-pressed={studioView === "body"}
+                  onClick={() => setStudioView("body")}
+                >
+                  Whole body
+                </button>
+              </div>
+            )}
             <div className="body-status">
               <span>
                 <i className={`status-dot ${running ? "live" : ""}`} />
                 {running ? "SIMULATION RUNNING" : "SIMULATION PAUSED"}
               </span>
-              <span>BODYPARTS3D · REFERENCE ANATOMY</span>
+              <span>
+                {captured && studioView === "sensor"
+                  ? "ILLUSTRATIVE TISSUE · NOT TO SCALE"
+                  : "BODYPARTS3D · REFERENCE ANATOMY"}
+              </span>
             </div>
           </section>
 
-          <aside className="signal-panel">
+          {captured && (
+            <Suspense
+              fallback={
+                <aside className="signal-panel">Preparing the heartbeat…</aside>
+              }
+            >
+              <SignalStudio
+                clock={clock}
+                physiology={physiology}
+                site={site}
+                captured={captured}
+                end={playback.current!.end}
+                running={running}
+                speed={playbackSpeed}
+                view={studioView}
+                wavelength={wavelength}
+                stage={opticalStage}
+                onSeek={seekStudio}
+                onPlay={() => setRunning((v) => !v)}
+                onSpeed={(speed) => {
+                  setPlaybackSpeed(speed);
+                  if (playback.current) playback.current.speed = speed;
+                }}
+                onSite={chooseSite}
+                onView={setStudioView}
+                onWavelength={setWavelength}
+                onStage={setOpticalStage}
+                onClose={closeStudio}
+              />
+            </Suspense>
+          )}
+          <aside className="signal-panel" hidden={!!captured}>
             <ExperienceGuide
               ready={anatomyReady}
               mode={experience}
@@ -837,6 +975,10 @@ export default function App() {
                   mode={mode}
                   annotate={annotate}
                   selectedFiducial={selectedFiducial}
+                  windowSeconds={
+                    streamWindow ??
+                    (getRhythm(physiology.rhythm) === "sinus" ? 5 : 10)
+                  }
                 />
               </div>
               <div className="chart-controls">
@@ -864,16 +1006,42 @@ export default function App() {
                   </button>
                 ) : (
                   <span className="chart-window">
-                    {getRhythm(physiology.rhythm) === "sinus" ? "5" : "10"} s
-                    window
+                    {streamWindow ??
+                      (getRhythm(physiology.rhythm) === "sinus" ? 5 : 10)}{" "}
+                    s window
                   </span>
                 )}
               </div>
+              {mode === "stream" && (
+                <div className="trace-scale-controls">
+                  <label htmlFor="trace-time-window">Time window</label>
+                  <select
+                    id="trace-time-window"
+                    value={
+                      streamWindow ??
+                      (getRhythm(physiology.rhythm) === "sinus" ? 5 : 10)
+                    }
+                    onChange={(e) => setStreamWindow(Number(e.target.value))}
+                  >
+                    <option value={2.5}>2.5 s · closer</option>
+                    <option value={5}>5 s</option>
+                    <option value={10}>10 s · rhythm</option>
+                  </select>
+                  <span>Fixed amplitude scale</span>
+                </div>
+              )}
               <LivePhysiology
                 physiology={physiology}
                 clock={clock}
                 representativeBeat={mode === "beat"}
               />
+              {mode === "stream" && (
+                <RecentBeats
+                  clock={clock}
+                  physiology={physiology}
+                  site={site}
+                />
+              )}
               <div className="signal-metrics">
                 <div>
                   <span title="Illustrative travel delay from cardiac ejection to this site. Excludes ECG pre-ejection time; not a calibrated measurement.">
@@ -1080,7 +1248,10 @@ export default function App() {
           </aside>
         </div>
 
-        <div className="under-workspace" hidden={experience !== "experiment"}>
+        <div
+          className="under-workspace"
+          hidden={experience !== "experiment" || !!captured}
+        >
           <section className="insight-panel">
             <span className="insight-icon">
               <Lightbulb size={21} />

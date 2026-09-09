@@ -187,9 +187,12 @@ Beat onsets are solved at integer crossings of `C(t)` using Newton iteration.
 Each optical site evaluates the same clock after its source-to-site delay.
 The live contour uses elapsed seconds within the actual interval, so jitter
 does not stretch the entire systolic upstroke. The animated heart uses those
-same central onsets, while the UI reports the analytic rate and last completed
-central inter-beat interval. The latter is not a clinical HRV measurement or
-necessarily identical to a peripheral peak-to-peak interval.
+same central onsets. The UI reports a whole-number rate averaged over two
+completed central intervals, refreshed once per second, alongside the latest
+completed central inter-beat interval. This is display smoothing only; the raw
+analytic rate and beat timing remain unchanged. The displayed central interval
+is not a clinical HRV measurement or necessarily identical to a peripheral
+peak-to-peak interval.
 
 The five-second optical plot retains a fixed amplitude scale and at least
 125 samples per second, including on narrow screens. A representative single
@@ -268,7 +271,7 @@ The rhythm selector changes the shared ventricular event clock used by the heart
 | Ventricular bigeminy / trigeminy | Repeating ectopic patterns | PVC every second / third beat using the same short–long pair |
 | Weak peripheral pulse | A contraction may produce a pulse too weak for a wearable to count | Optional ventricular premature-pulse gain 0.055; event timing and central heartbeat remain unchanged |
 
-Intervals are normalized so the heart-rate control sets the long-term mean ventricular rate, not the underlying sinus-node rate. In condition mode the displayed ventricular rate is 60 divided by the last completed central interval. It is not a detector-estimated optical pulse rate. Sinus mode retains its instantaneous respiratory rate estimate. AFib timing uses 4,096 deterministic intervals before repetition; periodic ectopic patterns are intentional. Timing is reproducible for negative history and any sampling order. Normal site-dependent travel delays and contour differences remain active. Breathing still moves the lungs and modulates optical amplitude and baseline; these simplified condition examples do not add sinus RSA to their ventricular timing. Single-beat view remains a clean reference and explicitly directs rhythm study to the 10-second live stream (125 samples/s minimum). Export adds rhythm, pulse_deficit and modeled central beat_kind fields; central beat labels precede site-delayed optical pulses.
+Intervals are normalized so the heart-rate control sets the long-term mean ventricular rate, not the underlying sinus-node rate. In all modes the displayed rate is 120 divided by the total duration of the last two completed central intervals, rounded to whole bpm and refreshed once per second. It is not a detector-estimated optical pulse rate. The raw clock retains instantaneous sinus rate or the last-interval ventricular rate for condition modes; export and animation still use the raw clock. AFib timing uses 4,096 deterministic intervals before repetition; periodic ectopic patterns are intentional. Timing is reproducible for negative history and any sampling order. Normal site-dependent travel delays and contour differences remain active. Breathing still moves the lungs and modulates optical amplitude and baseline; these simplified condition examples do not add sinus RSA to their ventricular timing. Single-beat view remains a clean reference and explicitly directs rhythm study to the 10-second live stream (125 samples/s minimum). Export adds rhythm, pulse_deficit and modeled central beat_kind fields; central beat labels precede site-delayed optical pulses.
 
 Evidence and limitations:
 
@@ -280,3 +283,69 @@ Evidence and limitations:
 - Bacevicius et al., *DoubleCheck-AF* (2022): frequent premature beats challenged PPG specificity; ECG improves rhythm confirmation. https://pubmed.ncbi.nlm.nih.gov/35463751/
 
 The numerical timing and gain choices above are our bounded teaching parameters, not measured effect sizes from those studies. PACs need not always be conducted, PVC pauses need not always fully compensate, and not all AF has a fast or irregular ventricular response (for example with pacing). This model does not simulate atrial electrical activity, P waves, QRS complexes, treatment effects or disease severity. Rhythm diagnosis and atrial versus ventricular origin require ECG context. Motion, perfusion and sensor quality also change real PPG and remain independently adjustable here.
+
+
+## Captured heartbeat, sensor cutaway and multi-site comparison
+
+**Inside the signal** freezes one exact event from the current cardiac clock.
+The scrubber covers its duration plus the largest site delay. Replay runs at
+0.2×, 0.5× or 1× and loops this window. Fiducial jumps use the captured pulse's
+actual duration and selected site's delay, rather than the mean heart period.
+Returning to live exploration resumes from the current simulation time.
+
+The site plots isolate that same event with its event-specific gain, width and
+reflection. Neighboring pulses, baseline drift and sensor noise are omitted.
+**Arrival timing** retains source-to-site delay; **Align pulse feet** subtracts
+it from each plot, preserving amplitudes on the same 0–1.7 a.u. scale. In aligned
+mode, each cursor denotes time since its own site's onset. These are illustrative
+central-event-to-site delays, not ECG-derived pulse arrival times: no
+pre-ejection interval is included. The replay window can extend into the next
+central contraction while the captured distal pulse finishes.
+
+The procedural tissue cutaway illustrates reflectance sensing with an epidermal
+roof, vessels, dermal context and subcutaneous tissue. It does not recreate the
+actual geometry of each wearable. Curved luminous paths are slowed explanatory
+cues, not tracked photons or a Monte Carlo optical solution. Receiver brightness
+uses an arbitrary inverse modulation of the isolated pulse; depth, absorption,
+vessel motion, dimensions and light intensity are uncalibrated visual choices.
+
+### Green, red and infrared
+
+The controls label example illumination at 530, 660 and 940 nm. Green illustrates
+shallower sampling; red and infrared illustrate deeper sampling, with substantial
+real-world overlap. Infrared is invisible and rendered warm white for visibility.
+The selected wavelength changes only the light illustration, not the synthetic
+PPG morphology. A universal wavelength-to-waveform transform is not justified by
+the cited studies, and this app has no calibrated multispectral transfer function.
+
+- [Lee et al., 2013](https://pubmed.ncbi.nlm.nih.gov/24110039/): a 12-person
+  reflection PPG experiment compared 530, 645 and 470 nm during baseline and hand
+  waving. Green produced better pulse-rate agreement with ECG in that setup.
+  This does not establish an invariant amplitude, notch shape, or superiority
+  at every site and acquisition setting.
+- [Sirkia et al., 2020, figure 3](https://www.cinc.org/archives/2020/pdf/CinC2020-179.pdf):
+  a multi-wavelength fingertip demonstration showed small waveform timing and
+  contour differences across 465–880 nm, including later green than infrared
+  pulse feet in the illustrated recording. It is evidence that wavelength can
+  affect timing, not a population calibration. Their sample wavelengths differ
+  from the example wavelengths in this interface.
+- [Moço et al., 2018](https://pmc.ncbi.nlm.nih.gov/articles/PMC5981460/): living-skin
+  experiments and multilayer simulations support depth-dependent contributions
+  to remote green and red/infrared signals. This is mechanistic evidence;
+  remote-camera results do not calibrate a contact wearable's optical response.
+
+Real morphology and amplitude also depend on local vasculature, skin, contact
+pressure, source-detector geometry, illumination, electronics and filtering.
+This mode does not infer SpO2 or blood pressure. Meaningful future channel
+comparisons should use matched multispectral recordings with acquisition metadata.
+
+## Making subtle variation legible
+
+The main waveform is taller and offers 2.5-, 5- and 10-second windows while keeping
+its amplitude axis fixed. **See beat-to-beat changes** overlays the last five
+completed site-delayed pulses at onset, retaining their individual durations and
+amplitudes, with pulse-interval and peak-height ranges. It isolates clean pulses
+in the same way as captured playback. This is display magnification and comparison;
+physiological variability coefficients were not increased to exaggerate differences.
+The representative single-beat view remains static so age and stiffness can be
+compared without live variability confounds.

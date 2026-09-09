@@ -5,7 +5,11 @@ import {
   useState,
   type RefObject,
 } from "react";
-import { getCardiacState, type Physiology } from "./simulation";
+import {
+  getCardiacState,
+  getDisplayHeartRate,
+  type Physiology,
+} from "./simulation";
 import { getRhythm, RHYTHMS } from "./rhythm";
 
 interface Props {
@@ -19,12 +23,16 @@ export default function LivePhysiology(props: Props) {
   const [state, setState] = useState(() =>
     getCardiacState(props.clock.current.time, props.physiology),
   );
+  const [displayRate, setDisplayRate] = useState(() =>
+    getDisplayHeartRate(props.clock.current.time, props.physiology),
+  );
   useLayoutEffect(() => {
     latest.current = props;
   });
   useEffect(() => {
     let previousTime = NaN;
     let previousPhysiology: Physiology | null = null;
+    let lastReadout = -Infinity;
     const update = () => {
       const { clock, physiology } = latest.current;
       if (
@@ -33,6 +41,15 @@ export default function LivePhysiology(props: Props) {
           physiology === previousPhysiology)
       )
         return;
+      const now = performance.now();
+      if (
+        physiology !== previousPhysiology ||
+        clock.current.time < previousTime ||
+        now - lastReadout >= 1000
+      ) {
+        setDisplayRate(getDisplayHeartRate(clock.current.time, physiology));
+        lastReadout = now;
+      }
       previousTime = clock.current.time;
       previousPhysiology = physiology;
       setState(getCardiacState(previousTime, physiology));
@@ -48,6 +65,7 @@ export default function LivePhysiology(props: Props) {
       aria-label="Live simulated physiology"
       data-testid="live-physiology"
       data-heart-rate={state.heartRate.toFixed(3)}
+      data-display-rate={Math.round(displayRate)}
       data-interval-ms={state.intervalMs.toFixed(3)}
       data-inhaling={state.inhaling}
       data-rhythm={getRhythm(props.physiology.rhythm)}
@@ -61,12 +79,10 @@ export default function LivePhysiology(props: Props) {
               : "Ventricular rate"}
           </span>
           <strong data-testid="live-heart-rate">
-            {state.heartRate.toFixed(1)}
+            {Math.round(displayRate)}
             <small>bpm</small>
           </strong>
-          <span className="vital-context">
-            Mean {props.physiology.heartRate} bpm
-          </span>
+          <span className="vital-context">2-beat average · 1 s refresh</span>
         </div>
         <div className="breath-vital">
           <span className="vital-label">
