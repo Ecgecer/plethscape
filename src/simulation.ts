@@ -1,3 +1,4 @@
+import { getRhythm, RHYTHMS, rhythmContext, type Rhythm } from "./rhythm";
 /**
  * A deliberately schematic teaching model, not fitted PWDB records or clinical data.
  * PPG is a local optical blood-volume signal. It is not pressure, blood flow, or ECG.
@@ -8,6 +9,8 @@ export type SiteId =
 export type Activity = "rest" | "walk" | "run";
 
 export interface Physiology {
+  rhythm?: Rhythm;
+  pulseDeficit?: boolean;
   age: number;
   heartRate: number;
   /** Breathing rate in breaths/min, bounded to 6–36 in the teaching model. */
@@ -33,6 +36,8 @@ export interface AnatomicalSite {
 }
 
 export const DEFAULT_PHYSIOLOGY: Physiology = {
+  rhythm: "sinus",
+  pulseDeficit: false,
   age: 32,
   heartRate: 72,
   respiratoryRate: 16,
@@ -178,6 +183,8 @@ const SITE_SHAPE: Record<
 };
 
 interface Model {
+  rhythm: Rhythm;
+  pulseDeficit: boolean;
   cycle: number;
   age: number;
   stiffness: number;
@@ -216,6 +223,7 @@ const cache = new WeakMap<
   {
     values: number[];
     activity: Activity;
+    rhythm: Rhythm;
     sites: Partial<Record<SiteId, Model>>;
   }
 >();
@@ -230,6 +238,8 @@ function model(p: Physiology, siteId: SiteId): Model {
     entry.values[3] !== p.perfusion ||
     entry.values[4] !== p.noise ||
     entry.values[5] !== p.respiratoryRate ||
+    entry.values[6] !== Number(!!p.pulseDeficit) ||
+    entry.rhythm !== getRhythm(p.rhythm) ||
     entry.activity !== p.activity
   ) {
     entry = {
@@ -240,8 +250,10 @@ function model(p: Physiology, siteId: SiteId): Model {
         p.perfusion,
         p.noise,
         p.respiratoryRate,
+        Number(!!p.pulseDeficit),
       ],
       activity: p.activity,
+      rhythm: getRhythm(p.rhythm),
       sites: {},
     };
     cache.set(p, entry);
@@ -280,6 +292,8 @@ function model(p: Physiology, siteId: SiteId): Model {
   );
   const notchTime = peakTime + (reflectionTime - peakTime) * 0.66;
   const m: Model = {
+    rhythm: getRhythm(p.rhythm),
+    pulseDeficit: !!p.pulseDeficit,
     cycle,
     age,
     stiffness,
@@ -401,18 +415,24 @@ function beatContext(index: number, m: Model) {
   return m.lastVariation;
 }
 
-/** Shared central heartbeat for the heart animation and live readout. The rate
- * is the derivative of the same clock that places delayed PPG beats. */
+/** Shared ventricular timing for animation and delayed PPG. Sinus mode reports
+ * the clock derivative; condition modes report the last completed interval rate. */
 export function getCardiacState(timeSec: number, p: Physiology) {
   const t = safe(timeSec, 0);
   const m = model(p, "finger");
-  const cycles = cardiacCycles(t, m);
-  const context = beatContext(Math.floor(cycles), m);
+  const abnormal = m.rhythm !== "sinus";
+  const context = abnormal
+    ? rhythmContext(t, m.cycle, m.rhythm, m.pulseDeficit)
+    : beatContext(Math.floor(cardiacCycles(t, m)), m);
+  const cycles = abnormal
+    ? context.index + (t - context.start) / (context.end - context.start)
+    : cardiacCycles(t, m);
   const breathPhase = wrap(t * m.respiratoryHz);
   return {
     cycles,
     phase: clamp((t - context.start) / (context.end - context.start), 0, 1),
-    heartRate: cardiacRate(t, m),
+    heartRate: abnormal ? 60 / context.previousInterval : cardiacRate(t, m),
+    beatKind: "kind" in context ? context.kind : "regular",
     // Last completed central interval, not 60 divided by a momentary rate.
     intervalMs: context.previousInterval * 1000,
     breathPhase,
@@ -441,13 +461,17 @@ export function samplePPG(
   const t = safe(timeSec, 0);
   const localTime = t - m.delay;
   const respiration = Math.sin(TAU * m.respiratoryHz * localTime);
-  const variation = beatContext(Math.floor(cardiacCycles(localTime, m)), m);
+  const variation =
+    m.rhythm === "sinus"
+      ? beatContext(Math.floor(cardiacCycles(localTime, m)), m)
+      : rhythmContext(localTime, m.cycle, m.rhythm, m.pulseDeficit);
   const duration = variation.end - variation.start;
   const phase = (localTime - variation.start) / duration;
   const vascularDrift = smoothNoise(localTime * 0.075, 2027);
   const clean =
     beat(phase, m, variation.width, variation.reflection, duration) *
     variation.gain *
+    (m.rhythm === "sinus" ? 1 : 1 - 0.025 * respiration) *
     (1 + 0.012 * vascularDrift);
   const drift =
     0.014 * respiration +
@@ -532,6 +556,12 @@ export function getInsight(
   p: Physiology,
   siteId: SiteId,
 ): { title: string; body: string } {
+  const rhythm = getRhythm(p.rhythm);
+  if (rhythm !== "sinus")
+    return {
+      title: RHYTHMS[rhythm].name,
+      body: `${RHYTHMS[rhythm].watch}. ${RHYTHMS[rhythm].explanation}`,
+    };
   if (p.activity !== "rest")
     return {
       title:

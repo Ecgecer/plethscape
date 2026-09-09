@@ -494,6 +494,9 @@ test("CSV export contains ten seconds of finite data and the selected physiology
     "instantaneous_hr_bpm",
     "previous_ibi_ms",
     "respiratory_phase",
+    "rhythm",
+    "pulse_deficit",
+    "beat_kind",
   ]);
   expect(rows).toHaveLength(1250);
   expect(rows[0][0]).toBe("0.000");
@@ -501,7 +504,8 @@ test("CSV export contains ten seconds of finite data and the selected physiology
   const values = rows.map((row) => Number(row[1]));
   expect(Math.max(...values) - Math.min(...values)).toBeGreaterThan(0.5);
   for (const [i, row] of rows.entries()) {
-    expect(row).toHaveLength(17);
+    expect(row).toHaveLength(20);
+    expect(row.slice(17)).toEqual(["sinus", "false", "regular"]);
     expect(Number(row[0])).toBeCloseTo(i / 125, 3);
     expect(
       row

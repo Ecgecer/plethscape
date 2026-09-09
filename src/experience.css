@@ -1007,3 +1007,139 @@
   color: #e7ba93;
   text-underline-offset: 3px;
 }
+
+.rhythm-lab {
+  order: 1;
+  margin: 20px 0;
+  border: 1px solid #49372a;
+  border-radius: 14px;
+  background: #17130f;
+  padding: 16px;
+}
+.rhythm-lab > summary {
+  cursor: pointer;
+  font-size: 1.0625rem;
+  font-weight: 550;
+}
+.rhythm-lab > summary small {
+  float: right;
+  color: #efb47f;
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+.rhythm-intro {
+  color: #c6b6a3;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+.rhythm-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.rhythm-options button {
+  min-height: 76px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid #46372a;
+  border-radius: 10px;
+  padding: 12px;
+  color: #ddcdbb;
+  background: #201911;
+  cursor: pointer;
+  font: inherit;
+}
+.rhythm-options button b {
+  font-size: 1rem;
+}
+.rhythm-options button span {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: #bdac99;
+}
+.rhythm-options button[aria-pressed="true"] {
+  border-color: #eead76;
+  background: #3b2919;
+  box-shadow: inset 0 0 20px #eda66c0a;
+  color: #fff2e4;
+}
+.rhythm-options button:focus-visible,
+.rhythm-compare:focus-visible {
+  outline: 2px solid #f7c492;
+  outline-offset: 3px;
+}
+.rhythm-explanation {
+  margin-top: 20px;
+}
+.rhythm-explanation h3 {
+  font-size: 1.125rem;
+  margin: 0;
+  line-height: 1.4;
+}
+.rhythm-explanation p,
+.deficit-control p,
+.rhythm-science p {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: #c6b8a7;
+}
+.rhythm-explanation .rhythm-watch {
+  color: #efb47f;
+}
+.rhythm-explanation .rhythm-model-note {
+  font-size: 0.8125rem;
+  color: #b3a18f;
+}
+.deficit-control {
+  border-top: 1px solid #49372a;
+  margin: 16px 0;
+  padding-top: 18px;
+}
+.deficit-control label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+.deficit-control input {
+  width: 20px;
+  height: 20px;
+  accent-color: #efaa70;
+  flex: 0 0 auto;
+}
+.rhythm-lab a {
+  color: #e8b88e;
+  text-underline-offset: 3px;
+}
+.rhythm-compare {
+  border: 1px solid #825f3e;
+  border-radius: 9px;
+  padding: 12px;
+  width: 100%;
+  background: #332416;
+  color: #f2c9a3;
+  font: inherit;
+  font-size: 0.9375rem;
+  cursor: pointer;
+}
+.rhythm-science {
+  margin-top: 18px;
+}
+.rhythm-science summary {
+  font-size: 0.9375rem;
+  cursor: pointer;
+  color: #ddc8b2;
+}
+.rhythm-active-badge {
+  color: #efbc90;
+  border-left: 2px solid #eea66a;
+  padding-left: 9px;
+  margin: 12px 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}

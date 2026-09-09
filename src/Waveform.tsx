@@ -9,6 +9,7 @@ import {
 } from "./simulation";
 
 import { analyzePulse, type FiducialId } from "./fiducials";
+import { getRhythm, RHYTHMS } from "./rhythm";
 
 type WaveformProps = {
   physiology: Physiology;
@@ -91,9 +92,11 @@ export default function Waveform(props: WaveformProps) {
       };
       const plotWidth = Math.max(1, width - pad.left - pad.right);
       const plotHeight = Math.max(1, height - pad.top - pad.bottom);
+      const streamSpan =
+        !accelerometer && getRhythm(physiology.rhythm) !== "sinus" ? 10 : 5;
       // Keep at least 125 samples/s in a stream, even on narrow screens.
       const count = Math.max(
-        beat ? 1025 : 626,
+        beat ? 1025 : streamSpan * 125 + 1,
         Math.min(1000, Math.ceil(plotWidth * 1.3)),
       );
       const minY = accelerometer ? -2 : PPG_DISPLAY_RANGE.min;
@@ -102,7 +105,7 @@ export default function Waveform(props: WaveformProps) {
         pad.top + ((maxY - value) / (maxY - minY)) * plotHeight;
       const mapX = (index: number) =>
         pad.left + (index / (count - 1)) * plotWidth;
-      const span = beat ? 60 / Math.max(1, physiology.heartRate) : 5;
+      const span = beat ? 60 / Math.max(1, physiology.heartRate) : streamSpan;
 
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, width, height);
@@ -166,7 +169,7 @@ export default function Waveform(props: WaveformProps) {
             ctx.fillStyle = axis.color;
             ctx.fillText(axis.label, width - pad.right - (2 - index) * 27, 10);
           });
-        } else ctx.fillText("5 s window", width - pad.right, 10);
+        } else ctx.fillText(`${streamSpan} s window`, width - pad.right, 10);
       }
 
       const samples = new Float32Array(count);
@@ -469,7 +472,7 @@ export default function Waveform(props: WaveformProps) {
   const accessibleLabel =
     props.mode === "accelerometer"
       ? "Simulated three-axis accelerometer data in g. Amber: X, cyan: Y, lavender: Z. Use left and right arrow keys to inspect values."
-      : `Synthetic ${props.mode === "beat" ? "single-cycle" : "streaming"} PPG waveform at the ${String(props.site).replaceAll("_", " ")}. Amplitude is in arbitrary units.${props.compare ? " Dashed lavender trace shows the saved comparison." : ""} Use left and right arrow keys to inspect values.`;
+      : `Synthetic ${props.mode === "beat" ? "single-cycle" : "streaming"} PPG waveform at the ${String(props.site).replaceAll("_", " ")}. Amplitude is in arbitrary units. ${RHYTHMS[getRhythm(props.physiology.rhythm)].name} teaching setting.${props.compare ? " Dashed lavender trace shows the saved comparison." : ""} Use left and right arrow keys to inspect values.`;
 
   return (
     <div

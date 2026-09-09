@@ -6,6 +6,7 @@ import {
   type RefObject,
 } from "react";
 import { getCardiacState, type Physiology } from "./simulation";
+import { getRhythm, RHYTHMS } from "./rhythm";
 
 interface Props {
   physiology: Physiology;
@@ -49,10 +50,16 @@ export default function LivePhysiology(props: Props) {
       data-heart-rate={state.heartRate.toFixed(3)}
       data-interval-ms={state.intervalMs.toFixed(3)}
       data-inhaling={state.inhaling}
+      data-rhythm={getRhythm(props.physiology.rhythm)}
+      data-beat-kind={state.beatKind}
     >
       <div className="live-rhythm">
         <div>
-          <span className="vital-label">Live heart rate</span>
+          <span className="vital-label">
+            {getRhythm(props.physiology.rhythm) === "sinus"
+              ? "Live heart rate"
+              : "Ventricular rate"}
+          </span>
           <strong data-testid="live-heart-rate">
             {state.heartRate.toFixed(1)}
             <small>bpm</small>
@@ -80,11 +87,17 @@ export default function LivePhysiology(props: Props) {
       </div>
       <p className="rhythm-caption">
         {props.representativeBeat ? (
-          "Representative beat · switch to Live stream to see variability."
+          getRhythm(props.physiology.rhythm) === "sinus" ? (
+            "Representative beat · switch to Live stream to see variability."
+          ) : (
+            "Reference contour only · switch to Live stream to study this rhythm."
+          )
         ) : (
           <>
             Last beat interval <b>{Math.round(state.intervalMs)} ms</b> ·
-            breathing shapes the rhythm
+            {getRhythm(props.physiology.rhythm) === "sinus"
+              ? "breathing shapes the rhythm"
+              : `${RHYTHMS[getRhythm(props.physiology.rhythm)].short} · ${state.beatKind} beat (modeled)`}
           </>
         )}
       </p>

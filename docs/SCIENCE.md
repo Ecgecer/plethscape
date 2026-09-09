@@ -253,3 +253,30 @@ The single-beat view uses the standard **on** (pulse onset/foot), **sp** (systol
 A custom detector measures the generated clean pulse on a fixed 1,025-sample grid. On/off are the known segment boundaries, sp is the early systolic maximum, and u is the steepest central-difference upslope after light smoothing. A dn/dp pair is shown only when there is a resolved local minimum followed by a prominent local maximum; merged shoulders remain unmarked. This is a teaching detector, not the pyPPG algorithm or a validated clinical fiducial extractor. A peripheral optical notch is not a direct measurement of aortic valve closure.
 
 Crest time is on–sp, pulse duration is on–off, amplitude is foot-to-crest in arbitrary units, and width at 50% spans the first rising and last falling half-amplitude crossings (linearly interpolated). Times use the selected mean heart rate because this is a representative pulse; they are separate from the respiratory variability of the live stream. The saved comparison remains a dashed reference; annotations describe the active amber pulse only.
+
+
+## Rhythm and ectopic-beat teaching examples
+
+The rhythm selector changes the shared ventricular event clock used by the heart animation, delayed optical pulses, live readout, comparisons and CSV export. Choose one example at a time: sinus rhythm, AFib, conducted PACs, PVCs, ventricular bigeminy or ventricular trigeminy. PAC and PVC are types of ectopic beats; bigeminy/trigeminy describe their repeating arrangement. These are illustrative examples, not fitted patient recordings or diagnostic classifiers.
+
+| Example | Evidence-based qualitative pattern | Deliberate simulation choices |
+| --- | --- | --- |
+| Sinus | Organized rhythm with respiratory variation | Existing respiration-coupled analytic clock retained unchanged |
+| AFib | Irregular ventricular intervals, variable optical pulse amplitude | Seeded irregular intervals, bounded and normalized to the selected mean rate; amplitude coupled to the preceding filling interval; no sinus respiratory timing imposed |
+| Conducted PAC | Premature beat and altered following interval, sometimes incomplete compensation | One in six beats; early interval 0.60 and next interval 1.05 of the underlying cycle; weaker early pulse |
+| PVC | Early weak pulse, often a full compensatory pause and stronger subsequent pulse | One in six; short/long intervals 0.60/1.40; early gain 0.40, recovery gain 1.10 |
+| Ventricular bigeminy / trigeminy | Repeating ectopic patterns | PVC every second / third beat using the same short–long pair |
+| Weak peripheral pulse | A contraction may produce a pulse too weak for a wearable to count | Optional ventricular premature-pulse gain 0.055; event timing and central heartbeat remain unchanged |
+
+Intervals are normalized so the heart-rate control sets the long-term mean ventricular rate, not the underlying sinus-node rate. In condition mode the displayed ventricular rate is 60 divided by the last completed central interval. It is not a detector-estimated optical pulse rate. Sinus mode retains its instantaneous respiratory rate estimate. AFib timing uses 4,096 deterministic intervals before repetition; periodic ectopic patterns are intentional. Timing is reproducible for negative history and any sampling order. Normal site-dependent travel delays and contour differences remain active. Breathing still moves the lungs and modulates optical amplitude and baseline; these simplified condition examples do not add sinus RSA to their ventricular timing. Single-beat view remains a clean reference and explicitly directs rhythm study to the 10-second live stream (125 samples/s minimum). Export adds rhythm, pulse_deficit and modeled central beat_kind fields; central beat labels precede site-delayed optical pulses.
+
+Evidence and limitations:
+
+- Van der Velden et al., *The photoplethysmography dictionary* (2021): irregular, short–long and repeating PPG patterns; a regular or irregular pulse alone is not a unique rhythm diagnosis. https://pmc.ncbi.nlm.nih.gov/articles/PMC9707923/
+- Tang et al., *PPGSynth* (2020): synthesis of premature groups, including multiple compensation/reset patterns. https://doi.org/10.3389/fmed.2020.597774
+- Pflugradt et al., *A Fast Multimodal Ectopic Beat Detection Method Applied for Blood Pressure Estimation Based on Pulse Wave Velocity Measurements in Wearable Sensors* (2017): synchronized ECG/PPG examples and reduced premature-pulse amplitude with a larger subsequent pulse. https://www.mdpi.com/1424-8220/17/1/158
+- Han et al., *Premature Atrial and Ventricular Contraction Detection Using Photoplethysmographic Data from a Smartwatch* (2020): ectopy can confound AF detection. https://doi.org/10.3390/s20195683
+- Kovoor and Thiagalingam, *Smartwatch-induced cardiology referral due to pulse underdetection with premature ventricular complexes* (2021): peripheral pulse deficit despite ongoing cardiac contractions. https://doi.org/10.1016/j.hrcr.2021.05.015
+- Bacevicius et al., *DoubleCheck-AF* (2022): frequent premature beats challenged PPG specificity; ECG improves rhythm confirmation. https://pubmed.ncbi.nlm.nih.gov/35463751/
+
+The numerical timing and gain choices above are our bounded teaching parameters, not measured effect sizes from those studies. PACs need not always be conducted, PVC pauses need not always fully compensate, and not all AF has a fast or irregular ventricular response (for example with pacing). This model does not simulate atrial electrical activity, P waves, QRS complexes, treatment effects or disease severity. Rhythm diagnosis and atrial versus ventricular origin require ECG context. Motion, perfusion and sensor quality also change real PPG and remain independently adjustable here.

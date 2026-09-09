@@ -95,3 +95,6 @@ Pinch and wheel zoom capture a body-surface point once per gesture. That point r
 
 
 Single-beat **Labels** opens an interactive fiducial guide: select on, u, sp, dn, dp, or off for the full name and explanation. Only resolved notch/diastolic peaks receive markers. Expand **Pulse timing & shape** for crest time, duration, half-amplitude width, and amplitude. Definitions and teaching-model limits are documented in [SCIENCE.md](docs/SCIENCE.md).
+
+
+In **Experiment → Rhythm & conditions**, choose AFib, PACs, PVCs, ventricular bigeminy or trigeminy. The shared heartbeat clock drives the anatomy and each site's 10-second PPG stream. Compare with sinus rhythm or enable the weak peripheral pulse example for ventricular ectopy. The single-beat view stays a reference contour; rhythm effects require multiple beats. Research, parameter choices and limitations are in [SCIENCE.md](docs/SCIENCE.md).

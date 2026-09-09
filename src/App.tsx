@@ -28,6 +28,8 @@ import {
   X,
 } from "@phosphor-icons/react";
 import Waveform from "./Waveform";
+import RhythmLab from "./RhythmLab";
+import { getRhythm, RHYTHMS, type Rhythm } from "./rhythm";
 import FiducialGuide from "./FiducialGuide";
 import type { FiducialId } from "./fiducials";
 import LivePhysiology from "./LivePhysiology";
@@ -325,11 +327,18 @@ export default function App() {
     );
     setPulseStart(null);
   };
+  const selectRhythm = (rhythm: Rhythm) => {
+    setPhysiology((p) => ({ ...p, rhythm, pulseDeficit: false }));
+    setMode("stream");
+    setPulseStart(null);
+    setRunning(true);
+  };
   const changeExperience = (next: ExperienceMode) => {
     setExperience(next);
     if (next !== "explore") setPulseStart(null);
     setToolsOpen(false);
-    if (next === "understand") setMode("beat");
+    if (next === "understand")
+      setMode(getRhythm(physiology.rhythm) === "sinus" ? "beat" : "stream");
     else if (next === "explore") setMode("stream");
   };
   const followPulse = () => {
@@ -388,7 +397,7 @@ export default function App() {
   };
   const exportSignal = () => {
     const lines = [
-      "time_s,ppg_au,accel_x_g,accel_y_g,accel_z_g,site,age_years,heart_rate_bpm,respiratory_rate_bpm,stiffness_pct,perfusion_pct,noise_pct,activity,signal_origin,instantaneous_hr_bpm,previous_ibi_ms,respiratory_phase",
+      "time_s,ppg_au,accel_x_g,accel_y_g,accel_z_g,site,age_years,heart_rate_bpm,respiratory_rate_bpm,stiffness_pct,perfusion_pct,noise_pct,activity,signal_origin,instantaneous_hr_bpm,previous_ibi_ms,respiratory_phase,rhythm,pulse_deficit,beat_kind",
     ];
     for (let i = 0; i < 1250; i++) {
       const t = i / 125;
@@ -413,6 +422,9 @@ export default function App() {
           cardiac.heartRate.toFixed(6),
           cardiac.intervalMs.toFixed(6),
           cardiac.breathPhase.toFixed(6),
+          getRhythm(physiology.rhythm),
+          !!physiology.pulseDeficit,
+          cardiac.beatKind,
         ].join(","),
       );
     }
@@ -811,6 +823,11 @@ export default function App() {
                 </span>
                 <span>125 Hz export</span>
               </div>
+              {getRhythm(physiology.rhythm) !== "sinus" && (
+                <div className="rhythm-active-badge">
+                  {RHYTHMS[getRhythm(physiology.rhythm)].name} · simulated
+                </div>
+              )}
               <div className="signal-chart">
                 <Waveform
                   physiology={physiology}
@@ -846,7 +863,10 @@ export default function App() {
                     Labels
                   </button>
                 ) : (
-                  <span className="chart-window">5 s window</span>
+                  <span className="chart-window">
+                    {getRhythm(physiology.rhythm) === "sinus" ? "5" : "10"} s
+                    window
+                  </span>
                 )}
               </div>
               <LivePhysiology
@@ -885,13 +905,35 @@ export default function App() {
                   {baseline ? <CheckCircle size={16} /> : <Stack size={16} />}
                   <span>
                     {baseline
-                      ? `Comparing: ${SITES.find((s) => s.id === baseline.site)?.name} · ${baseline.physiology.age}y · ${baseline.physiology.heartRate} bpm`
+                      ? `Comparing: ${SITES.find((s) => s.id === baseline.site)?.name} · ${baseline.physiology.age}y · ${baseline.physiology.heartRate} bpm · ${RHYTHMS[getRhythm(baseline.physiology.rhythm)].short}`
                       : "Freeze a baseline to compare"}
                   </span>
                 </span>
                 {baseline ? <X size={13} /> : <PlusSmall />}
               </button>
             </section>
+
+            {experience !== "explore" && (
+              <RhythmLab
+                physiology={physiology}
+                onSelect={selectRhythm}
+                onDeficit={(pulseDeficit) => {
+                  setPhysiology((p) => ({ ...p, pulseDeficit }));
+                  setMode("stream");
+                }}
+                onCompare={() => {
+                  setBaseline({
+                    physiology: {
+                      ...physiology,
+                      rhythm: "sinus",
+                      pulseDeficit: false,
+                    },
+                    site,
+                  });
+                  setMode("stream");
+                }}
+              />
+            )}
 
             {mode === "beat" && annotate && (
               <FiducialGuide
@@ -979,8 +1021,9 @@ export default function App() {
                 </button>
               </div>
               <p className="panel-description">
-                Set a mean heart rate. Breathing adds a natural rhythm around
-                it.
+                {getRhythm(physiology.rhythm) === "sinus"
+                  ? "Set a mean heart rate. Breathing adds a natural rhythm around it."
+                  : "Set the mean ventricular rate. The selected rhythm controls the short and long intervals around it."}
               </p>
               <div className="dial-row">
                 <Dial
@@ -1027,7 +1070,11 @@ export default function App() {
                 onChange={(n) => update("respiratoryRate", n)}
                 minLabel="6 · Slower"
                 maxLabel="36 · Faster"
-                description="Sets lung motion and breathing-related changes in heart rate, pulse height and baseline. Slower breathing strengthens the rhythm variation in this model. Switch to Live stream to see it."
+                description={
+                  getRhythm(physiology.rhythm) === "sinus"
+                    ? "Sets lung motion and breathing-related changes in heart rate, pulse height and baseline. Slower breathing strengthens the rhythm variation in this model. Switch to Live stream to see it."
+                    : "Sets lung motion and gentle modulation of pulse height and baseline. This rhythm example uses its own ventricular timing, without respiratory sinus arrhythmia."
+                }
               />
             </section>
           </aside>
