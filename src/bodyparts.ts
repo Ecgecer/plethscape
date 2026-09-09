@@ -1,3 +1,4 @@
+import { groupLungContext, lungContextShader } from "./lungEmphasis";
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
@@ -206,6 +207,7 @@ export function createAnatomy() {
     atlasHeartFocus: { value: 0 },
     atlasContraction: { value: 0 },
     atlasBreath: { value: 0 },
+    atlasLungEmphasis: { value: 1 },
     atlasFlow: { value: 0 },
     atlasBeat: { value: 0 },
     atlasFlowEnabled: { value: 1 },
@@ -216,6 +218,7 @@ export function createAnatomy() {
   const tissueMaterials: {
     material: THREE.MeshStandardMaterial;
     tissue: Tissue;
+    lungContext: boolean;
   }[] = [];
   const colors: Record<Tissue, string> = {
     body: "#cfb59e",
@@ -224,7 +227,7 @@ export function createAnatomy() {
     veins: "#497faa",
     nerves: "#d7b971",
     skeleton: "#756e61",
-    lungs: "#cf9095",
+    lungs: "#ca7f83",
     heart: "#ba484c",
     airways: "#d6baa7",
     brain: "#bdab9c",
@@ -240,7 +243,11 @@ export function createAnatomy() {
     gingiva: "#9b625d",
   };
 
-  function materialFor(tissue: Tissue, center: THREE.Vector3) {
+  function materialFor(
+    tissue: Tissue,
+    center: THREE.Vector3,
+    lungContext = false,
+  ) {
     const external =
       tissue === "body" ||
       tissue === "muscles" ||
@@ -339,6 +346,14 @@ export function createAnatomy() {
         transformed = atlasGait(transformed);
       `,
         );
+      if (tissue === "lungs") {
+        shader.vertexShader = shader.vertexShader.replace(
+          "#include <beginnormal_vertex>",
+          `#include <beginnormal_vertex>
+          objectNormal = normalize(objectNormal / vec3(1.+atlasBreath*.10,1.+atlasBreath*.055,1.+atlasBreath*.13));
+        `,
+        );
+      }
       if (tissue === "heart" || tissue === "valves") {
         shader.vertexShader = shader.vertexShader.replace(
           "#include <beginnormal_vertex>",
@@ -360,6 +375,7 @@ export function createAnatomy() {
         uniform float atlasXray;
         uniform float atlasSurface;
         uniform float atlasHeartFocus;
+        uniform float atlasLungEmphasis;
         uniform float atlasFlow;
         uniform vec3 atlasHeart;
         varying vec3 atlasPosition;
@@ -402,6 +418,12 @@ export function createAnatomy() {
         }
       `,
         );
+      if (lungContext) {
+        shader.fragmentShader = shader.fragmentShader.replace(
+          "#include <color_fragment>",
+          `#include <color_fragment>\n${lungContextShader}`,
+        );
+      }
       if (tissue === "body") {
         shader.fragmentShader = shader.fragmentShader
           .replace(
@@ -447,9 +469,10 @@ export function createAnatomy() {
       }
       enhanceTissueShader(shader, tissue);
     };
-    material.customProgramCacheKey = () => `bodyparts-${tissue}-physical-v2`;
+    material.customProgramCacheKey = () =>
+      `bodyparts-${tissue}-physical-v3-${lungContext}`;
     materials.add(material);
-    tissueMaterials.push({ material, tissue });
+    tissueMaterials.push({ material, tissue, lungContext });
     return material;
   }
 
@@ -457,7 +480,7 @@ export function createAnatomy() {
     mode = next;
     shared.atlasXray.value = next === "xray" ? 1 : 0;
     shared.atlasSurface.value = next === "surface" && !heartFocus ? 1 : 0;
-    for (const { material, tissue } of tissueMaterials) {
+    for (const { material, tissue, lungContext } of tissueMaterials) {
       let transparent = [
         "body",
         "flow",
@@ -467,6 +490,10 @@ export function createAnatomy() {
         "brain",
         "lungs",
       ].includes(tissue);
+      if (tissue === "lungs" && next === "atlas" && !heartFocus)
+        transparent = false;
+      if (lungContext) transparent = true;
+      if (tissue === "lungs" || lungContext) material.side = THREE.FrontSide;
       if (tissue === "body" && next === "surface" && !heartFocus)
         transparent = false;
       if (tissue === "nerves" || tissue === "airways" || tissue === "diaphragm")
@@ -510,7 +537,7 @@ export function createAnatomy() {
                   : 0.12
                 : tissue === "lungs"
                   ? mode === "atlas"
-                    ? 0.78
+                    ? 1
                     : 0.22
                   : tissue === "brain"
                     ? mode === "atlas"
@@ -665,7 +692,17 @@ export function createAnatomy() {
           };
           material.customProgramCacheKey = () => "external-ears-calm-face-v1";
         }
-        const mesh = new THREE.Mesh(geometry, material);
+        // Keep peripheral and central vessels opaque. Only lung-flank triangles
+        // enter a second blended draw, so wearables retain normal depth occlusion.
+        const contextMaterial =
+          (tissue === "arteries" || tissue === "veins") &&
+          groupLungContext(geometry)
+            ? materialFor(tissue, center, true)
+            : null;
+        const mesh = new THREE.Mesh(
+          geometry,
+          contextMaterial ? [material, contextMaterial] : material,
+        );
         mesh.name = object.name;
         mesh.userData = { ...object.userData, tissue };
         if (tissue === "body") mesh.renderOrder = 4;
@@ -864,6 +901,8 @@ export function createAnatomy() {
       -Math.pow((phase - 0.16) / 0.115, 2),
     );
     shared.atlasBreath.value = cardiac.breathExpansion;
+    shared.atlasLungEmphasis.value =
+      layers.lungs.visible && mode === "atlas" && !heartFocus ? 1 : 0;
     flowTime +=
       elapsed *
       0.7 *

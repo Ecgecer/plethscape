@@ -349,3 +349,17 @@ in the same way as captured playback. This is display magnification and comparis
 physiological variability coefficients were not increased to exaggerate differences.
 The representative single-beat view remains static so age and stiffness can be
 compared without live variability confounds.
+
+
+### Lung visibility in the anatomical view
+
+Lung surfaces are opaque and softly shaded in the default atlas view, making the
+breathing silhouette readable and naturally occluding internal branches. A smooth
+visual mask lowers the opacity of systemic vessels over the outer lung regions,
+while keeping the mediastinum, pulmonary circulation and peripheral vessels
+untouched. This is presentation emphasis, not removal or reclassification of
+anatomy. Existing triangle indices are partitioned into opaque/context draw groups
+without altering source vertices or dropping triangles. Disabling the lungs
+restores the vessels; Heart detail retains its translucent lung context. Breathing
+normals follow the existing lung expansion; displacement and respiratory timing
+are unchanged.
