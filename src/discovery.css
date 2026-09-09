@@ -29,14 +29,14 @@
 }
 .dq-brand b {
   display: block;
-  font-size: 12px;
+  font-size: 1rem;
   font-weight: 550;
   letter-spacing: -0.1px;
 }
 .dq-brand small {
   display: block;
   margin-top: 5px;
-  font: 7px var(--mono, monospace);
+  font: 0.875rem var(--mono, monospace);
   letter-spacing: 1.2px;
   color: var(--dq-muted);
 }
@@ -52,7 +52,7 @@
 .dq-mode button {
   padding: 7px 10px;
   border-radius: 4px;
-  font-size: 10px;
+  font-size: 1rem;
   color: var(--dq-muted);
 }
 .dq-mode button[aria-pressed="true"] {
@@ -70,13 +70,13 @@
 .discovery-quest h2 {
   margin: 0;
   color: var(--dq-text);
-  font-size: 19px;
+  font-size: 1.1875rem;
   font-weight: 470;
   line-height: 1.3;
   letter-spacing: -0.4px;
 }
 .discovery-quest p {
-  font-size: 11px;
+  font-size: 1rem;
   line-height: 1.7;
   color: var(--dq-muted);
   margin: 7px 0 0;
@@ -94,7 +94,7 @@
   min-height: 35px;
   border-radius: 6px;
   padding: 9px 13px;
-  font-size: 11px;
+  font-size: 1rem;
   font-weight: 530;
   line-height: 1.4;
   white-space: nowrap;
@@ -119,7 +119,7 @@
   background: #211a15;
   color: #dfc4ae;
   border: 1px solid #594332;
-  font-size: 10px;
+  font-size: 1rem;
   padding: 8px 10px;
 }
 .discovery-quest .dq-secondary:hover:not(:disabled) {
@@ -143,7 +143,7 @@
 .dq-free > span {
   display: block;
   margin-top: 5px;
-  font-size: 10px;
+  font-size: 1rem;
   color: var(--dq-muted);
 }
 .dq-progress {
@@ -160,10 +160,10 @@
   align-items: center;
   gap: 7px;
   color: #a59688;
-  font-size: 10px;
+  font-size: 1rem;
 }
 .dq-progress li > span:first-child {
-  font: 9px var(--mono, monospace);
+  font: 0.875rem var(--mono, monospace);
   color: #a59688;
 }
 .dq-progress b {
@@ -197,7 +197,7 @@
 .dq-eyebrow {
   display: block;
   margin-bottom: 9px;
-  font: 8px var(--mono, monospace);
+  font: 0.875rem var(--mono, monospace);
   letter-spacing: 1.25px;
   color: #c5a082;
 }
@@ -217,7 +217,7 @@
   border: 1px solid #4b3e32;
   border-radius: 6px;
   padding: 9px 12px;
-  font-size: 11px;
+  font-size: 1rem;
   background: #211a14;
   color: #d5c6b7;
 }
@@ -241,7 +241,7 @@
 }
 .dq-stop-label small {
   color: #bba38e;
-  font-size: 9px;
+  font-size: 0.875rem;
 }
 .dq-check {
   width: 14px;
@@ -268,7 +268,7 @@
   display: flex;
   gap: 9px;
   align-items: flex-start;
-  font-size: 11px;
+  font-size: 1rem;
   line-height: 1.5;
   color: #c4b6a8;
 }
@@ -276,7 +276,7 @@
   margin-top: 1px;
 }
 .discovery-quest .dq-status {
-  font-size: 10px;
+  font-size: 1rem;
   line-height: 1.5;
   color: #bca28c;
 }
@@ -288,7 +288,7 @@
 }
 .dq-prediction legend {
   margin: 0 0 9px;
-  font-size: 11px;
+  font-size: 1rem;
   color: #e8d8ca;
   font-weight: 520;
 }
@@ -298,7 +298,7 @@
   gap: 8px;
   padding: 8px 10px;
   margin-top: 5px;
-  font-size: 11px;
+  font-size: 1rem;
   line-height: 1.55;
   border: 1px solid #42352b;
   border-radius: 6px;
@@ -334,7 +334,7 @@
   align-items: flex-start;
   gap: 9px;
   margin-top: 14px;
-  font-size: 10px;
+  font-size: 1rem;
   line-height: 1.6;
   color: #d6c6b7;
   cursor: pointer;
@@ -350,7 +350,7 @@
 }
 .dq-feedback p {
   margin: 0;
-  font-size: 10px;
+  font-size: 1rem;
   line-height: 1.65;
   color: #c6b29f;
 }
@@ -366,35 +366,35 @@
 }
 .dq-cycle-readout > span:first-child {
   flex-basis: 100%;
-  font: 7px var(--mono, monospace);
+  font: 0.875rem var(--mono, monospace);
   letter-spacing: 1px;
   color: #baa38f;
 }
 .dq-cycle-readout strong {
-  font-size: 27px;
+  font-size: 1.6875rem;
   font-weight: 450;
   letter-spacing: -0.8px;
   color: #f1bf96;
 }
 .dq-cycle-readout small {
-  font-size: 13px;
+  font-size: 1rem;
   font-weight: 400;
   color: #baa38f;
 }
 .dq-cycle-readout > span:last-child {
-  font: 10px var(--mono, monospace);
+  font: 1rem var(--mono, monospace);
   color: #baa38f;
 }
 .dq-footnote {
   padding: 10px 22px;
   border-top: 1px solid #332c25;
   color: #a3978b;
-  font-size: 9px;
+  font-size: 0.875rem;
   line-height: 1.5;
 }
 .discovery-quest .dq-text-button {
   color: #cbb6a3;
-  font-size: 10px;
+  font-size: 1rem;
   padding: 8px;
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -419,7 +419,7 @@
     padding: 15px 17px;
   }
   .dq-brand small {
-    font-size: 6px;
+    font-size: 0.875rem;
     letter-spacing: 0.8px;
   }
   .dq-intro,
@@ -440,11 +440,11 @@
   }
   .dq-progress li {
     gap: 5px;
-    font-size: 9px;
+    font-size: 0.875rem;
     line-height: 1.45;
   }
   .dq-progress li > span:first-child {
-    font-size: 8px;
+    font-size: 0.875rem;
   }
   .dq-footnote,
   .dq-free {
@@ -452,14 +452,14 @@
     padding-right: 17px;
   }
   .discovery-quest h2 {
-    font-size: 18px;
+    font-size: 1.125rem;
   }
   .dq-site-stops {
     gap: 6px;
   }
   .dq-site-stops button {
     padding: 9px;
-    font-size: 10px;
+    font-size: 1rem;
   }
 }
 @container discovery (max-width: 300px) {

@@ -36,7 +36,7 @@ export const DEVICES: Record<
   ear: {
     name: "Sensor earring",
     label: "EARRING",
-    detail: "Gold huggie hoop · discreet inner optics",
+    detail: "Black huggie hoop · discreet inner optics",
     principle:
       "A light source and detector sit on opposite sides of the earlobe. The changing transmitted light produces the pulse signal.",
   },

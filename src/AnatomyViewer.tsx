@@ -21,6 +21,7 @@ import type { Presentation } from "./bodyparts";
 import { SITES } from "./simulation";
 import type { Physiology, SiteId } from "./simulation";
 import { DEVICES, WEARABLE_SITES, isWearableSite } from "./devices";
+import { createSensorAuras } from "./sensorAuras";
 import type { WearableSite } from "./devices";
 
 export type Layers = {
@@ -54,6 +55,7 @@ export default function AnatomyViewer(props: Props) {
     chest: () => void;
     heart: () => void;
     device: (id: WearableSite) => void;
+    select: (id: WearableSite) => void;
     opticalSide: () => void;
   } | null>(null);
   const rotateRef = useRef(false);
@@ -76,7 +78,7 @@ export default function AnatomyViewer(props: Props) {
 
   useEffect(() => {
     if (!deviceFocusRef.current) return;
-    if (isWearableSite(props.site)) actions.current?.device(props.site);
+    if (isWearableSite(props.site)) actions.current?.select(props.site);
     else actions.current?.reset();
   }, [props.site]);
 
@@ -107,7 +109,7 @@ export default function AnatomyViewer(props: Props) {
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(37, 1, 0.05, 40);
     camera.position.set(0.12, 1.87, 6.45);
-    const controls = new OrbitControls(camera, renderer.domElement);
+    const controls = new OrbitControls(camera, element);
     controls.target.set(0, 1.82, 0);
     controls.enableDamping = true;
     controls.dampingFactor = 0.07;
@@ -144,6 +146,10 @@ export default function AnatomyViewer(props: Props) {
     scene.add(inspectionLight, inspectionLight.target);
     const anatomy = createAnatomy();
     scene.add(anatomy.group);
+    const auras = createSensorAuras();
+    scene.add(...Object.values(auras.sprites));
+    let hoveredDevice: string | null = null;
+    let lastHoverTime = 0;
     const ground = new THREE.Group();
     const groundMat = new THREE.MeshBasicMaterial({
       color: 0x4d4640,
@@ -163,6 +169,8 @@ export default function AnatomyViewer(props: Props) {
     }
     scene.add(ground);
     const composer = new EffectComposer(renderer);
+    composer.renderTarget1.stencilBuffer = true;
+    composer.renderTarget2.stencilBuffer = true;
     composer.renderTarget1.samples = 2;
     composer.renderTarget2.samples = 2;
     const renderPass = new RenderPass(scene, camera);
@@ -274,6 +282,11 @@ export default function AnatomyViewer(props: Props) {
         cutawayRef.current = true;
         setCutaway(true);
       },
+      select: (id) => {
+        clearDeviceFocus();
+        current.current.onSite(id);
+        sceneDirty = true;
+      },
       device: (id) => {
         if (!anatomy.group.userData.bodyLoaded) return;
         current.current.onSite(id);
@@ -377,7 +390,7 @@ export default function AnatomyViewer(props: Props) {
       dragged: boolean;
     } | null = null;
     const onPointerDown = (event: PointerEvent) => {
-      if (event.button !== 0) return;
+      if (event.button !== 0 || event.target !== renderer.domElement) return;
       activePointers.add(event.pointerId);
       if (activePointers.size > 1) {
         pointerStart = null;
@@ -391,6 +404,28 @@ export default function AnatomyViewer(props: Props) {
       };
     };
     const onPointerMove = (event: PointerEvent) => {
+      if (
+        event.pointerType === "mouse" &&
+        activePointers.size === 0 &&
+        performance.now() - lastHoverTime > 90
+      ) {
+        lastHoverTime = performance.now();
+        const rect = renderer.domElement.getBoundingClientRect();
+        pointer.set(
+          ((event.clientX - rect.left) / rect.width) * 2 - 1,
+          (-(event.clientY - rect.top) / rect.height) * 2 + 1,
+        );
+        raycaster.setFromCamera(pointer, camera);
+        const hit = raycaster.intersectObjects(
+          anatomy.wearables.group.children.filter((d) => d.visible),
+          true,
+        )[0];
+        hoveredDevice =
+          hit && isWearableSite(hit.object.userData.site)
+            ? hit.object.userData.site
+            : null;
+      }
+
       if (
         pointerStart &&
         Math.hypot(
@@ -426,22 +461,41 @@ export default function AnatomyViewer(props: Props) {
         element.dataset.lastPickedDevice = hit.object.userData.site;
         if (deviceFocusRef.current === hit.object.userData.site)
           current.current.onSite(hit.object.userData.site);
-        else actions.current?.device(hit.object.userData.site);
+        else actions.current?.select(hit.object.userData.site);
       }
     };
     const onPointerCancel = (event: PointerEvent) => {
       activePointers.delete(event.pointerId);
       pointerStart = null;
     };
-    renderer.domElement.addEventListener("pointerdown", onPointerDown);
-    renderer.domElement.addEventListener("pointermove", onPointerMove);
-    renderer.domElement.addEventListener("pointerup", onPointerUp);
-    renderer.domElement.addEventListener("pointercancel", onPointerCancel);
+    // Preserve normal left-click activation on marker buttons. Right-drag and
+    // wheel gestures still reach the shared orbit surface behind the markers.
+    const preserveMarkerClick = (event: PointerEvent) => {
+      if (
+        event.button === 0 &&
+        event.target instanceof Element &&
+        event.target.closest("button")
+      )
+        event.stopPropagation();
+    };
+    element.addEventListener("pointerdown", preserveMarkerClick, true);
+    const clearHover = () => {
+      hoveredDevice = null;
+    };
+    element.addEventListener("pointerleave", clearHover);
+    element.addEventListener("pointerdown", onPointerDown);
+    element.addEventListener("pointermove", onPointerMove);
+    element.addEventListener("pointerup", onPointerUp);
+    element.addEventListener("pointercancel", onPointerCancel);
     const projected = new THREE.Vector3();
+    const occlusionRay = new THREE.Raycaster();
+    const markerWorld = new THREE.Vector3();
+    const headSiteHidden: Record<string, boolean> = {};
+    let lastOcclusion = 0;
     const pickPoints: Record<WearableSite, THREE.Vector3> = {
       finger: new THREE.Vector3(0, 0, 0.0288),
       wrist: new THREE.Vector3(0, 0, 0.084),
-      ear: new THREE.Vector3(0, -0.022, 0.001),
+      ear: new THREE.Vector3(0, -0.029, 0.001),
       forehead: new THREE.Vector3(0, 0, 0.235),
       carotid: new THREE.Vector3(0, 0, 0.006),
       upperarm: new THREE.Vector3(0, 0, 0.151),
@@ -552,6 +606,32 @@ export default function AnatomyViewer(props: Props) {
       inspectionLight.position.y += 0.3;
       inspectionLight.target.position.copy(controls.target);
       anatomy.group.updateMatrixWorld(true);
+      auras.update(
+        p.clock.current.time,
+        p.site,
+        hoveredDevice,
+        Boolean(deviceFocusRef.current),
+        reducedMotion.matches,
+      );
+      const checkOcclusion = now - lastOcclusion > 120;
+      for (const id of WEARABLE_SITES) {
+        const sprite = auras.sprites[id];
+        markerWorld.copy(anatomy.sites[id]);
+        anatomy.group.localToWorld(markerWorld);
+        sprite.position.copy(markerWorld);
+        sprite.visible =
+          loaded && !heartDetailRef.current && !isolatedDeviceRef.current;
+        if (checkOcclusion && ["ear", "forehead", "carotid"].includes(id)) {
+          const direction = markerWorld.clone().sub(camera.position);
+          occlusionRay.set(camera.position, direction.clone().normalize());
+          occlusionRay.far = direction.length() - 0.003;
+          headSiteHidden[id] =
+            p.layers.body &&
+            occlusionRay.intersectObjects(anatomy.headOccluders, false).length >
+              0;
+        }
+      }
+      if (checkOcclusion) lastOcclusion = now;
       for (const site of SITES) {
         const marker = markers.current[site.id];
         if (!marker || !anatomy.sites[site.id]) continue;
@@ -575,6 +655,7 @@ export default function AnatomyViewer(props: Props) {
         marker.style.visibility =
           Boolean(deviceFocusRef.current) ||
           heartDetailRef.current ||
+          headSiteHidden[site.id] ||
           projected.z > 1 ||
           Math.abs(projected.x) > 1.1 ||
           Math.abs(projected.y) > 1.1
@@ -606,6 +687,8 @@ export default function AnatomyViewer(props: Props) {
       observer.disconnect();
       visibilityObserver.disconnect();
       controls.removeEventListener("start", onOrbitStart);
+      element.removeEventListener("pointerdown", preserveMarkerClick, true);
+      auras.dispose();
       controls.dispose();
       bloom.dispose();
       output.dispose();
@@ -616,10 +699,11 @@ export default function AnatomyViewer(props: Props) {
       groundMat.dispose();
       envTarget.dispose();
       renderer.domElement.removeEventListener("webglcontextlost", onLost);
-      renderer.domElement.removeEventListener("pointerdown", onPointerDown);
-      renderer.domElement.removeEventListener("pointermove", onPointerMove);
-      renderer.domElement.removeEventListener("pointerup", onPointerUp);
-      renderer.domElement.removeEventListener("pointercancel", onPointerCancel);
+      element.removeEventListener("pointerleave", clearHover);
+      element.removeEventListener("pointerdown", onPointerDown);
+      element.removeEventListener("pointermove", onPointerMove);
+      element.removeEventListener("pointerup", onPointerUp);
+      element.removeEventListener("pointercancel", onPointerCancel);
       renderer.dispose();
       renderer.domElement.remove();
       actions.current = null;
@@ -679,9 +763,10 @@ export default function AnatomyViewer(props: Props) {
               }}
               aria-label={`Select ${s.name} on body`}
               title={s.name}
+              aria-pressed={props.site === s.id}
               onClick={() =>
                 isWearableSite(s.id)
-                  ? actions.current?.device(s.id)
+                  ? actions.current?.select(s.id)
                   : props.onSite(s.id)
               }
               className={`body-hotspot ${isWearableSite(s.id) ? "wearable-hotspot" : ""} ${props.site === s.id ? "selected" : ""}`}
@@ -692,7 +777,9 @@ export default function AnatomyViewer(props: Props) {
                   <b>{isWearableSite(s.id) ? DEVICES[s.id].name : s.name}</b>
                   <small>
                     {isWearableSite(s.id)
-                      ? "Tap to inspect sensor"
+                      ? props.running
+                        ? "Selected · simulated PPG"
+                        : "Selected · paused"
                       : s.mode === "reference"
                         ? "Pulse reference"
                         : "PPG sensing site"}
@@ -708,15 +795,34 @@ export default function AnatomyViewer(props: Props) {
           <button
             key={id}
             disabled={!ready}
-            aria-label={`Inspect ${DEVICES[id].name}`}
-            aria-pressed={deviceFocus === id}
-            onClick={() => actions.current?.device(id)}
+            aria-label={`Select ${DEVICES[id].name}`}
+            aria-pressed={props.site === id}
+            onClick={() => actions.current?.select(id)}
           >
             <i className={`device-icon device-icon-${id}`} />
             {DEVICES[id].label}
           </button>
         ))}
       </div>
+      {!deviceFocus && !heartDetail && isWearableSite(props.site) && (
+        <div className="selected-device-card" aria-live="polite">
+          <span className="selected-device-status">
+            <i /> SENSOR SELECTED
+          </span>
+          <strong>{DEVICES[props.site].name}</strong>
+          <span>
+            {SITES.find((s) => s.id === props.site)?.name} ·{" "}
+            {props.running ? "Simulated PPG" : "Paused"}
+          </span>
+          <button
+            onClick={() =>
+              isWearableSite(props.site) && actions.current?.device(props.site)
+            }
+          >
+            Inspect device <ArrowsOut size={16} />
+          </button>
+        </div>
+      )}
       {deviceFocus && (
         <div className="device-inspector" aria-live="polite">
           <div className="device-inspector-top">

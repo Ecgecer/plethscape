@@ -330,6 +330,9 @@ export function createWearables(): {
       roughness: 0.45,
       metalness: 0,
       dithering: true,
+      stencilWrite: true,
+      stencilRef: 1,
+      stencilZPass: THREE.ReplaceStencilOp,
       ...parameters,
     });
     materials.add(material);
@@ -368,7 +371,12 @@ export function createWearables(): {
     metalness: 0.35,
     roughness: 0.4,
   });
-  const gold = physical({ color: "#b39a62", metalness: 1, roughness: 0.27 });
+  const blackMetal = physical({
+    color: "#121415",
+    metalness: 0.75,
+    roughness: 0.29,
+    clearcoat: 0.2,
+  });
   const cloth = physical({
     color: "#ffffff",
     map: weave.map,
@@ -723,13 +731,13 @@ export function createWearables(): {
   }
   add("wrist", keeper, cloth, "Woven keeper around overlapping strap");
 
-  // A conventional gold huggie: an unbroken hoop with discreet inner contacts.
-  const hoop = new THREE.TorusGeometry(0.011, 0.0022, 12, 64);
-  add("ear", hoop, gold, "Gold huggie hoop", at(0, -0.012, 0));
+  // A larger black huggie: an unbroken hoop with discreet inner contacts.
+  const hoop = new THREE.TorusGeometry(0.015, 0.0028, 16, 80);
+  add("ear", hoop, blackMetal, "Black huggie hoop", at(0, -0.016, 0));
   add(
     "ear",
     new THREE.SphereGeometry(0.0027, 16, 10),
-    gold,
+    blackMetal,
     "Huggie clasp",
     at(0, -0.001, 0),
   );

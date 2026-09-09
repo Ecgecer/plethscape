@@ -32,11 +32,19 @@ mesh.from_pydata(np.column_stack((p[:,0],-p[:,2],p[:,1])).tolist(),[],faces)
 mesh.update()
 obj=bpy.data.objects.new('neutral_skin',mesh);bpy.context.collection.objects.link(obj)
 bpy.context.view_layer.objects.active=obj;obj.select_set(True)
+source_normals=bmesh.new();source_normals.from_mesh(obj.data)
+bmesh.ops.recalc_face_normals(source_normals,faces=list(source_normals.faces))
+source_normals.to_mesh(obj.data);source_normals.free()
 # Fill the external genital region with a smooth, featureless pelvic envelope.
 bpy.ops.mesh.primitive_uv_sphere_add(segments=64,ring_count=32,location=(0,-.025,1.85))
 cover=bpy.context.object;cover.scale=(.18,.15,.19)
 bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
-obj.select_set(True);bpy.context.view_layer.objects.active=obj;bpy.ops.object.join()
+bpy.context.view_layer.objects.active=obj
+union=obj.modifiers.new('Union neutral envelope into skin','BOOLEAN')
+union.operation='UNION';union.solver='EXACT';union.object=cover
+bpy.ops.object.modifier_apply(modifier=union.name)
+bpy.data.objects.remove(cover,do_unlink=True)
+obj.select_set(True)
 # Reconstruct a single watertight surface after posing, removing folded/sliver
 # triangles instead of exposing them under physical lighting.
 obj.data.remesh_voxel_size=.0035
@@ -52,6 +60,7 @@ bmesh.ops.remove_doubles(clean,verts=list(clean.verts),dist=0.000001)
 bmesh.ops.dissolve_degenerate(clean,edges=list(clean.edges),dist=0.0000001)
 bmesh.ops.recalc_face_normals(clean,faces=list(clean.faces))
 clean.to_mesh(obj.data);clean.free();obj.data.validate();obj.data.update()
+assert len(obj.data.vertices)>50000, 'Skin reconstruction unexpectedly lost source geometry'
 for poly in obj.data.polygons:poly.use_smooth=True
 obj['source']='BodyParts3D FJ2810, CC BY 4.0'
 obj['adaptation']='Neutral external pelvis, source arm pose preserved, watertight surface reconstruction'

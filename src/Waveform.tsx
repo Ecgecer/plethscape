@@ -126,7 +126,7 @@ export default function Waveform(props: WaveformProps) {
       ctx.clearRect(0, 0, width, height);
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      ctx.font = '10px "Geist Mono Variable", "SFMono-Regular", Consolas, monospace';
+      ctx.font = '12px "Geist Mono Variable", "SFMono-Regular", Consolas, monospace';
       ctx.textBaseline = 'middle';
 
       // The vertical scale stays fixed as physiology changes, preserving amplitude.

@@ -117,9 +117,7 @@ test("body hotspots, anatomy layers, and chest camera controls work together", a
   await expect(
     page.getByRole("button", { name: "X-ray", exact: true }),
   ).toHaveCount(0);
-  await page
-    .getByRole("button", { name: "Return to full body", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Reset camera", exact: true }).click();
   const cutaway = page.getByRole("button", {
     name: "Chest cutaway",
     exact: true,
@@ -559,7 +557,7 @@ test("desktop and mobile layouts stay within the document viewport", async ({
   });
 });
 
-test("wearable close-ups select their optical site and the actual 3D meshes accept clicks", async ({
+test("wearable selection preserves the camera and explicit close-ups support mesh picking", async ({
   page,
 }, testInfo) => {
   const anatomy = page.getByTestId("anatomy-canvas");
@@ -577,8 +575,22 @@ test("wearable close-ups select their optical site and the actual 3D meshes acce
     ["upperarm", "Bicep band", "Upper arm"],
     ["toe", "Toe band", "Great toe"],
   ]) {
+    const selectionDistance = Number(
+      await anatomy.getAttribute("data-camera-distance"),
+    );
     await page
-      .getByRole("button", { name: `Inspect ${device}`, exact: true })
+      .getByRole("button", { name: `Select ${device}`, exact: true })
+      .click();
+    await expect(anatomy).toHaveAttribute("data-device-focus", "none");
+    await expect(
+      page.getByRole("button", { name: `Select ${device}`, exact: true }),
+    ).toHaveAttribute("aria-pressed", "true");
+    const afterSelection = Number(
+      await anatomy.getAttribute("data-camera-distance"),
+    );
+    expect(Math.abs(afterSelection - selectionDistance)).toBeLessThan(0.01);
+    await page
+      .getByRole("button", { name: "Inspect device", exact: true })
       .click();
     await expect(anatomy).toHaveAttribute("data-device-focus", id);
     await expect(ppg(page)).toHaveAttribute(
@@ -605,7 +617,10 @@ test("wearable close-ups select their optical site and the actual 3D meshes acce
     });
   }
   await page
-    .getByRole("button", { name: "Inspect Sensor band", exact: true })
+    .getByRole("button", { name: "Select Sensor band", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Inspect device", exact: true })
     .click();
   await page.waitForTimeout(550);
   const bodyCalls = Number(await anatomy.getAttribute("data-draw-calls"));

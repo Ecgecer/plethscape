@@ -116,7 +116,13 @@ export function createFlowTrails(
     transparent: true,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
+    // Ribbons deliberately remain visible inside opaque vessel lumens.
+    // The nearest opaque surface marks wearables as 1, blocking flow on gear.
     depthTest: false,
+    stencilWrite: true,
+    stencilRef: 1,
+    stencilFunc: THREE.NotEqualStencilFunc,
+    stencilWriteMask: 0,
     side: THREE.DoubleSide,
     vertexShader: /* glsl */ `
       ${movement}
