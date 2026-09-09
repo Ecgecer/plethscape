@@ -51,9 +51,14 @@ export function createSensorAuras() {
       hovered: string | null,
       focused: boolean,
       reducedMotion: boolean,
+      cardiacPhase = 0,
     ) {
       for (const [i, site] of WEARABLE_SITES.entries()) {
-        const emphasis = hovered === site ? 1.1 : selected === site ? 0.8 : 0.5;
+        const emphasis =
+          hovered === site ? 1.1 : selected === site ? 1.05 : 0.24;
+        const beat = reducedMotion
+          ? 0
+          : Math.exp(-Math.pow((cardiacPhase - 0.18) / 0.16, 2));
         const shimmer = reducedMotion
           ? 1
           : 0.9 + 0.1 * Math.sin(time * 1.8 + i * 0.83);
@@ -61,6 +66,7 @@ export function createSensorAuras() {
           emphasis * shimmer * (focused ? 0.32 : 1);
         sprites[site].scale.setScalar(
           sizes[site] *
+            (selected === site ? 1.6 + beat * 0.18 : 1) *
             (reducedMotion ? 1 : 1 + 0.025 * Math.sin(time * 1.5 + i)),
         );
       }

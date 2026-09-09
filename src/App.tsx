@@ -35,6 +35,7 @@ import FiducialGuide from "./FiducialGuide";
 import type { FiducialId } from "./fiducials";
 import RecentBeats from "./RecentBeats";
 import LivePhysiology from "./LivePhysiology";
+import GuidedTour, { TOUR_STEPS, tourScenario } from "./GuidedTour";
 import ExperienceGuide, { type ExperienceMode } from "./ExperienceGuide";
 import {
   captureBeat,
@@ -86,7 +87,7 @@ function RangeControl({
   unit?: string;
 }) {
   return (
-    <label className="range-control">
+    <label className="range-control" data-control={label}>
       <div>
         <span>
           {label}
@@ -175,6 +176,9 @@ function Modal({
 
 export default function App() {
   const [mobileControlsOpen, setMobileControlsOpen] = useState(false);
+  const [siteSelection, setSiteSelection] = useState(0);
+  const [tourStep, setTourStep] = useState<number | null>(null);
+  const [tourApplied, setTourApplied] = useState(false);
   const [physiology, setPhysiologyState] = useState<Physiology>({
     ...DEFAULT_PHYSIOLOGY,
     age: 32,
@@ -274,6 +278,7 @@ export default function App() {
     setPhysiology((p) => ({ ...p, [key]: value }));
   };
   const chooseSite = (id: SiteId) => {
+    setSiteSelection(n => n + 1);
     setChangeNote(
       `${SITES.find((s) => s.id === id)?.name}: compare this site’s pulse shape and modeled arrival time with a saved reference.`,
     );
@@ -296,6 +301,7 @@ export default function App() {
     studioTrigger.current?.focus();
   };
   const openStudio = () => {
+    setTourStep(null);
     const beat = captureBeat(clock.current.time, physiology);
     const end =
       beat.end + Math.max(...SITES.map((s) => siteDelay(physiology, s.id)));
@@ -337,6 +343,7 @@ export default function App() {
     setPulseStart(clock.current.time);
   };
   const reset = () => {
+    setTourStep(null);
     setPhysiology({ ...DEFAULT_PHYSIOLOGY, age: 32, heartRate: 72 });
     setSite("wrist");
     setBaseline(null);
@@ -444,6 +451,82 @@ export default function App() {
       },
     },
   ];
+
+  const revealTour = () =>
+    requestAnimationFrame(() => {
+      const card = document.querySelector<HTMLElement>(".guided-tour");
+      card?.focus({ preventScroll: true });
+      document
+        .querySelector(".signal-section")
+        ?.scrollIntoView({ block: "start", behavior: "smooth" });
+    });
+  const startTour = (step: number) => {
+    if (captured) closeStudio();
+    setDialog(null);
+    setSiteLessonOpen(false);
+    setMobileControlsOpen(false);
+    setToolsOpen(false);
+    setTourStep(step);
+    setTourApplied(false);
+    if (step < TOUR_STEPS.length) {
+      const setup = tourScenario(step);
+      chooseSite(setup.site);
+      setPhysiology(setup.before);
+      setBaseline(
+        step === 0 ? null : { site: setup.site, physiology: setup.before },
+      );
+      setMode(setup.mode);
+      setStreamWindow(step === 4 ? 10 : 5);
+      setAnnotate(true);
+      setExperience("explore");
+      setRunning(true);
+      setChangeNote(
+        "A reference is ready. Change one setting and compare the result.",
+      );
+    }
+    revealTour();
+  };
+  const applyTour = () => {
+    if (tourStep === null || tourStep >= TOUR_STEPS.length) return;
+    const setup = tourScenario(tourStep);
+    if (tourStep === 0) followPulse();
+    else {
+      chooseSite(setup.afterSite);
+      setPhysiology(setup.after);
+      setBaseline({ site: setup.site, physiology: setup.before });
+    }
+    setMode(setup.mode);
+    setStreamWindow(tourStep === 4 ? 10 : 5);
+    setRunning(true);
+    setTourApplied(true);
+    setMobileControlsOpen(false);
+    document
+      .querySelector(".signal-section")
+      ?.scrollIntoView({ block: "start", behavior: "smooth" });
+  };
+  const tourSetup =
+    tourStep !== null && tourStep < TOUR_STEPS.length
+      ? tourScenario(tourStep)
+      : null;
+  const tourMatched =
+    !!tourSetup &&
+    site === tourSetup.afterSite &&
+    Object.entries(tourSetup.after).every(
+      ([key, value]) => physiology[key as keyof Physiology] === value,
+    ) &&
+    mode === tourSetup.mode &&
+    (tourStep === 0 ||
+      (!!baseline &&
+        baseline.site === tourSetup.site &&
+        Object.entries(tourSetup.before).every(
+          ([key, value]) =>
+            baseline.physiology[key as keyof Physiology] === value,
+        )));
+  const exitTour = () => {
+    setTourStep(null);
+    setTourApplied(false);
+    setPulseStart(null);
+  };
 
   const physiologyControls = (
     <fieldset className="physiology-controls" disabled={!!captured}>
@@ -591,7 +674,12 @@ export default function App() {
   );
   return (
     <div
-      className={`app-shell instrument-shell experience-shell experience-${experience} ${captured ? "studio-open" : ""}`}
+      data-tour={
+        tourStep !== null && tourStep < TOUR_STEPS.length
+          ? TOUR_STEPS[tourStep].target
+          : undefined
+      }
+      className={`app-shell ${tourStep !== null ? "tour-active" : ""} instrument-shell experience-shell experience-${experience} ${captured ? "studio-open" : ""}`}
       data-experience={experience}
     >
       <header className="app-header">
@@ -844,6 +932,7 @@ export default function App() {
                 hideSelector
                 hideSiteCard
                 inspectRequest={inspectRequest}
+                siteSelection={siteSelection}
                 active={!captured || studioView === "body"}
                 inspection={!!captured}
                 onSensor={openStudio}
@@ -977,7 +1066,7 @@ export default function App() {
                       ? "Transmissive optical site"
                       : "Reflective optical site"}
                 </span>
-                <span>125 Hz export</span>
+                <span>Simulated signal</span>
               </div>
               {getRhythm(physiology.rhythm) !== "sinus" && (
                 <div className="rhythm-active-badge">
@@ -1069,6 +1158,17 @@ export default function App() {
               )}
             </section>
 
+            {tourStep !== null && (
+              <GuidedTour
+                step={tourStep}
+                applied={tourApplied || (tourStep !== 0 && tourMatched)}
+                matched={tourMatched}
+                ready={anatomyReady}
+                onApply={applyTour}
+                onStep={startTour}
+                onExit={exitTour}
+              />
+            )}
             <p className="signal-change-note" role="status">
               <span>What changed</span>
               {changeNote}
@@ -1262,6 +1362,34 @@ export default function App() {
             />
           )}
           <div hidden={siteLessonOpen}>
+            {experience !== "understand" && (
+              <div className="tour-invitation">
+                <span>LEARN BY DOING · FIVE SHORT EXPERIMENTS</span>
+                <h2>Keep the signal in sight.</h2>
+                <p>
+                  Follow a pulse, compare locations, and play with age, heart
+                  rate and breathing. Each step runs beside the waveform.
+                </p>
+                <button
+                  className="experience-primary"
+                  disabled={!anatomyReady}
+                  onClick={() => startTour(0)}
+                >
+                  Start guided tour <ArrowRight size={18} />
+                </button>
+                {tourStep !== null && (
+                  <button
+                    className="experience-why"
+                    onClick={() => {
+                      setDialog(null);
+                      revealTour();
+                    }}
+                  >
+                    Resume current experiment →
+                  </button>
+                )}
+              </div>
+            )}
             <button
               className="site-lesson-feature"
               onClick={() => setSiteLessonOpen(true)}
@@ -1283,7 +1411,11 @@ export default function App() {
                   <button
                     key={item}
                     aria-pressed={experience === item}
-                    onClick={() => changeExperience(item)}
+                    onClick={() =>
+                      item === "understand"
+                        ? changeExperience(item)
+                        : startTour(item === "experiment" ? 1 : 0)
+                    }
                   >
                     {item === "explore"
                       ? "Follow a pulse"
@@ -1294,31 +1426,35 @@ export default function App() {
                 ),
               )}
             </div>
-            <ExperienceGuide
-              active={dialog === "guide"}
-              ready={anatomyReady}
-              mode={experience}
-              site={site}
-              visited={visited}
-              physiology={physiology}
-              baseline={baseline}
-              clock={clock}
-              pulseStart={pulseStart}
-              onPulse={() => {
-                followPulse();
-                setDialog(null);
-              }}
-              onMode={changeExperience}
-              onSite={chooseSite}
-              onPrepare={(next, saved) => {
-                setPhysiology(next);
-                if (saved) setBaseline(saved);
-                setMode(next.age === 25 || next.age === 70 ? "beat" : "stream");
-                if (next.heartRate === 120) setMode("stream");
-                setRunning(true);
-              }}
-              onWhy={() => changeExperience("understand")}
-            />{" "}
+            {experience === "understand" && (
+              <ExperienceGuide
+                active={dialog === "guide"}
+                ready={anatomyReady}
+                mode={experience}
+                site={site}
+                visited={visited}
+                physiology={physiology}
+                baseline={baseline}
+                clock={clock}
+                pulseStart={pulseStart}
+                onPulse={() => {
+                  followPulse();
+                  setDialog(null);
+                }}
+                onMode={changeExperience}
+                onSite={chooseSite}
+                onPrepare={(next, saved) => {
+                  setPhysiology(next);
+                  if (saved) setBaseline(saved);
+                  setMode(
+                    next.age === 25 || next.age === 70 ? "beat" : "stream",
+                  );
+                  if (next.heartRate === 120) setMode("stream");
+                  setRunning(true);
+                }}
+                onWhy={() => changeExperience("understand")}
+              />
+            )}
             <section
               className="understand-panel"
               hidden={experience !== "understand"}

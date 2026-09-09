@@ -39,6 +39,7 @@ export type Layers = {
 interface Props {
   hideSelector?: boolean;
   hideSiteCard?: boolean;
+  siteSelection?: number;
   inspectRequest?: { site: SiteId; nonce: number } | null;
   active?: boolean;
   inspection?: boolean;
@@ -65,7 +66,7 @@ export default function AnatomyViewer(props: Props) {
     chest: () => void;
     heart: () => void;
     device: (id: WearableSite) => void;
-    select: (id: WearableSite) => void;
+    select: (id: WearableSite, notify?: boolean) => void;
     opticalSide: () => void;
   } | null>(null);
   const rotateRef = useRef(false);
@@ -92,10 +93,10 @@ export default function AnatomyViewer(props: Props) {
       actions.current?.device(props.inspectRequest.site);
   }, [props.inspectRequest]);
   useEffect(() => {
-    if (!deviceFocusRef.current) return;
-    if (isWearableSite(props.site)) actions.current?.select(props.site);
+    if (!ready || props.pulseStart != null) return;
+    if (isWearableSite(props.site)) actions.current?.select(props.site, false);
     else actions.current?.reset();
-  }, [props.site]);
+  }, [props.site, ready, props.siteSelection]);
 
   useEffect(() => {
     if (props.pulseStart != null) actions.current?.reset();
@@ -301,14 +302,53 @@ export default function AnatomyViewer(props: Props) {
         cutawayRef.current = true;
         setCutaway(true);
       },
-      select: (id) => {
+      select: (id, notify = true) => {
         clearDeviceFocus();
-        current.current.onSite(id);
+        if (notify) current.current.onSite(id);
+        if (!anatomy.group.userData.bodyLoaded) return;
+        heartDetailRef.current = false;
+        setHeartDetail(false);
+        setFocus(false);
+        setBack(false);
+        rotateRef.current = false;
+        setRotate(false);
+        anatomy.group.updateMatrixWorld(true);
+        locateDevice(id);
+        // Frame a region, not a product close-up: leave the adjacent anatomy visible.
+        const target = deviceCenter.clone();
+        target.x *= 0.82;
+        if (id === "toe") target.y += 0.24;
+        if (id === "ear" || id === "forehead") target.y -= 0.24;
+        const distance =
+          (id === "upperarm" ? 3.1 : 2.65) * Math.max(1, 0.55 / camera.aspect);
+        const destination = target
+          .clone()
+          .add(
+            new THREE.Vector3(
+              id === "ear" || id === "forehead" ? 0.5 : 0.16,
+              0.08,
+              distance,
+            ),
+          );
+        if (reducedMotion.matches) {
+          camera.position.copy(destination);
+          controls.target.copy(target);
+          controls.update();
+        } else {
+          cameraFlight = {
+            from: camera.position.clone(),
+            to: destination,
+            targetFrom: controls.target.clone(),
+            targetTo: target,
+            elapsed: 0,
+          };
+        }
+        element.dataset.regionFocus = id;
         sceneDirty = true;
       },
       device: (id) => {
         if (!anatomy.group.userData.bodyLoaded) return;
-        current.current.onSite(id);
+        if (current.current.site !== id) current.current.onSite(id);
         deviceFocusRef.current = id;
         setDeviceFocus(id);
         isolatedDeviceRef.current = false;
@@ -656,7 +696,13 @@ export default function AnatomyViewer(props: Props) {
         anatomy.wearables.devices[id].visible =
           !isolatedDeviceRef.current || id === deviceFocusRef.current;
       anatomy.wearables.setSelected(p.site);
+      anatomy.setFlowFocus(
+        p.site,
+        !isolatedDeviceRef.current && !heartDetailRef.current,
+      );
+      element.dataset.flowFocus = p.site;
       anatomy.group.updateMatrixWorld(true);
+      cameraShift.set(0, 0, 0);
       if (deviceFocusRef.current) {
         locateDevice(deviceFocusRef.current);
         cameraShift.subVectors(deviceCenter, previousDeviceCenter);
@@ -669,7 +715,10 @@ export default function AnatomyViewer(props: Props) {
         cameraFlight.to.add(cameraShift);
         cameraFlight.targetFrom.add(cameraShift);
         cameraFlight.targetTo.add(cameraShift);
-        cameraFlight.elapsed = Math.min(1, cameraFlight.elapsed + delta / 0.45);
+        cameraFlight.elapsed = Math.min(
+          1,
+          cameraFlight.elapsed + delta / (deviceFocusRef.current ? 0.45 : 0.85),
+        );
         const t = cameraFlight.elapsed;
         const eased = t * t * (3 - 2 * t);
         camera.position.lerpVectors(cameraFlight.from, cameraFlight.to, eased);
@@ -695,6 +744,7 @@ export default function AnatomyViewer(props: Props) {
         hoveredDevice,
         Boolean(deviceFocusRef.current),
         reducedMotion.matches,
+        cardiac.phase,
       );
       const checkOcclusion = now - lastOcclusion > 120;
       for (const id of WEARABLE_SITES) {

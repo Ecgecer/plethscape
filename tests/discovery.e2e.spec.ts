@@ -63,11 +63,12 @@ test("optional pulse journey closes the drawer and respects pause", async ({
   page,
 }) => {
   await page.getByRole("button", { name: "Learn", exact: true }).click();
+  await page.getByRole("button", { name: "Start guided tour" }).click();
   await page
-    .getByRole("region", { name: "Pulse journey" })
+    .getByRole("region", { name: "Guided experiment" })
     .getByRole("button", { name: "Follow a pulse", exact: true })
     .click();
-  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("dialog")).toBeHidden();
   await page
     .getByRole("button", { name: "Pause simulation", exact: true })
     .click();
@@ -89,17 +90,9 @@ test("guided age experiment changes the actual workspace and preserves its refer
 }) => {
   await page.getByRole("button", { name: "Learn", exact: true }).click();
   await page.getByRole("button", { name: "Experiments", exact: true }).click();
-  const guide = page.getByRole("region", { name: "One experiment at a time" });
-  for (const name of [
-    "Discover index finger",
-    "Discover top of wrist",
-    "Discover earlobe",
-  ])
-    await guide.getByRole("button", { name, exact: true }).click();
-  await guide.getByRole("button", { name: "Next: a change in age" }).click();
-  await guide.getByRole("button", { name: "Save age 25" }).click();
-  await guide.getByRole("button", { name: "Now try age 70" }).click();
-  await page.getByRole("button", { name: "Close dialog", exact: true }).click();
+  const guide = page.getByRole("region", { name: "Guided experiment" });
+  await guide.getByRole("button", { name: "Go to Age experiment" }).click();
+  await guide.getByRole("button", { name: "Try age 70", exact: true }).click();
   await expect(
     page.getByRole("slider", { name: "Age", exact: true }),
   ).toHaveValue("70");
@@ -108,7 +101,7 @@ test("guided age experiment changes the actual workspace and preserves its refer
   ).toBeVisible();
   await page.getByRole("button", { name: "Learn", exact: true }).click();
   await expect(
-    guide.getByRole("button", { name: "Next: change the rhythm" }),
+    page.getByRole("button", { name: "Resume current experiment →" }),
   ).toBeEnabled();
   await page.getByRole("button", { name: "The science", exact: true }).click();
   await expect(
@@ -116,18 +109,15 @@ test("guided age experiment changes the actual workspace and preserves its refer
   ).toBeVisible();
 });
 
-test("location selection preserves camera and anatomy controls remain secondary", async ({
+test("location selection frames nearby anatomy and anatomy controls remain secondary", async ({
   page,
 }) => {
   const scene = page.getByTestId("anatomy-canvas");
-  const distance = Number(await scene.getAttribute("data-camera-distance"));
   await page
     .getByRole("button", { name: "Select Sensor earring", exact: true })
     .click();
-  expect(Number(await scene.getAttribute("data-camera-distance"))).toBeCloseTo(
-    distance,
-    6,
-  );
+  await expect(scene).toHaveAttribute("data-region-focus", "ear");
+  await expect(scene).toHaveAttribute("data-device-focus", "none");
   await page.getByRole("button", { name: "View options", exact: true }).click();
   const nerves = page.getByRole("switch", {
     name: "Nervous system",

@@ -10,6 +10,7 @@ test.beforeEach(async ({ page }) => {
     "data-body-loaded",
     "true",
   );
+  await page.getByRole("button", { name: "Reset camera", exact: true }).click();
   await page
     .getByRole("button", { name: "Pause simulation", exact: true })
     .click();

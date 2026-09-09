@@ -20,7 +20,7 @@ import { createWearables } from "./wearables";
 import { WEARABLE_SITES } from "./devices";
 import { createFlowTrails } from "./flowTrails";
 import { fitWearablesToSkin, upperSkinGeometry } from "./surfaceFit";
-import type { getCardiacState } from "./simulation";
+import type { getCardiacState, SiteId } from "./simulation";
 import {
   sculptNostrils,
   facialPigment,
@@ -192,6 +192,9 @@ export function createAnatomy() {
   const shared = {
     atlasTime: { value: 0 },
     atlasJourney: { value: -1 },
+    atlasFlowFocus: { value: new THREE.Vector3() },
+    atlasFlowFocusRadius: { value: 0.5 },
+    atlasFlowFocusStrength: { value: 0 },
     atlasJoints: { value: rig.matrices },
     atlasReal: { value: rig.real },
     atlasDual: { value: rig.dual },
@@ -622,11 +625,16 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
     .setMeshoptDecoder(MeshoptDecoder)
     .setDRACOLoader(draco);
   Promise.all([
-    loader.loadAsync(import.meta.env.BASE_URL + "models/bodyparts-atlas.glb", (event) => {
-      if (!disposed && event.total)
-        group.userData.loadProgress = event.loaded / event.total;
-    }),
-    fetch(import.meta.env.BASE_URL + "models/bodyparts-atlas-metadata.json").then((r) => {
+    loader.loadAsync(
+      import.meta.env.BASE_URL + "models/bodyparts-atlas.glb",
+      (event) => {
+        if (!disposed && event.total)
+          group.userData.loadProgress = event.loaded / event.total;
+      },
+    ),
+    fetch(
+      import.meta.env.BASE_URL + "models/bodyparts-atlas-metadata.json",
+    ).then((r) => {
       if (!r.ok) throw new Error("Anatomy metadata unavailable");
       return r.json() as Promise<Metadata>;
     }),
@@ -980,6 +988,16 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
       heartFocus = enabled;
       shared.atlasHeartFocus.value = enabled ? 1 : 0;
       setPresentation(mode);
+    },
+    setFlowFocus: (site: SiteId, enabled: boolean) => {
+      shared.atlasFlowFocus.value.copy(sites[site]);
+      shared.atlasFlowFocusRadius.value =
+        site === "ear" || site === "forehead"
+          ? 0.65
+          : site === "upperarm"
+            ? 0.6
+            : 0.48;
+      shared.atlasFlowFocusStrength.value = enabled ? 1 : 0;
     },
     setJourney: (progress: number) => {
       shared.atlasJourney.value = progress;

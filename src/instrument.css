@@ -1273,3 +1273,206 @@ output,
     padding: 8px 6px;
   }
 }
+/* Guided experiments stay in normal document flow beside the live signal. */
+.guided-tour {
+  padding: 18px;
+  margin: 16px 0;
+  border: 1px solid #ad7a49;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #312215, #1c1813);
+  outline: none;
+}
+.guided-tour:focus-visible {
+  outline: 2px solid #ffc589;
+  outline-offset: 3px;
+}
+.tour-topline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  color: #edbb88;
+  font-size: 11px;
+  letter-spacing: 0.07em;
+}
+.tour-topline button {
+  min-height: 36px;
+  padding: 6px;
+  color: #c9bbae;
+  font-size: 13px;
+  letter-spacing: 0;
+}
+.tour-progress {
+  display: flex;
+  gap: 5px;
+  margin: 5px 0 16px;
+}
+.tour-progress button {
+  flex: 1;
+  min-height: 38px;
+  padding: 6px 2px;
+  border-bottom: 2px solid #5a4532;
+  color: #bdae9f;
+  font-size: 11px;
+}
+.tour-progress button span {
+  display: none;
+}
+.tour-progress button[aria-current="step"] {
+  color: #ffd6ad;
+  border-color: #f5b16d;
+}
+.guided-tour h3 {
+  margin: 0 0 8px;
+  font-size: 21px;
+  line-height: 1.25;
+}
+.guided-tour p {
+  margin: 0 0 12px;
+  color: #c9bbae;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.tour-comparison {
+  display: flex;
+  gap: 18px;
+  font-size: 11px;
+  color: #c1b4a8;
+  margin: 12px 0;
+}
+.tour-comparison strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  color: #f1e7dd;
+  font-weight: 500;
+}
+.tour-comparison i {
+  display: inline-block;
+  width: 14px;
+  margin-right: 5px;
+  border-top: 2px dashed #b5a9d1;
+  vertical-align: middle;
+}
+.tour-comparison span:last-child i {
+  border-top: 2px solid #f6b277;
+}
+.tour-result {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #f1d0ab;
+  border-left: 2px solid #ce965d;
+  padding: 3px 0 3px 10px;
+}
+.tour-science {
+  margin: 12px 0;
+  font-size: 12px;
+}
+.tour-science summary {
+  cursor: pointer;
+  color: #efb67f;
+  padding: 6px 0;
+}
+.tour-science p {
+  margin-top: 8px;
+  font-size: 13px;
+}
+.tour-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+.tour-actions button {
+  min-height: 44px;
+  border: 1px solid #665039;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+}
+.tour-actions .tour-apply {
+  flex: 1;
+  background: #ecad6d;
+  color: #23170b;
+  font-weight: 650;
+  border-color: #ecad6d;
+}
+.tour-actions button:disabled {
+  opacity: 0.4;
+}
+.tour-invitation {
+  padding: 24px 0;
+}
+.tour-invitation > span {
+  color: #e9b47e;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+.tour-invitation h2 {
+  margin: 12px 0;
+  font-size: 28px;
+}
+.tour-invitation p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+.tour-active .representative-panel,
+.tour-active .signal-change-note,
+.tour-active .signal-panel > .fiducial-guide {
+  display: none;
+}
+.instrument-shell.tour-active .signal-chart {
+  height: 240px;
+}
+[data-tour="location"] .location-selector,
+[data-tour="Age"] [data-control="Age"],
+[data-tour="Heart rate"] [data-control="Heart rate"],
+[data-tour="Breathing rate"] [data-control="Breathing rate"] {
+  outline: 2px solid #e8a866;
+  outline-offset: 5px;
+  border-radius: 7px;
+}
+[data-tour="body"] .body-panel {
+  border-color: #d79a5a;
+  box-shadow: 0 0 22px #e99a4314;
+}
+@media (max-width: 700px) {
+  .guided-tour {
+    padding: 14px;
+  }
+  .guided-tour h3 {
+    font-size: 20px;
+  }
+  .tour-actions {
+    flex-wrap: wrap;
+  }
+  .tour-actions .tour-apply {
+    min-width: 140px;
+  }
+  .tour-progress button {
+    font-size: 10px;
+  }
+  [data-tour="location"] .mobile-site-picker,
+  [data-tour="Age"] .mobile-adjust-bar button,
+  [data-tour="Heart rate"] .mobile-adjust-bar button,
+  [data-tour="Breathing rate"] .mobile-adjust-bar button {
+    outline: 2px solid #e8a866;
+    outline-offset: 4px;
+    border-radius: 8px;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .guided-tour {
+    animation: tour-enter 0.22s ease-out;
+  }
+  @keyframes tour-enter {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

@@ -141,6 +141,10 @@ export function createFlowTrails(
     side: THREE.DoubleSide,
     vertexShader: /* glsl */ `
       ${movement}
+      uniform vec3 atlasFlowFocus;
+      uniform float atlasFlowFocusRadius;
+      uniform float atlasFlowFocusStrength;
+      varying float vLocalFocus;
       attribute float journeyPosition;
       varying float vJourney;
       attribute vec3 flowTangent;
@@ -156,7 +160,8 @@ export function createFlowTrails(
         vec3 forward = (modelViewMatrix * vec4(ahead, 1.)).xyz - view.xyz;
         vec2 across = vec2(-forward.y, forward.x);
         across /= max(length(across), .000001);
-        view.xy += across * ribbon.x * ribbon.z;
+        vLocalFocus = (1.-smoothstep(0., atlasFlowFocusRadius, distance(p, atlasFlowFocus))) * atlasFlowFocusStrength;
+        view.xy += across * ribbon.x * ribbon.z * (1. + vLocalFocus * .85);
         gl_Position = projectionMatrix * view;
         vJourney = journeyPosition;
         vRibbon = ribbon;
@@ -165,6 +170,7 @@ export function createFlowTrails(
       }
     `,
     fragmentShader: /* glsl */ `
+      varying float vLocalFocus;
       uniform float atlasJourney;
       varying float vJourney;
       uniform float atlasFlow;
@@ -190,8 +196,10 @@ export function createFlowTrails(
         float edge = 1.-smoothstep(.78,1.,abs(vRibbon.x));
         vec3 tint = mix(vColor, vec3(1.,.73,.48), core*.20);
         float story = atlasJourney>=0. && vJourney>=0. ? exp(-pow((vJourney-atlasJourney)/.055,2.)) : 0.;
-        tint = mix(tint, vec3(1.,.68,.28), story);
-        gl_FragColor = vec4(tint * (1.05 + .25*pulse + story*1.5), min(.9,(intensity + story*halo*.8)*edge));
+        tint = mix(tint, vec3(1.,.68,.28), max(story, vLocalFocus*.8));
+        // Broad, tapered streams reveal nearby source vessels without adding particles.
+        intensity *= 1. + vLocalFocus * (2.3 + pulse*1.4);
+        gl_FragColor = vec4(tint * (1.05 + .25*pulse + story*1.5 + vLocalFocus*.65), min(.9,(intensity + story*halo*.8)*edge));
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
       }

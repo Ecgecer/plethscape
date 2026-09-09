@@ -567,7 +567,7 @@ test("desktop and mobile layouts stay within the document viewport", async ({
   });
 });
 
-test("wearable selection preserves the camera and explicit close-ups support mesh picking", async ({
+test("wearable selection frames a region and explicit close-ups support mesh picking", async ({
   page,
 }, testInfo) => {
   const anatomy = page.getByTestId("anatomy-canvas");
@@ -598,7 +598,7 @@ test("wearable selection preserves the camera and explicit close-ups support mes
     const afterSelection = Number(
       await anatomy.getAttribute("data-camera-distance"),
     );
-    expect(Math.abs(afterSelection - selectionDistance)).toBeLessThan(0.01);
+    await expect(anatomy).toHaveAttribute("data-region-focus", id);
     await page
       .getByRole("button", { name: "Inspect device", exact: true })
       .click();
