@@ -563,3 +563,219 @@
     overscroll-behavior: auto;
   }
 }
+
+.mobile-menu-toggle {
+  display: none;
+}
+.mobile-menu-links {
+  display: grid;
+  gap: 10px;
+}
+.mobile-menu-links button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 1px solid #66503b;
+  border-radius: 10px;
+  text-align: left;
+}
+@media (max-width: 700px) {
+  .immersive-shell .app-header {
+    display: flex;
+    flex-wrap: nowrap;
+    min-height: 56px;
+    padding: 8px 0;
+    gap: 8px;
+  }
+  .immersive-shell .app-header nav,
+  .immersive-shell .header-actions {
+    display: none;
+  }
+  .immersive-shell .brand small {
+    display: none;
+  }
+  .immersive-shell .mobile-menu-toggle {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin-left: auto;
+    border: 1px solid #5e4833;
+    border-radius: 12px;
+  }
+  .immersive-shell .workspace-heading {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    padding: 0;
+    margin: 0;
+  }
+  .immersive-shell .mobile-adjust-bar {
+    margin: 8px 0;
+    align-items: flex-end;
+  }
+  .immersive-shell .mobile-adjust-bar button {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+  .immersive-shell .mobile-site-picker {
+    font-size: 11px;
+  }
+  .immersive-shell .mobile-site-picker select {
+    min-height: 44px;
+    max-width: 190px;
+  }
+  .immersive-shell .lab-workspace {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .immersive-shell .body-panel {
+    order: 0;
+    height: clamp(260px, 39dvh, 360px);
+    min-height: 260px;
+    border-radius: 16px;
+  }
+  .immersive-shell .signal-panel {
+    order: 1;
+    padding: 14px;
+    min-width: 0;
+  }
+  .immersive-shell .control-rail {
+    display: none;
+  }
+  .immersive-shell .signal-chart {
+    height: 210px;
+    min-height: 210px;
+  }
+  .immersive-shell .scene-hint {
+    display: none;
+  }
+  .immersive-shell .scene-bottom {
+    bottom: 8px;
+  }
+  .immersive-shell .body-status {
+    display: none;
+  }
+  .immersive-shell .signal-panel h2 {
+    font-size: 21px;
+  }
+  .immersive-shell .signal-actions {
+    gap: 6px;
+  }
+  .immersive-shell .signal-actions button {
+    padding: 8px;
+    font-size: 12px;
+    min-height: 44px;
+  }
+}
+
+.immersive-shell .brand {
+  gap: 11px;
+}
+.immersive-shell .brand-wordmark {
+  font-family: "Inter Variable", sans-serif;
+  font-size: 23px;
+  font-weight: 600;
+  letter-spacing: -0.9px;
+  line-height: 1;
+}
+.immersive-shell .brand-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 13px;
+  background: linear-gradient(145deg, #ffd3a0, #dfa061);
+  box-shadow: inset 0 1px 0 #ffe8cc99;
+}
+.immersive-shell .brand-icon svg {
+  width: 25px;
+  height: 25px;
+}
+@media (max-width: 700px) {
+  .immersive-shell .brand-wordmark {
+    font-size: 21px;
+    letter-spacing: -0.7px;
+  }
+  .immersive-shell .brand-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+  }
+}
+
+@media (max-width: 700px) {
+  .immersive-shell .body-panel {
+    width: 100%;
+    align-self: stretch;
+  }
+  .immersive-shell .anatomy-viewer {
+    width: 100%;
+  }
+  .immersive-shell .anatomy-viewer .three-host {
+    top: 0;
+    bottom: 42px;
+  }
+  .immersive-shell .signal-panel {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .immersive-shell .signal-actions {
+    order: 5;
+  }
+  .immersive-shell .signal-panel {
+    display: flex;
+    flex-direction: column;
+  }
+  .immersive-shell .signal-panel .signal-chart {
+    order: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .immersive-shell .signal-section {
+    display: flex;
+    flex-direction: column;
+  }
+  .immersive-shell .signal-header {
+    order: -4;
+    margin-bottom: 8px;
+  }
+  .immersive-shell .signal-header .section-overline {
+    font-size: 9px;
+    letter-spacing: 0.07em;
+  }
+  .immersive-shell .signal-header h2 {
+    margin: 4px 0;
+  }
+  .immersive-shell .signal-meta {
+    display: none;
+  }
+  .immersive-shell .spectral-control {
+    order: -3;
+    margin: 0 0 8px;
+    padding: 0;
+    border: 0;
+  }
+  .immersive-shell .studio-bands button {
+    padding: 7px 10px;
+    min-height: 44px;
+  }
+  .immersive-shell .signal-section .signal-chart {
+    order: -2;
+    margin: 0;
+  }
+  .immersive-shell .signal-actions {
+    order: 0;
+    margin-top: 12px;
+  }
+  .immersive-shell .body-panel {
+    height: clamp(240px, 34dvh, 320px);
+    min-height: 240px;
+  }
+}
+
+@media (max-width: 700px) { .immersive-shell .workspace-tools { display: none; } }

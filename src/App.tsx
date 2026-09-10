@@ -17,6 +17,7 @@ import {
   Footprints,
   Info,
   Lightbulb,
+  List,
   LinkSimple,
   Pause,
   PersonSimple,
@@ -184,6 +185,7 @@ function Modal({
 export default function App() {
   const [presentation, setPresentation] = useState<"male" | "female">("male");
   const [mobileControlsOpen, setMobileControlsOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [siteSelection, setSiteSelection] = useState(0);
   const [tourStep, setTourStep] = useState<number | null>(null);
   const [tourApplied, setTourApplied] = useState(false);
@@ -766,10 +768,18 @@ export default function App() {
             <WaveSine size={26} weight="bold" />
           </span>
           <span>
-            PLETH<span className="brand-light">SCAPE</span>
+            <span className="brand-wordmark">Plethscape</span>
             <small>HUMAN PHYSIOLOGY, EXPLORED.</small>
           </span>
         </a>
+        <button
+          className="mobile-menu-toggle"
+          aria-label="Open menu"
+          aria-haspopup="dialog"
+          onClick={() => setMobileMenuOpen(true)}
+        >
+          <List size={24} />
+        </button>
         <nav aria-label="Main navigation">
           <button
             className="nav-item active"
@@ -798,6 +808,49 @@ export default function App() {
         </div>
       </header>
 
+      {mobileMenuOpen && (
+        <Modal
+          title="Explore Plethscape"
+          onClose={() => setMobileMenuOpen(false)}
+        >
+          <div className="mobile-menu-links">
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                if (captured) closeStudio();
+                setDialog(null);
+              }}
+            >
+              Workspace
+            </button>
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setSceneOnly(false);
+                setDialog("guide");
+              }}
+            >
+              <BookOpen size={20} /> Learn through exploration
+            </button>
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setToolsOpen(true);
+              }}
+            >
+              <Stack size={20} /> View options
+            </button>
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setMobileControlsOpen(true);
+              }}
+            >
+              <SlidersHorizontal size={20} /> Model and physiology
+            </button>
+          </div>
+        </Modal>
+      )}
       <main id="workspace" tabIndex={-1}>
         <div className="workspace-heading">
           <div>
