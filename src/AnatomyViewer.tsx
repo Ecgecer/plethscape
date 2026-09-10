@@ -338,19 +338,18 @@ export default function AnatomyViewer(props: Props) {
         // Center the wearable itself while retaining the surrounding body region.
         const target = deviceCenter.clone();
         const wideStage = element.clientWidth >= 1100;
-        const regionalDistance = id === "upperarm" ? 2.1 : 1.8;
+        const regionalDistance = id === "upperarm" ? 1.7 : 1.4;
         const distance =
           (wideStage ? regionalDistance * 1.6 : regionalDistance) *
           Math.max(1, 0.55 / camera.aspect);
-        const destination = target
-          .clone()
-          .add(
-            new THREE.Vector3(
-              id === "ear" || id === "forehead" ? 0.5 : 0.16,
-              0.08,
-              distance,
-            ),
-          );
+        // View the sensor-bearing side of the head; the face points left on screen.
+        const sideView = id === "ear" || id === "forehead";
+        const angle = sideView ? Math.PI * 0.39 : 0.06;
+        const destination = target.clone().add(new THREE.Vector3(
+          Math.sin(angle) * distance,
+          0.04,
+          Math.cos(angle) * distance,
+        ));
         if (reducedMotion.matches) {
           camera.position.copy(destination);
           controls.target.copy(target);
