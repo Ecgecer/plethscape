@@ -9,7 +9,7 @@ Previously the waveform was wavelength-neutral; Green 530 nm only controlled the
 - Depth-dependent sensor experiment used 530/660/940 nm (plus blue). https://pubmed.ncbi.nlm.nih.gov/31835543/
 
 ## Deliberate assumptions
-Longer-wavelength profiles modestly broaden the pulse, alter its reflected component and gain. These directions, numerical coefficients and extrapolations to seven sites are illustrative choices, not established universal wavelength signatures. No change to central heart rate, respiratory timing or arterial transit delay is inferred from wavelength.
+The illustrative red and infrared profiles have an earlier, narrower systolic peak, a more separated secondary peak, a stronger/wider notch and lower gain than the green baseline. Differences are deliberately visible at rest and vary with the existing site tissue factor. Age and stiffness still reduce notch prominence. These directions, numerical coefficients and extrapolations to seven sites are illustrative choices, not established universal wavelength signatures. No change to central heart rate, respiratory timing or arterial transit delay is inferred from wavelength.
 
 Activity uses the existing shared gait clock and site-specific swing, impact and contact loss. Red and infrared increase baseline displacement, coupling loss and irregular high-frequency disturbance. Infrared is strongest in this scenario; red is an illustrative intermediate, not a validated ranking. Green can also be severely corrupted. Real outcomes depend on sensor geometry, contact, skin, wavelength, LED power and signal processing.
 

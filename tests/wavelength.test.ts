@@ -62,3 +62,30 @@ test("longer wavelengths amplify gait artifacts at every site and replay exactly
       );
     }
 });
+
+test("resting wrist wavelengths differ in shape even after amplitude normalization", () => {
+  const curves = bands.map((wavelength) => {
+    const samples = Array.from({ length: 501 }, (_, i) =>
+      sampleBeat(
+        i / 500,
+        { ...DEFAULT_PHYSIOLOGY, activity: "rest", wavelength },
+        "wrist",
+      ),
+    );
+    const peak = Math.max(...samples);
+    return samples.map((value) => value / peak);
+  });
+  for (const [a, b] of [
+    [0, 1],
+    [1, 2],
+    [0, 2],
+  ]) {
+    const difference = Math.max(
+      ...curves[a].map((v, i) => Math.abs(v - curves[b][i])),
+    );
+    assert.ok(
+      difference > 0.06,
+      `Normalized contours must visibly differ: ${difference}`,
+    );
+  }
+});

@@ -293,11 +293,14 @@ function model(p: Physiology, siteId: SiteId): Model {
   // Reflection merges toward systole as the stiffness control increases. At high
   // rates, preserve a shorter ejection interval and compress mostly the tail.
   const reflectionTime = Math.min(
-    peakTime + 0.22 - stiffness * 0.14,
+    peakTime +
+      0.22 -
+      stiffness * 0.14 +
+      optical.reflectionDelay * (1 - stiffness),
     cycle * 0.73,
   );
   const reflectionWidth = Math.min(
-    (0.037 + stiffness * 0.027) * shape.width,
+    (0.037 + stiffness * 0.027) * shape.width * optical.reflectionWidth,
     cycle * 0.115,
   );
   const notchTime = peakTime + (reflectionTime - peakTime) * 0.66;
@@ -327,8 +330,12 @@ function model(p: Physiology, siteId: SiteId): Model {
     reflectionAmplitude:
       (0.38 - 0.24 * stiffness) * shape.reflection * optical.reflection,
     notchTime,
-    notchWidth: Math.min(0.017 + stiffness * 0.01, cycle * 0.065),
-    notchAmplitude: 0.075 * (1 - stiffness) ** 1.8 * shape.reflection,
+    notchWidth: Math.min(
+      (0.017 + stiffness * 0.01) * optical.notchWidth,
+      cycle * 0.065,
+    ),
+    notchAmplitude:
+      0.075 * (1 - stiffness) ** 1.8 * shape.reflection * optical.notch,
     gain: (0.26 + perfusion * 1.08) * shape.gain * optical.gain,
     motionSensitivity: shape.motion,
   };

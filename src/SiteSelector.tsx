@@ -40,17 +40,17 @@ function WearableGlyph({ site }: { site: SiteId }) {
   const shapes: Record<SiteId, React.ReactNode> = {
     wrist: (
       <>
-        <path d="M10 8V4.5h8V8m-8 12v3.5h8V20" />
+        <rect x="8.5" y="2.5" width="11" height="23" rx="5.5" opacity=".55" />
         <rect
-          x="7.5"
-          y="7.5"
-          width="13"
-          height="13"
-          rx="4"
+          x="7"
+          y="8"
+          width="14"
+          height="12"
+          rx="5"
           fill="currentColor"
-          fillOpacity=".1"
+          fillOpacity=".18"
         />
-        <path d="M11 14h2l1-2 1.5 4 1-2H18" strokeWidth="1.2" />
+        <path d="M10 10.5c2-1 6-1 8 0" opacity=".45" />
       </>
     ),
     finger: (

@@ -210,11 +210,18 @@
     gap: 12px;
   }
   .immersive-shell .scene-hint {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
     max-width: none;
     text-align: center;
     font-size: 11px;
     color: #bca28d;
+  }
+  .immersive-shell .scene-hint > svg {
+    flex-shrink: 0;
+    display: block;
   }
   .immersive-shell .scene-toolbar {
     background: #151310b3;

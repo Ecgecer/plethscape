@@ -338,12 +338,12 @@ export default function AnatomyViewer(props: Props) {
         // Frame a region, not a product close-up: leave the adjacent anatomy visible.
         const target = deviceCenter.clone();
         const wideStage = element.clientWidth >= 1100;
-        if (wideStage) target.set(0, 1.82, 0);
+        if (wideStage) target.lerp(new THREE.Vector3(0, 1.82, 0), 0.7);
         target.x *= 0.82;
         if (!wideStage && id === "toe") target.y += 0.24;
         if (!wideStage && (id === "ear" || id === "forehead")) target.y -= 0.24;
         const distance =
-          (wideStage ? 6.1 : id === "upperarm" ? 3.1 : 2.65) *
+          (wideStage ? 5.2 : id === "upperarm" ? 2.9 : 2.5) *
           Math.max(1, 0.55 / camera.aspect);
         const destination = target
           .clone()

@@ -40,9 +40,13 @@ export function opticalProfile(site: string, band: Wavelength) {
     )[site] ?? 1;
   const spectral = band === "green" ? 0 : band === "red" ? 0.65 : 1;
   return {
-    width: 1 + 0.065 * spectral * tissue,
-    reflection: 1 + 0.2 * spectral * tissue,
-    gain: 1 - 0.1 * spectral * tissue,
+    width: 1 - 0.12 * spectral * tissue,
+    reflectionDelay: 0.035 * spectral * tissue,
+    reflectionWidth: 1 - 0.2 * spectral * tissue,
+    notch: 1 + 1.8 * spectral * tissue,
+    notchWidth: 1 + 0.35 * spectral * tissue,
+    reflection: 1 + 0.65 * spectral * tissue,
+    gain: 1 - 0.18 * spectral * tissue,
     motion: 1 + 1.4 * spectral * tissue,
     depth: OPTICAL_BANDS[band].depth,
   };
