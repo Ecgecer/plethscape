@@ -154,7 +154,7 @@ approximations, not equations fitted to the cited studies.
   They are not population reference values or calibrated path measurements.
 - Perfusion changes optical pulse amplitude. Noise adds smooth deterministic
   high-frequency components. Small respiratory baseline/amplitude variation is
-  always present. None represents a particular device or optical wavelength.
+  always present. None represents a particular device. Wavelength-dependent illustrative changes are described in WAVELENGTHS.md.
 - The live stream also has gentle nonperiodic timing variation, correlated
   beat-to-beat amplitude/width changes, slight variation in the reflected
   component and notch, and slow amplitude/baseline drift. Timing perturbations
@@ -319,9 +319,7 @@ vessel motion, dimensions and light intensity are uncalibrated visual choices.
 The controls label example illumination at 530, 660 and 940 nm. Green illustrates
 shallower sampling; red and infrared illustrate deeper sampling, with substantial
 real-world overlap. Infrared is invisible and rendered warm white for visibility.
-The selected wavelength changes only the light illustration, not the synthetic
-PPG morphology. A universal wavelength-to-waveform transform is not justified by
-the cited studies, and this app has no calibrated multispectral transfer function.
+The selected wavelength now changes the light illustration, clean pulse contour and motion-artifact sensitivity. These are explicitly illustrative site-dependent coefficients (see [WAVELENGTHS.md](WAVELENGTHS.md)), not a calibrated multispectral transfer function or universal wavelength-to-waveform rule.
 
 - [Lee et al., 2013](https://pubmed.ncbi.nlm.nih.gov/24110039/): a 12-person
   reflection PPG experiment compared 530, 645 and 470 nm during baseline and hand

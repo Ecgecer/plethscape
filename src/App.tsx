@@ -49,7 +49,7 @@ import type { CapturedBeat, Activity, Physiology, SiteId } from "./simulation";
 import type { Layers } from "./AnatomyViewer";
 import { DEVICES, isWearableSite } from "./devices";
 
-import type { Wavelength } from "./optics";
+import { OPTICAL_BANDS, type Wavelength } from "./optics";
 const SensorCutaway = lazy(() => import("./SensorCutaway"));
 const SignalStudio = lazy(() => import("./SignalStudio"));
 const AnatomyViewer = lazy(() => import("./AnatomyViewer"));
@@ -189,7 +189,9 @@ export default function App() {
   const [streamWindow, setStreamWindow] = useState<number | null>(null);
   const [captured, setCaptured] = useState<CapturedBeat | null>(null);
   const [studioView, setStudioView] = useState<"sensor" | "body">("sensor");
-  const [wavelength, setWavelength] = useState<Wavelength>("green");
+  const wavelength = physiology.wavelength ?? "green";
+  const setWavelength = (value: Wavelength) =>
+    setPhysiologyState((p) => ({ ...p, wavelength: value }));
   const [opticalStage, setOpticalStage] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(0.2);
   const playback = useRef<{ start: number; end: number; speed: number } | null>(
@@ -252,6 +254,7 @@ export default function App() {
       const next = typeof update === "function" ? update(previous) : update;
       return {
         ...next,
+        wavelength: next.wavelength ?? previous.wavelength ?? "green",
         motionHistory: transitionMotion(
           time,
           previous.activity,
@@ -1111,6 +1114,27 @@ export default function App() {
                 </span>
                 <span>Simulated signal</span>
               </div>
+              <section
+                className="spectral-control"
+                aria-label="Wavelength exploration"
+              >
+                <div
+                  className="studio-bands"
+                  role="group"
+                  aria-label="Light wavelength"
+                >
+                  {(Object.keys(OPTICAL_BANDS) as Wavelength[]).map((w) => (
+                    <button
+                      key={w}
+                      aria-pressed={wavelength === w}
+                      onClick={() => setWavelength(w)}
+                    >
+                      {OPTICAL_BANDS[w].name}
+                      <small>{OPTICAL_BANDS[w].nm}</small>
+                    </button>
+                  ))}
+                </div>
+              </section>
               {getRhythm(physiology.rhythm) !== "sinus" && (
                 <div className="rhythm-active-badge">
                   {RHYTHMS[getRhythm(physiology.rhythm)].name} · simulated
@@ -1166,7 +1190,7 @@ export default function App() {
                     {baseline ? <CheckCircle size={16} /> : <Stack size={16} />}
                     <span>
                       {baseline
-                        ? `Comparing: ${SITES.find((s) => s.id === baseline.site)?.name} · ${baseline.physiology.age}y · ${baseline.physiology.heartRate} bpm · ${RHYTHMS[getRhythm(baseline.physiology.rhythm)].short}`
+                        ? `Comparing: ${SITES.find((s) => s.id === baseline.site)?.name} · ${baseline.physiology.age}y · ${OPTICAL_BANDS[baseline.physiology.wavelength ?? "green"].nm} · ${baseline.physiology.heartRate} bpm · ${RHYTHMS[getRhythm(baseline.physiology.rhythm)].short}`
                         : "Save reference"}
                     </span>
                   </span>
@@ -1188,6 +1212,69 @@ export default function App() {
                   }
                 />
               </div>
+              <details className="spectral-explanation">
+                <summary>Light penetration & simulation science</summary>
+                <div
+                  className="spectral-depth"
+                  aria-label="Relative light penetration, schematic"
+                >
+                  <span>Skin surface</span>
+                  {(Object.keys(OPTICAL_BANDS) as Wavelength[]).map((w) => (
+                    <div key={w} className={wavelength === w ? "active" : ""}>
+                      <span>{OPTICAL_BANDS[w].name}</span>
+                      <i
+                        style={{
+                          width: `${OPTICAL_BANDS[w].depth * 55}%`,
+                          background: `#${OPTICAL_BANDS[w].color.toString(16)}`,
+                        }}
+                      />
+                    </div>
+                  ))}
+                  <small>
+                    Overlapping sampling regions · relative depth, not
+                    millimeters
+                  </small>
+                </div>
+                <p>
+                  {physiology.activity === "rest"
+                    ? "Compare subtle pulse contours at rest, then try Walk or Run."
+                    : "Motion adds baseline wander, impact spikes and contact loss—amplified for red and infrared in this model."}
+                </p>
+                <details className="wavelength-evidence">
+                  <summary>What is modeled?</summary>
+                  <p>
+                    Wavelength changes the illustrative contour and motion
+                    sensitivity at each site. Green generally samples shallower
+                    tissue; red and infrared reach deeper. Depth is schematic:
+                    skin, contact and sensor geometry matter. This is not
+                    measured device performance or an oxygen-saturation model.
+                  </p>
+                  <p>
+                    <a
+                      href="https://pubmed.ncbi.nlm.nih.gov/20703691/"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Green vs infrared during movement ↗
+                    </a>{" "}
+                    ·{" "}
+                    <a
+                      href="https://www.cinc.org/archives/2020/pdf/CinC2020-179.pdf"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Multi-wavelength pulse contours ↗
+                    </a>
+                  </p>
+                  <p>
+                    The exact shapes and noise strengths are teaching
+                    assumptions, not universal rankings. Single beat removes
+                    artifacts to reveal morphology; Live stream shows
+                    contamination. Save a reference before switching wavelengths
+                    to compare.
+                  </p>
+                </details>
+              </details>
               <div className="chart-controls">
                 <div className="segmented" aria-label="Waveform display mode">
                   <button
@@ -1714,8 +1801,9 @@ export default function App() {
               <Check size={16} />
               <span>
                 Age spans 25–75 years, matching PWDB’s age range. Temple and toe
-                are illustrative extensions. Sensor wavelengths, contact
-                pressure, skin optics and oxygen saturation are not modeled.
+                are illustrative extensions. Wavelength effects are
+                illustrative; contact pressure, individualized skin optics and
+                oxygen saturation are not quantitatively modeled.
               </span>
             </li>
             <li>

@@ -2103,3 +2103,77 @@
     left: 227px;
   }
 }
+
+.spectral-control {
+  margin: 14px 0;
+  padding: 14px;
+  border: 1px solid #443b31;
+  border-radius: 12px;
+  background: #171612e8;
+}
+.spectral-control .studio-bands {
+  display: flex;
+  gap: 8px;
+}
+.spectral-control .studio-bands button {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 6px;
+}
+.spectral-control p,
+.spectral-control summary {
+  font-size: 12px;
+  line-height: 1.55;
+}
+.spectral-control p {
+  color: #baad9d;
+  margin: 10px 0;
+}
+.spectral-depth {
+  margin-top: 12px;
+  font-size: 10px;
+  color: #b9ae9d;
+}
+.spectral-depth > span {
+  display: block;
+  border-bottom: 1px solid #5a4938;
+  padding-bottom: 5px;
+}
+.spectral-depth > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0.4;
+  height: 18px;
+}
+.spectral-depth > div.active {
+  opacity: 1;
+}
+.spectral-depth > div span {
+  width: 46px;
+  flex-shrink: 0;
+}
+.spectral-depth i {
+  height: 4px;
+  border-radius: 5px;
+}
+.spectral-depth small {
+  display: block;
+  margin-top: 5px;
+}
+
+.spectral-explanation {
+  margin: 10px 0 16px;
+  padding: 10px 12px;
+  border: 1px solid #443b31;
+  border-radius: 8px;
+  color: #c1b39f;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.spectral-explanation summary {
+  cursor: pointer;
+}
+.spectral-explanation p {
+  margin: 12px 0;
+}

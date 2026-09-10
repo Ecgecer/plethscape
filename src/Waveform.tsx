@@ -1,3 +1,4 @@
+import { OPTICAL_BANDS } from "./optics";
 import { useEffect, useLayoutEffect, useRef, type RefObject } from "react";
 import {
   samplePPG,
@@ -105,8 +106,8 @@ export default function Waveform(props: WaveformProps) {
         beat ? 1025 : Math.ceil(streamSpan * 125) + 1,
         Math.min(1000, Math.ceil(plotWidth * 1.3)),
       );
-      const minY = accelerometer ? -2 : PPG_DISPLAY_RANGE.min;
-      const maxY = accelerometer ? 2 : PPG_DISPLAY_RANGE.max;
+      const minY = accelerometer ? -2 : beat ? -0.1 : PPG_DISPLAY_RANGE.min;
+      const maxY = accelerometer ? 2 : beat ? 1.8 : PPG_DISPLAY_RANGE.max;
       const mapY = (value: number) =>
         pad.top + ((maxY - value) / (maxY - minY)) * plotHeight;
       const mapX = (index: number) =>
@@ -117,12 +118,15 @@ export default function Waveform(props: WaveformProps) {
       ctx.clearRect(0, 0, width, height);
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
-      ctx.font =
-        '12px "Inter Variable", "SFMono-Regular", Consolas, monospace';
+      ctx.font = '12px "Inter Variable", "SFMono-Regular", Consolas, monospace';
       ctx.textBaseline = "middle";
 
       // The vertical scale stays fixed as physiology changes, preserving amplitude.
-      const ticks = accelerometer ? [-2, -1, 0, 1, 2] : [0, 0.5, 1, 1.5];
+      const ticks = accelerometer
+        ? [-2, -1, 0, 1, 2]
+        : beat
+          ? [0, 0.5, 1, 1.5]
+          : [-1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2];
       ctx.setLineDash([]);
       for (const tick of ticks) {
         const y = mapY(tick);
@@ -254,12 +258,15 @@ export default function Waveform(props: WaveformProps) {
         stroke(axisZ, COLORS.comparison);
         stroke(axisY, COLORS.cyan);
       }
-      stroke(samples, COLORS.trace, !accelerometer);
+      const traceColor = accelerometer
+        ? COLORS.trace
+        : `#${OPTICAL_BANDS[physiology.wavelength ?? "green"].color.toString(16)}`;
+      stroke(samples, traceColor, !accelerometer);
 
       if (!beat && !accelerometer) {
         const endpointY = mapY(samples[count - 1]);
-        ctx.fillStyle = COLORS.trace;
-        ctx.shadowColor = COLORS.trace;
+        ctx.fillStyle = traceColor;
+        ctx.shadowColor = traceColor;
         ctx.shadowBlur = 12;
         ctx.beginPath();
         ctx.arc(width - pad.right, endpointY, 3, 0, Math.PI * 2);

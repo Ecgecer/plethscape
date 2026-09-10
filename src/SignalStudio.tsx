@@ -254,7 +254,7 @@ export default function SignalStudio(p: Props) {
           </div>
           <p className="studio-small">
             {OPTICAL_BANDS[p.wavelength].note} Wavelength changes illustrate
-            relative depth; they do not recalibrate the PPG trace.
+            relative depth and an illustrative site-dependent pulse contour.
           </p>
           <details className="wavelength-evidence">
             <summary>Does wavelength change the pulse shape?</summary>
@@ -291,10 +291,11 @@ export default function SignalStudio(p: Props) {
               </a>
             </p>
             <p>
-              The controls above change the illustrated light paths. The PPG
-              stays the same because this model has no calibrated
-              multi-wavelength optical transfer function. Recoloring or
-              arbitrarily reshaping it would imply evidence we do not have.
+              These controls change both the light paths and the teaching
+              waveform. Contour and motion coefficients are illustrative, not a
+              calibrated optical transfer function. Return to Live stream and
+              try walking or running to see stronger red and infrared motion
+              contamination.
             </p>
           </details>
           <div

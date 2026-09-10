@@ -1,3 +1,4 @@
+import { opticalProfile, type Wavelength } from "./optics";
 import { movementSignal, type MotionTransition } from "./locomotion";
 import { getRhythm, RHYTHMS, rhythmContext, type Rhythm } from "./rhythm";
 /**
@@ -10,6 +11,7 @@ export type SiteId =
 export type Activity = "rest" | "walk" | "run";
 
 export interface Physiology {
+  wavelength?: Wavelength;
   rhythm?: Rhythm;
   pulseDeficit?: boolean;
   age: number;
@@ -39,6 +41,7 @@ export interface AnatomicalSite {
 }
 
 export const DEFAULT_PHYSIOLOGY: Physiology = {
+  wavelength: "green",
   rhythm: "sinus",
   pulseDeficit: false,
   age: 32,
@@ -51,7 +54,7 @@ export const DEFAULT_PHYSIOLOGY: Physiology = {
 };
 
 /** Fixed optical plot limits preserve relative amplitudes across controls. */
-export const PPG_DISPLAY_RANGE = { min: -0.8, max: 2.1 } as const;
+export const PPG_DISPLAY_RANGE = { min: -1.8, max: 2.4 } as const;
 
 export const SITES: AnatomicalSite[] = [
   {
@@ -225,6 +228,7 @@ const cache = new WeakMap<
   Physiology,
   {
     values: number[];
+    wavelength: Wavelength;
     activity: Activity;
     rhythm: Rhythm;
     sites: Partial<Record<SiteId, Model>>;
@@ -243,6 +247,7 @@ function model(p: Physiology, siteId: SiteId): Model {
     entry.values[5] !== p.respiratoryRate ||
     entry.values[6] !== Number(!!p.pulseDeficit) ||
     entry.rhythm !== getRhythm(p.rhythm) ||
+    entry.wavelength !== (p.wavelength ?? "green") ||
     entry.activity !== p.activity
   ) {
     entry = {
@@ -255,6 +260,7 @@ function model(p: Physiology, siteId: SiteId): Model {
         p.respiratoryRate,
         Number(!!p.pulseDeficit),
       ],
+      wavelength: p.wavelength ?? "green",
       activity: p.activity,
       rhythm: getRhythm(p.rhythm),
       sites: {},
@@ -275,11 +281,12 @@ function model(p: Physiology, siteId: SiteId): Model {
   const activity = p.activity === "run" ? 1 : p.activity === "walk" ? 0.48 : 0;
   const site = SITES.find((s) => s.id === siteId) ?? SITES[0];
   const shape = SITE_SHAPE[siteId] ?? SITE_SHAPE.finger;
+  const optical = opticalProfile(siteId, p.wavelength ?? "green");
   const cycle = 60 / hr;
   const respiratoryHz = clamp(safe(p.respiratoryRate, 16), 6, 36) / 60;
   const timingStrength = (1 - age * 0.65) * (1 - activity * 0.75);
   const peakTime = clamp(
-    (0.153 - (hr - 72) * 0.00031) * shape.width,
+    (0.153 - (hr - 72) * 0.00031) * shape.width * optical.width,
     0.105,
     cycle * 0.34,
   );
@@ -317,11 +324,12 @@ function model(p: Physiology, siteId: SiteId): Model {
     peakTime,
     reflectionTime,
     reflectionWidth,
-    reflectionAmplitude: (0.38 - 0.24 * stiffness) * shape.reflection,
+    reflectionAmplitude:
+      (0.38 - 0.24 * stiffness) * shape.reflection * optical.reflection,
     notchTime,
     notchWidth: Math.min(0.017 + stiffness * 0.01, cycle * 0.065),
     notchAmplitude: 0.075 * (1 - stiffness) ** 1.8 * shape.reflection,
-    gain: (0.26 + perfusion * 1.08) * shape.gain,
+    gain: (0.26 + perfusion * 1.08) * shape.gain * optical.gain,
     motionSensitivity: shape.motion,
   };
   entry.sites[siteId] = m;
@@ -474,7 +482,9 @@ function motionArtifact(
   t: number,
   motion: ReturnType<typeof movementSignal>,
   site: SiteId,
+  wavelength: Wavelength,
 ) {
+  const optical = opticalProfile(site, wavelength);
   const profile = MOTION_PROFILES[site];
   const strength = 0.58 * motion.m.walk + motion.m.run;
   const phase = motion.a * 2 + profile.phase;
@@ -484,13 +494,19 @@ function motionArtifact(
   const strike = Math.pow(Math.max(0, Math.cos(phase)), 12);
   // Intermittent coupling loss modulates real pulses rather than inventing extra heartbeats.
   const slip = Math.pow(Math.max(0, Math.sin(t * 1.13 + profile.phase)), 6);
-  const contact = 1 - strength * profile.slip * (0.42 * slip + 0.18 * strike);
+  const contact = Math.max(
+    0.12,
+    1 -
+      strength * optical.motion * profile.slip * (0.42 * slip + 0.18 * strike),
+  );
   const offset =
+    optical.motion *
     strength *
     (0.34 * profile.swing * swing * envelope +
       0.37 * profile.impact * (strike - 0.13) +
       0.15 * profile.slip * smoothNoise(t * 0.65, 871) +
-      0.13 * profile.slip * slip * Math.sin(phase * 3.7 + Math.sin(t)));
+      0.13 * profile.slip * slip * Math.sin(phase * 3.7 + Math.sin(t)) +
+      (optical.motion - 1) * 0.1 * profile.slip * smoothNoise(t * 18, 719));
   return { contact, offset };
 }
 
@@ -526,7 +542,7 @@ export function samplePPG(
       0.021 * Math.sin(TAU * 23.71 * t + Math.sin(t * 0.83)) +
       0.014 * Math.sin(TAU * 37.31 * t + 1.7));
   const motion = movementSignal(t, p.activity, p.motionHistory);
-  const artifact = motionArtifact(t, motion, siteId);
+  const artifact = motionArtifact(t, motion, siteId, p.wavelength ?? "green");
   return clean * artifact.contact + drift + sensor + artifact.offset;
 }
 
