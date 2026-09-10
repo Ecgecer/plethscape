@@ -30,6 +30,7 @@ import {
   X,
 } from "@phosphor-icons/react";
 import Waveform from "./Waveform";
+import learningReference from "./learningReference.html?raw";
 import WavelengthComparison from "./WavelengthComparison";
 import SiteSelector from "./SiteSelector";
 import RhythmLab from "./RhythmLab";
@@ -1729,6 +1730,7 @@ export default function App() {
               className="understand-panel"
               hidden={experience !== "understand"}
             >
+              <div dangerouslySetInnerHTML={{ __html: learningReference }} />
               <details open>
                 <summary>What does PPG actually see?</summary>
                 <p>
