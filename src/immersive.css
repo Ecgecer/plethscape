@@ -224,6 +224,7 @@
     backdrop-filter: blur(12px);
   }
   .immersive-shell .scene-toolbar button {
+    border-radius: 999px;
     min-width: 38px;
     min-height: 38px;
   }
