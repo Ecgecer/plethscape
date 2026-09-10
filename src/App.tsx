@@ -30,6 +30,7 @@ import {
   X,
 } from "@phosphor-icons/react";
 import Waveform from "./Waveform";
+import WavelengthComparison from "./WavelengthComparison";
 import SiteSelector from "./SiteSelector";
 import RhythmLab from "./RhythmLab";
 import { getRhythm, RHYTHMS, type Rhythm } from "./rhythm";
@@ -1312,6 +1313,7 @@ export default function App() {
                   }
                 />
               </div>
+              <WavelengthComparison physiology={physiology} site={site} />
               <details className="spectral-explanation">
                 <summary>Light penetration & simulation science</summary>
                 <div

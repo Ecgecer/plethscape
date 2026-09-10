@@ -931,3 +931,70 @@
     border-radius: 50%;
   }
 }
+
+.wavelength-comparison {
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid #695039;
+  border-radius: 10px;
+}
+.wavelength-comparison summary {
+  cursor: pointer;
+  color: #f3cdaa;
+  font-size: 13px;
+  padding: 4px 0;
+}
+.wavelength-comparison p {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #c7b8a8;
+  margin: 12px 0;
+}
+.wavelength-comparison svg {
+  width: 100%;
+  display: block;
+  margin-top: 12px;
+}
+.wavelength-scale {
+  display: flex;
+  gap: 6px;
+}
+.wavelength-scale button {
+  flex: 1;
+  border: 1px solid #66503b;
+  border-radius: 8px;
+  padding: 8px;
+  min-height: 40px;
+  font-size: 12px;
+}
+.wavelength-scale button[aria-pressed="true"] {
+  background: #51351f;
+  color: #ffdbb4;
+  border-color: #e3b078;
+}
+.wavelength-depth-key {
+  display: grid;
+  gap: 10px;
+  font-size: 12px;
+}
+.wavelength-depth-key > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: center;
+}
+.depth-track {
+  background: #ffffff0b;
+  height: 5px;
+  border-radius: 8px;
+}
+.depth-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+.wavelength-comparison a {
+  font-size: 12px;
+  color: #f3cdaa;
+  text-decoration: underline;
+}
