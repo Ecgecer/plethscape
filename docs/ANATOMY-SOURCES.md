@@ -211,3 +211,10 @@ The Model selector in the left control pane (inside Adjust physiology on mobile)
 Build with `Blender --background --python scripts/build_scanned_head.py -- --female`. The adapted head is `public/models/scanned-head-female.glb`; original FBX and textures stay in ignored `artifacts/claudia-source`. The blouse is removed using the source clothing mask before the head is connected to the existing neck rim. The complete ponytail is preserved separately from the neck bridge, and a dedicated hair color attribute keeps neck shading off the hair. Texture maps are reduced for browser delivery. Temple and earlobe anchors are specific to each head. This is an appearance selector: the shared anatomical atlas and simulated physiology do not become a sex-specific model.
 
 The female presentation uses a uniform 0.94 scene scale and mild torso adjustments through the shared skeleton (narrower waist and shoulders, slightly wider pelvis). Counter-scales preserve head and limb shape, and vessels and wearables follow the same transforms. These are illustrative appearance choices, not population-average female anatomy or sex-specific PPG parameters. Neck translucency transitions smoothly into the opaque face while keeping the carotid region visible.
+
+
+### Thoracic display registration
+
+The HRA lung meshes and BP3D cardiac meshes come from different reference bodies. The display lowers the heart, valves and coronary network together by 0.065 scene units; nearby great-vessel geometry and flow routes transition smoothly to that registration. The lungs move slightly laterally and posteriorly, and the diaphragm lowers with the cardiac assembly. These are illustrative registration adjustments, not patient-specific measurements. The native lung surfaces remain intact.
+
+Hepatovenous segment meshes (FJ2409 and FJ2818–FJ2824) are solid liver territories, not vessel lumens. They are excluded from the portal-vessel build; actual portal veins remain.

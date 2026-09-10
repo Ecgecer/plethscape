@@ -193,6 +193,13 @@ export function createAnatomy(presentation: "male" | "female" = "male") {
   const sites = Object.fromEntries(
     Object.entries(baseSites).map(([key, p]) => [key, p.clone()]),
   );
+  function registerThoracicVessel(point: THREE.Vector3) {
+    const weight = (1 - THREE.MathUtils.smoothstep(Math.abs(point.x), 0.18, 0.34))
+      * THREE.MathUtils.smoothstep(point.y, 2.40, 2.63)
+      * (1 - THREE.MathUtils.smoothstep(point.y, 2.86, 3.06));
+    point.y -= 0.065 * weight;
+    return point;
+  }
   const geometries = new Set<THREE.BufferGeometry>();
   const materials = new Set<THREE.Material>();
   let disposed = false;
@@ -533,7 +540,7 @@ export function createAnatomy(presentation: "male" | "female" = "male") {
       if (tissue === "lungs" || lungContext) material.side = THREE.FrontSide;
       if (tissue === "body" && next === "surface" && !heartFocus)
         transparent = false;
-      if (tissue === "nerves" || tissue === "airways" || tissue === "diaphragm")
+      if (tissue === "nerves" || tissue === "airways")
         transparent = true;
       if (
         heartFocus &&
@@ -583,7 +590,10 @@ export function createAnatomy(presentation: "male" | "female" = "male") {
                     : 1;
       if (tissue === "nerves") material.opacity = 0.22;
       if (tissue === "airways") material.opacity = 0.58;
-      if (tissue === "diaphragm") material.opacity = 0.65;
+      if (tissue === "diaphragm") {
+        material.opacity = 1;
+        material.side = THREE.FrontSide;
+      }
       if (heartFocus) {
         if (
           ["arteries", "veins", "pulmonaryArteries", "pulmonaryVeins"].includes(
@@ -876,6 +886,23 @@ export function createAnatomy(presentation: "male" | "female" = "male") {
           }
           geometry.setIndex(kept);
         }
+        // Display registration between the separate HRA lungs and BP3D heart.
+        // Lower the cardiac assembly as one unit; keep its coronary vessels attached.
+        if (["heart", "valves", "coronaryArteries", "coronaryVeins"].includes(tissue)) {
+          geometry.translate(0, -0.065, 0);
+        } else if (tissue === "lungs") {
+          geometry.translate(object.name === "lung_left" ? 0.018 : -0.012, 0, -0.025);
+        } else if (tissue === "diaphragm") {
+          geometry.translate(0, -0.065, 0);
+        } else if (["arteries", "veins", "pulmonaryArteries", "pulmonaryVeins"].includes(tissue)
+          && object.name !== "portal_veins") {
+          for (let i = 0; i < positions.count; i++) {
+            point.fromBufferAttribute(positions, i);
+            registerThoracicVessel(point);
+            positions.setXYZ(i, point.x, point.y, point.z);
+          }
+          geometry.computeVertexNormals();
+        }
         geometry.computeBoundingBox();
         geometry.computeBoundingSphere();
         if (!geometry.getAttribute("normal")) geometry.computeVertexNormals();
@@ -1045,7 +1072,7 @@ export function createAnatomy(presentation: "male" | "female" = "male") {
       flowTrails = createFlowTrails(
         (metadata.flowPaths ?? []).map((route) => ({
           ...route,
-          points: route.points.map((p) => new THREE.Vector3(...p)),
+          points: route.points.map((p) => registerThoracicVessel(new THREE.Vector3(...p))),
         })),
         shared,
         movement,

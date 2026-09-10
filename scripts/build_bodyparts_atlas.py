@@ -66,6 +66,7 @@ group_info={
 
 def classify(p):
     pid=p['id'];name=p['name'].lower();system=p['system']
+    if 'hepatovenous segment' in name:return None
     if system=='reproductive' or pid in {'FJ2813','FJ2815'}:return None
     # Genital vessels can be classified as cardiovascular rather than reproductive.
     if any(term in name for term in ('penis','penile','testicular','scrotal','pudendal','prostatic','seminal','deferential')):return None

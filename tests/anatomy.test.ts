@@ -317,3 +317,12 @@ test("genital vascular branches are omitted while major leg circulation remains"
   for (const id of ["FJ2074", "FJ2143"])
     assert(ids.has(id), "Main femoral arteries remain");
 });
+
+
+test("portal vessels exclude solid hepatovenous liver territories", () => {
+  const portal = group("portal_veins");
+  assert(portal.sourceIds?.includes("FJ1853"), "Keep the hepatic portal vein");
+  for (const id of ["FJ2409", "FJ2818", "FJ2819", "FJ2820", "FJ2821", "FJ2822", "FJ2823", "FJ2824"]) {
+    assert(!portal.sourceIds?.includes(id), `${id} is liver tissue, not a vessel`);
+  }
+});

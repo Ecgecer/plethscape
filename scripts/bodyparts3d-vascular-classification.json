@@ -490,16 +490,8 @@
       "FJ1914",
       "FJ2404",
       "FJ2405",
-      "FJ2409",
       "FJ2415",
       "FJ2416",
-      "FJ2818",
-      "FJ2819",
-      "FJ2820",
-      "FJ2821",
-      "FJ2822",
-      "FJ2823",
-      "FJ2824",
       "FJ3073",
       "FJ3074",
       "FJ3082",
@@ -517,7 +509,6 @@
       "FJ3128"
     ],
     "systemic_vein": [
-      "FJ1858",
       "FJ1867",
       "FJ1981",
       "FJ1985",
@@ -2742,17 +2733,6 @@
       "flowDirection": "towardDrainageTarget",
       "motionRegion": "body",
       "target": "liverSinusoids"
-    },
-    "FJ1858": {
-      "id": "FJ1858",
-      "name": "Hepatovenous segment IX",
-      "layer": "veins",
-      "vesselKind": "vein",
-      "circuit": "systemic",
-      "oxygenation": "low",
-      "flowDirection": "towardDrainageTarget",
-      "motionRegion": "body",
-      "target": "rightAtrium"
     },
     "FJ1867": {
       "id": "FJ1867",
@@ -6560,17 +6540,6 @@
       "motionRegion": "body",
       "target": "liverSinusoids"
     },
-    "FJ2409": {
-      "id": "FJ2409",
-      "name": "Hepatovenous segment VII",
-      "layer": "veins",
-      "vesselKind": "vein",
-      "circuit": "portal",
-      "oxygenation": "low",
-      "flowDirection": "towardDrainageTarget",
-      "motionRegion": "body",
-      "target": "liverSinusoids"
-    },
     "FJ2414": {
       "id": "FJ2414",
       "name": "Middle hepatic vein",
@@ -7758,83 +7727,6 @@
       "flowDirection": "awayFromPump",
       "motionRegion": "heart",
       "source": "aorticRoot"
-    },
-    "FJ2818": {
-      "id": "FJ2818",
-      "name": "Hepatovenous segment II",
-      "layer": "veins",
-      "vesselKind": "vein",
-      "circuit": "portal",
-      "oxygenation": "low",
-      "flowDirection": "towardDrainageTarget",
-      "motionRegion": "body",
-      "target": "liverSinusoids"
-    },
-    "FJ2819": {
-      "id": "FJ2819",
-      "name": "Hepatovenous segment III",
-      "layer": "veins",
-      "vesselKind": "vein",
-      "circuit": "portal",
-      "oxygenation": "low",
-      "flowDirection": "towardDrainageTarget",
-      "motionRegion": "body",
-      "target": "liverSinusoids"
-    },
-    "FJ2820": {
-      "id": "FJ2820",
-      "name": "Hepatovenous segment IV",
-      "layer": "veins",
-      "vesselKind": "vein",
-      "circuit": "portal",
-      "oxygenation": "low",
-      "flowDirection": "towardDrainageTarget",
-      "motionRegion": "body",
-      "target": "liverSinusoids"
-    },
-    "FJ2821": {
-      "id": "FJ2821",
-      "name": "Hepatovenous segment V",
-      "layer": "veins",
-      "vesselKind": "vein",
-      "circuit": "portal",
-      "oxygenation": "low",
-      "flowDirection": "towardDrainageTarget",
-      "motionRegion": "body",
-      "target": "liverSinusoids"
-    },
-    "FJ2822": {
-      "id": "FJ2822",
-      "name": "Hepatovenous segment VI",
-      "layer": "veins",
-      "vesselKind": "vein",
-      "circuit": "portal",
-      "oxygenation": "low",
-      "flowDirection": "towardDrainageTarget",
-      "motionRegion": "body",
-      "target": "liverSinusoids"
-    },
-    "FJ2823": {
-      "id": "FJ2823",
-      "name": "Hepatovenous segment VIII",
-      "layer": "veins",
-      "vesselKind": "vein",
-      "circuit": "portal",
-      "oxygenation": "low",
-      "flowDirection": "towardDrainageTarget",
-      "motionRegion": "body",
-      "target": "liverSinusoids"
-    },
-    "FJ2824": {
-      "id": "FJ2824",
-      "name": "Hepatovenous segment VIII",
-      "layer": "veins",
-      "vesselKind": "vein",
-      "circuit": "portal",
-      "oxygenation": "low",
-      "flowDirection": "towardDrainageTarget",
-      "motionRegion": "body",
-      "target": "liverSinusoids"
     },
     "FJ2881": {
       "id": "FJ2881",
@@ -12545,5 +12437,52 @@
     "https://www.innerbody.com/image/cardov.html",
     "https://openstax.org/books/anatomy-and-physiology-2e/pages/19-1-heart-anatomy",
     "https://openstax.org/books/anatomy-and-physiology-2e/pages/20-5-circulatory-pathways"
+  ],
+  "excludedNonVascularTissue": [
+    {
+      "id": "FJ1858",
+      "name": "Hepatovenous segment IX",
+      "reason": "Solid liver territory, not a blood vessel lumen"
+    },
+    {
+      "id": "FJ2409",
+      "name": "Hepatovenous segment VII",
+      "reason": "Solid liver territory, not a blood vessel lumen"
+    },
+    {
+      "id": "FJ2818",
+      "name": "Hepatovenous segment II",
+      "reason": "Solid liver territory, not a blood vessel lumen"
+    },
+    {
+      "id": "FJ2819",
+      "name": "Hepatovenous segment III",
+      "reason": "Solid liver territory, not a blood vessel lumen"
+    },
+    {
+      "id": "FJ2820",
+      "name": "Hepatovenous segment IV",
+      "reason": "Solid liver territory, not a blood vessel lumen"
+    },
+    {
+      "id": "FJ2821",
+      "name": "Hepatovenous segment V",
+      "reason": "Solid liver territory, not a blood vessel lumen"
+    },
+    {
+      "id": "FJ2822",
+      "name": "Hepatovenous segment VI",
+      "reason": "Solid liver territory, not a blood vessel lumen"
+    },
+    {
+      "id": "FJ2823",
+      "name": "Hepatovenous segment VIII",
+      "reason": "Solid liver territory, not a blood vessel lumen"
+    },
+    {
+      "id": "FJ2824",
+      "name": "Hepatovenous segment VIII",
+      "reason": "Solid liver territory, not a blood vessel lumen"
+    }
   ]
 }

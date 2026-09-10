@@ -2505,16 +2505,8 @@
         "FJ1914",
         "FJ2404",
         "FJ2405",
-        "FJ2409",
         "FJ2415",
         "FJ2416",
-        "FJ2818",
-        "FJ2819",
-        "FJ2820",
-        "FJ2821",
-        "FJ2822",
-        "FJ2823",
-        "FJ2824",
         "FJ3073",
         "FJ3074",
         "FJ3082",
@@ -2538,16 +2530,8 @@
         "Caudate lobe branch of right portal vein",
         "Left portal vein",
         "Right portal vein",
-        "Hepatovenous segment VII",
         "Left hepatic vein",
         "Right hepatic vein",
-        "Hepatovenous segment II",
-        "Hepatovenous segment III",
-        "Hepatovenous segment IV",
-        "Hepatovenous segment V",
-        "Hepatovenous segment VI",
-        "Hepatovenous segment VIII",
-        "Hepatovenous segment VIII",
         "Anterior superior segmental branch of right portal vein",
         "Anterior inferior segmental branch of right portal vein",
         "Pre-hepatic portal vein",
@@ -2564,18 +2548,18 @@
         "Medial superior segmental branch of left portal vein",
         "Medial inferior segmental branch of left portal vein"
       ],
-      "sourceTriangles": 171052,
+      "sourceTriangles": 48284,
       "triangles": 34999,
       "bounds": [
         [
-          -0.24425163865089417,
-          2.347865581512451,
-          -0.12029875814914703
+          -0.22984880208969116,
+          2.4208455085754395,
+          -0.10701737552881241
         ],
         [
-          0.20031672716140747,
-          2.6773157119750977,
-          0.2173967808485031
+          0.12169171124696732,
+          2.654177665710449,
+          0.21122808754444122
         ]
       ]
     },
@@ -2586,7 +2570,6 @@
       "circuit": "systemic",
       "oxygenation": "low",
       "sourceIds": [
-        "FJ1858",
         "FJ1867",
         "FJ1981",
         "FJ1985",
@@ -2816,7 +2799,6 @@
         "FJ3659"
       ],
       "sourceNames": [
-        "Hepatovenous segment IX",
         "Tributary of middle hepatic vein",
         "Accessory hemiazygos vein",
         "Set of anterior intercostal veins",
@@ -3045,7 +3027,7 @@
         "Ascending lumbar vein",
         "Inferior vena cava"
       ],
-      "sourceTriangles": 810964,
+      "sourceTriangles": 801414,
       "triangles": 199999,
       "bounds": [
         [
@@ -4932,6 +4914,11 @@
       "system": "sensory"
     },
     {
+      "id": "FJ1858",
+      "name": "Hepatovenous segment IX",
+      "system": "venous"
+    },
+    {
       "id": "FJ1883",
       "name": "Caudate lobe tributary of left hepatic biliary tree",
       "system": "digestive"
@@ -4954,6 +4941,11 @@
     {
       "id": "FJ2208",
       "name": "Superficial dorsal vein of penis",
+      "system": "venous"
+    },
+    {
+      "id": "FJ2409",
+      "name": "Hepatovenous segment VII",
       "system": "venous"
     },
     {
@@ -5370,6 +5362,41 @@
       "id": "FJ2817",
       "name": "Gallbladder",
       "system": "digestive"
+    },
+    {
+      "id": "FJ2818",
+      "name": "Hepatovenous segment II",
+      "system": "venous"
+    },
+    {
+      "id": "FJ2819",
+      "name": "Hepatovenous segment III",
+      "system": "venous"
+    },
+    {
+      "id": "FJ2820",
+      "name": "Hepatovenous segment IV",
+      "system": "venous"
+    },
+    {
+      "id": "FJ2821",
+      "name": "Hepatovenous segment V",
+      "system": "venous"
+    },
+    {
+      "id": "FJ2822",
+      "name": "Hepatovenous segment VI",
+      "system": "venous"
+    },
+    {
+      "id": "FJ2823",
+      "name": "Hepatovenous segment VIII",
+      "system": "venous"
+    },
+    {
+      "id": "FJ2824",
+      "name": "Hepatovenous segment VIII",
+      "system": "venous"
     },
     {
       "id": "FJ3071",
@@ -8868,8 +8895,8 @@
   },
   "asset": {
     "url": "/models/bodyparts-atlas.glb",
-    "bytes": 9493496,
-    "sha256": "f19027268a92fc1faeb5ecd8bbd870041ccbfb3107eb3e8869c56929bf9f2ceb",
+    "bytes": 9453784,
+    "sha256": "3e4771a0e2a9c6886487033c5b2bd45ce0f5b552cc76c8dce6172a817a00489b",
     "compression": "KHR_draco_mesh_compression",
     "decoderPath": "/models/draco/",
     "triangles": 2086188,
