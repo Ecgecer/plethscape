@@ -451,7 +451,7 @@ export function createAnatomy(presentation: "male" | "female" = "male") {
         // Preserve fractional coverage with MSAA while writing ordinary depth.
         shader.fragmentShader = shader.fragmentShader.replace(
           "#include <opaque_fragment>",
-          `${renderer.getContext().getContextAttributes()?.antialias ? "" : "if (diffuseColor.a < .5) discard;"}
+          `
 gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
         );
       }
@@ -526,9 +526,9 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
       if (tissue === "lungs" && next === "atlas" && !heartFocus)
         transparent = false;
       if (lungContext)
-        transparent = tissue !== "lungs" || heartFocus || next !== "atlas";
-      material.alphaToCoverage =
-        tissue === "lungs" && lungContext && next === "atlas" && !heartFocus;
+        transparent = true;
+      // Smoothly blend the cardiac window; low-sample coverage made it pop as lungs moved.
+      material.alphaToCoverage = false;
       if (tissue === "lungs" || lungContext) material.side = THREE.FrontSide;
       if (tissue === "body" && next === "surface" && !heartFocus)
         transparent = false;

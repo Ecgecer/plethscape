@@ -223,12 +223,12 @@ export default function AnatomyViewer(props: Props) {
       if (sceneVisible) sceneDirty = true;
     });
     visibilityObserver.observe(element);
+    let pendingResize = true;
+    let renderWidth = 0;
+    let renderHeight = 0;
     const resize = () => {
-      const { width, height } = element.getBoundingClientRect();
-      renderer.setSize(width, height);
-      composer.setSize(width, height);
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
+      // ResizeObserver must not clear the visible canvas between animation frames.
+      pendingResize = true;
       sceneDirty = true;
     };
     const observer = new ResizeObserver(resize);
@@ -646,6 +646,22 @@ export default function AnatomyViewer(props: Props) {
       ) {
         last = now;
         return;
+      }
+      if (pendingResize) {
+        const bounds = element.getBoundingClientRect();
+        const width = Math.round(bounds.width);
+        const height = Math.round(bounds.height);
+        if (width < 1 || height < 1) return;
+        pendingResize = false;
+        if (width !== renderWidth || height !== renderHeight) {
+          renderWidth = width;
+          renderHeight = height;
+          renderer.setSize(width, height);
+          composer.setSize(width, height);
+          camera.aspect = width / height;
+          camera.updateProjectionMatrix();
+          sceneDirty = true;
+        }
       }
       const delta = Math.min((now - last) / 1000, 0.05);
       last = now;
