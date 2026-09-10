@@ -86,6 +86,8 @@ export default function AnatomyViewer(props: Props) {
   const [ready, setReady] = useState(false);
   const [loadProgress, setLoadProgress] = useState(0);
   const [cutaway, setCutaway] = useState(true);
+  const [detailedVessels, setDetailedVessels] = useState(false);
+  const detailedVesselsRef = useRef(false);
   const cutawayRef = useRef(true);
   const breathLabel = useRef<HTMLSpanElement>(null);
   const journeyLabel = useRef<HTMLDivElement>(null);
@@ -681,6 +683,7 @@ export default function AnatomyViewer(props: Props) {
       )
         return;
       anatomy.setCutaway(deviceFocusRef.current ? false : cutawayRef.current);
+      anatomy.setDetailedVessels(detailedVesselsRef.current);
       anatomy.setGlow("amber");
       anatomy.setAge(p.physiology.age);
       element.dataset.hairGray = String(anatomy.group.userData.hairGray);
@@ -958,6 +961,16 @@ export default function AnatomyViewer(props: Props) {
               }}
             >
               <span className="cutaway-indicator" /> Chest cutaway
+            </button>
+            <button
+              disabled={!ready}
+              aria-pressed={detailedVessels}
+              onClick={() => {
+                detailedVesselsRef.current = !detailedVessels;
+                setDetailedVessels(!detailedVessels);
+              }}
+            >
+              <span className="cutaway-indicator" /> Detailed vessels
             </button>
             <button disabled={!ready} onClick={() => actions.current?.chest()}>
               <Heart size={13} />

@@ -8,8 +8,6 @@ import type { MotionTransition } from "./locomotion";
 import {
   groupLungContext,
   lungContextShader,
-  groupHeartContext,
-  heartWindowShader,
 } from "./lungEmphasis";
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
@@ -220,6 +218,7 @@ export function createAnatomy(presentation: "male" | "female" = "male") {
     atlasContraction: { value: 0 },
     atlasBreath: { value: 0 },
     atlasLungEmphasis: { value: 1 },
+    atlasDetailedVessels: { value: 0 },
     atlasOrganEmphasis: { value: 1 },
     atlasFlow: { value: 0 },
     atlasBeat: { value: 0 },
@@ -397,6 +396,7 @@ export function createAnatomy(presentation: "male" | "female" = "male") {
         uniform float atlasSurface;
         uniform float atlasHeartFocus;
         uniform float atlasLungEmphasis;
+        uniform float atlasDetailedVessels;
         uniform float atlasOrganEmphasis;
         uniform float atlasFlow;
         uniform vec3 atlasHeart;
@@ -441,18 +441,20 @@ export function createAnatomy(presentation: "male" | "female" = "male") {
         }
       `,
         );
-      if (lungContext) {
+      if (tissue === "airways") {
         shader.fragmentShader = shader.fragmentShader.replace(
           "#include <color_fragment>",
-          `#include <color_fragment>\n${tissue === "lungs" ? heartWindowShader : lungContextShader}`,
+          `#include <color_fragment>
+          if (atlasDetailedVessels < .5 && atlasLungEmphasis > .5
+            && atlasPosition.y < 2.98 && abs(atlasPosition.x) > .045) discard;`,
         );
       }
-      if (tissue === "lungs" && lungContext) {
-        // Preserve fractional coverage with MSAA while writing ordinary depth.
+      if (["arteries", "veins", "pulmonaryArteries", "pulmonaryVeins"].includes(tissue)) {
         shader.fragmentShader = shader.fragmentShader.replace(
-          "#include <opaque_fragment>",
-          `
-gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
+          "#include <color_fragment>",
+          `#include <color_fragment>
+          const float atlasSystemicContext = ${tissue === "arteries" || tissue === "veins" ? "1." : "0."};
+          ${lungContextShader}`,
         );
       }
       if (tissue === "body") {
@@ -525,9 +527,8 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
       ].includes(tissue);
       if (tissue === "lungs" && next === "atlas" && !heartFocus)
         transparent = false;
-      if (lungContext)
-        transparent = true;
-      // Smoothly blend the cardiac window; low-sample coverage made it pop as lungs moved.
+      if (lungContext) transparent = true;
+      // Keep native lung surfaces opaque and depth sorted in the atlas view.
       material.alphaToCoverage = false;
       if (tissue === "lungs" || lungContext) material.side = THREE.FrontSide;
       if (tissue === "body" && next === "surface" && !heartFocus)
@@ -895,9 +896,8 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
         // Preserve peripheral depth occlusion; only thoracic vessel triangles
         // blend into context so the beating heart and breathing lungs read clearly.
         const contextMaterial =
-          ((tissue === "arteries" || tissue === "veins") &&
-            groupLungContext(geometry)) ||
-          (tissue === "lungs" && groupHeartContext(geometry))
+          (tissue === "arteries" || tissue === "veins") &&
+          groupLungContext(geometry)
             ? materialFor(tissue, center, true)
             : null;
         bindRigGeometry(
@@ -1142,6 +1142,10 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
     headOccluders,
     animate,
     setPresentation,
+    setDetailedVessels: (enabled: boolean) => {
+      shared.atlasDetailedVessels.value = enabled ? 1 : 0;
+      group.userData.detailedVessels = enabled;
+    },
     setAge: (age: number) => {
       const amount = THREE.MathUtils.smoothstep(age, 35, 75);
       shared.atlasHairGray.value = amount;

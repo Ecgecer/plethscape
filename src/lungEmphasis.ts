@@ -3,16 +3,19 @@ import * as THREE from "three";
 /** Presentation region around the source lung envelopes. The cardiac foreground is
  * also softened; this is a visual mask, not an anatomical segmentation. */
 export const lungContextShader = /* glsl */ `
-  float lungFlank = smoothstep(.075,.13,abs(atlasPosition.x))
-    * (1.-smoothstep(.255,.31,abs(atlasPosition.x)));
-  float lungHeight = smoothstep(2.49,2.59,atlasPosition.y)
-    * (1.-smoothstep(2.94,3.045,atlasPosition.y));
-  float lungContext = lungFlank * lungHeight * atlasLungEmphasis;
   vec3 cardiacOffset = (atlasPosition-atlasHeart)/vec3(.23,.27,.24);
   float cardiacContext = (1.-smoothstep(.65,1.25,length(cardiacOffset)))
     * (1.-smoothstep(atlasHeart.y+.12,atlasHeart.y+.24,atlasPosition.y))
-    * atlasOrganEmphasis;
-  diffuseColor.a *= mix(1.,.09,max(lungContext,cardiacContext));
+    * atlasOrganEmphasis * atlasSystemicContext;
+  // Keep the central great vessels; suppress peripheral thoracic branches in
+  // the clean presentation instead of drawing ghost fragments through organs.
+  float peripheralChest = smoothstep(.065,.115,abs(atlasPosition.x))
+    * smoothstep(2.40,2.52,atlasPosition.y)
+    * (1.-smoothstep(2.98,3.09,atlasPosition.y));
+  if (atlasDetailedVessels < .5 && max(atlasLungEmphasis,atlasHeartFocus) > .5
+      && peripheralChest > .18) discard;
+  diffuseColor.a *= mix(1.,.035,cardiacContext * (1.-atlasDetailedVessels));
+
 `;
 
 /** Reorder existing triangle indices into two draw groups. Attributes, geometry
@@ -20,19 +23,6 @@ export const lungContextShader = /* glsl */ `
 export function groupLungContext(geometry: THREE.BufferGeometry): boolean {
   return groupContext(geometry, [-0.36, 0.36, 2.36, 3.1]);
 }
-
-/** Only the medial lung surface over the source cardiac envelope uses coverage. */
-export function groupHeartContext(geometry: THREE.BufferGeometry): boolean {
-  return groupContext(geometry, [-0.18, 0.27, 2.54, 3.0]);
-}
-
-export const heartWindowShader = /* glsl */ `
-  vec2 cardiacWindowOffset = (atlasPosition.xy-atlasHeart.xy)/vec2(.15,.14);
-  float cardiacWindow = (1.-smoothstep(.96,1.04,length(cardiacWindowOffset)))
-    * smoothstep(atlasHeart.z-.025,atlasHeart.z+.055,atlasPosition.z)
-    * atlasOrganEmphasis;
-  diffuseColor.a *= 1.-cardiacWindow;
-`;
 
 function groupContext(
   geometry: THREE.BufferGeometry,

@@ -174,6 +174,8 @@ export function createFlowTrails(
       uniform float atlasJourney;
       varying float vJourney;
       uniform float atlasFlow;
+      uniform float atlasDetailedVessels;
+      uniform float atlasLungEmphasis;
       uniform float atlasBeat;
       varying vec4 vRibbon;
       varying vec3 vColor;
@@ -181,6 +183,10 @@ export function createFlowTrails(
       void main() {
         // Respect the simplified head treatment.
         if (vFlowPosition.y > 3.18) discard;
+        // No glowing ribbons across lung surfaces in the clean view.
+        if (atlasDetailedVessels < .5 && atlasLungEmphasis > .5
+          && vFlowPosition.y > 2.40 && vFlowPosition.y < 3.09
+          && abs(vFlowPosition.x) < .36) discard;
         float distanceAlong = vRibbon.y;
         float spacing = .31;
         float behind = fract((atlasFlow * .18 - distanceAlong) / spacing);
@@ -192,13 +198,13 @@ export function createFlowTrails(
         float phase = fract(atlasBeat - distanceAlong * .30);
         float pulse = exp(-pow((phase-.19)/.13,2.));
         float ends = smoothstep(0.,.014,distanceAlong) * smoothstep(0.,.018,vRibbon.w-distanceAlong);
-        float intensity = ends * ((core*.48+halo*.34)*tail + halo*(.025+.10*pulse));
+        float intensity = ends * ((core*.22+halo*.10)*tail + halo*(.008+.035*pulse));
         float edge = 1.-smoothstep(.78,1.,abs(vRibbon.x));
         vec3 tint = mix(vColor, vec3(1.,.73,.48), core*.20);
         float story = atlasJourney>=0. && vJourney>=0. ? exp(-pow((vJourney-atlasJourney)/.055,2.)) : 0.;
         tint = mix(tint, vec3(1.,.68,.28), max(story, vLocalFocus*.8));
         // Broad, tapered streams reveal nearby source vessels without adding particles.
-        intensity *= 1. + vLocalFocus * (2.3 + pulse*1.4);
+        intensity *= 1. + vLocalFocus * (1.2 + pulse*.6);
         gl_FragColor = vec4(tint * (1.05 + .25*pulse + story*1.5 + vLocalFocus*.65), min(.9,(intensity + story*halo*.8)*edge));
         #include <tonemapping_fragment>
         #include <colorspace_fragment>
