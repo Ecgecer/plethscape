@@ -736,16 +736,28 @@ export function createWearables(): {
   }
   add("wrist", keeper, cloth, "Woven keeper around overlapping strap");
 
-  // A larger black huggie: an unbroken hoop with discreet inner contacts.
-  const hoop = new THREE.TorusGeometry(0.015, 0.0028, 16, 80);
-  add("ear", hoop, blackMetal, "Black huggie hoop", at(0, -0.016, 0));
+  // Sculpted silver huggie: a broad, rounded face with a slimmer inner edge.
+  // Its top remains at the existing piercing anchor on both scanned heads.
+  const polishedSilver = physical({
+    color: "#e2e4e5",
+    metalness: 1,
+    roughness: 0.16,
+    envMapIntensity: 2.2,
+    clearcoat: 0.65,
+    clearcoatRoughness: 0.12,
+  });
+  const hoop = new THREE.TorusGeometry(0.014, 0.0042, 32, 112);
+  hoop.scale(0.82, 1.16, 0.76);
+  add("ear", hoop, polishedSilver, "Polished silver sculpted huggie", at(0, -0.019, 0));
   add(
     "ear",
-    new THREE.SphereGeometry(0.0027, 16, 10),
-    blackMetal,
-    "Huggie clasp",
-    at(0, -0.001, 0),
+    new THREE.SphereGeometry(0.0025, 20, 14),
+    polishedSilver,
+    "Flush silver clasp",
+    at(0, -0.0015, 0),
   );
+  const hinge = new THREE.TorusGeometry(0.0025, 0.00028, 8, 24);
+  add("ear", hinge, titanium, "Fine clasp seam", at(0, -0.002, 0.001));
   add(
     "ear",
     new THREE.SphereGeometry(0.0008, 10, 8),
