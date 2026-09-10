@@ -1,4 +1,4 @@
-import { SiteChoiceLesson } from "./SiteChoiceLesson";
+import LearnPage, { type LearnTopic } from "./LearnPage";
 import { transitionMotion } from "./locomotion";
 import { lazy, Suspense, useEffect, useId, useRef, useState } from "react";
 import type { CSSProperties, ReactNode, SetStateAction } from "react";
@@ -30,7 +30,7 @@ import {
   X,
 } from "@phosphor-icons/react";
 import Waveform from "./Waveform";
-import learningReference from "./learningReference.html?raw";
+import DeviceAttribution from "./DeviceAttribution";
 import WavelengthComparison from "./WavelengthComparison";
 import SiteSelector from "./SiteSelector";
 import RhythmLab from "./RhythmLab";
@@ -40,7 +40,7 @@ import type { FiducialId } from "./fiducials";
 import RecentBeats from "./RecentBeats";
 import LivePhysiology from "./LivePhysiology";
 import GuidedTour, { TOUR_STEPS, tourScenario } from "./GuidedTour";
-import ExperienceGuide, { type ExperienceMode } from "./ExperienceGuide";
+import { type ExperienceMode } from "./ExperienceGuide";
 import {
   captureBeat,
   siteDelay,
@@ -137,6 +137,7 @@ function Modal({
   onClose,
   wide = false,
   drawer = false,
+  page = false,
   open = true,
 }: {
   title: string;
@@ -144,6 +145,7 @@ function Modal({
   onClose: () => void;
   wide?: boolean;
   drawer?: boolean;
+  page?: boolean;
   open?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -161,7 +163,7 @@ function Modal({
   }, [open]);
   return (
     <dialog
-      className={`modal ${wide ? "wide" : ""} ${drawer ? "learning-drawer" : ""}`}
+      className={`modal ${wide ? "wide" : ""} ${drawer ? "learning-drawer" : ""} ${page ? "learning-page" : ""}`}
       ref={ref}
       aria-labelledby={titleId}
       onCancel={onClose}
@@ -173,10 +175,10 @@ function Modal({
         <h2 id={titleId}>{title}</h2>
         <button
           className="icon-button"
-          aria-label="Close dialog"
+          aria-label={page ? "Back to Workspace" : "Close dialog"}
           onClick={onClose}
         >
-          <X size={20} />
+          {page ? <>Back to Workspace <ArrowRight size={18} /></> : <X size={20} />}
         </button>
       </div>
       <div className="modal-body">{children}</div>
@@ -228,7 +230,7 @@ export default function App() {
   const [mode, setMode] = useState<"stream" | "beat">("stream");
   const [baseline, setBaseline] = useState<Baseline | null>(null);
   const [dialog, setDialog] = useState<Dialog>(null);
-  const [siteLessonOpen, setSiteLessonOpen] = useState(false);
+  const [returnToLearn, setReturnToLearn] = useState(false);
   const [toast, setToast] = useState("");
   const [changeNote, setChangeNote] = useState(
     "Choose a location or move a slider. The pulse responds immediately.",
@@ -503,7 +505,6 @@ export default function App() {
   const startTour = (step: number) => {
     if (captured) closeStudio();
     setDialog(null);
-    setSiteLessonOpen(false);
     setMobileControlsOpen(false);
     setToolsOpen(false);
     setTourStep(step);
@@ -959,6 +960,7 @@ export default function App() {
                     {running ? "Simulated PPG" : "Paused"}
                   </span>
                 </div>
+                {site === "wrist" && <DeviceAttribution />}
                 <div className="selected-device-actions">
                   <button
                     disabled={!anatomyReady}
@@ -1124,7 +1126,7 @@ export default function App() {
             <div className="body-status">
               <span>
                 <i className={`status-dot ${running ? "live" : ""}`} />
-                {running ? "SIMULATION RUNNING" : "SIMULATION PAUSED"}
+                {!anatomyReady ? "LOADING SIMULATION" : running ? "SIMULATION RUNNING" : "SIMULATION PAUSED"}
               </span>
               <span>
                 {captured && studioView === "sensor"
@@ -1134,7 +1136,7 @@ export default function App() {
             </div>
           </section>
 
-          {captured && (
+          {captured && anatomyReady && (
             <Suspense
               fallback={
                 <aside className="signal-panel">Preparing the heartbeat…</aside>
@@ -1172,6 +1174,13 @@ export default function App() {
             tabIndex={-1}
             hidden={!!captured}
           >
+            {!anatomyReady ? (
+              <div className="signal-loading" role="status" aria-live="polite">
+                <span className="signal-loading-spinner" aria-hidden="true" />
+                <strong>Preparing your simulation</strong>
+                <span>The pulse waveform will appear when the anatomy is ready.</span>
+              </div>
+            ) : <>
             <button
               className="mobile-signal-toggle"
               aria-expanded={mobileSignalExpanded}
@@ -1315,6 +1324,7 @@ export default function App() {
                 />
               </div>
               <WavelengthComparison physiology={physiology} site={site} />
+              {site === "wrist" && <DeviceAttribution mobile />}
               <details className="spectral-explanation">
                 <summary>Light penetration & simulation science</summary>
                 <div
@@ -1519,10 +1529,11 @@ export default function App() {
                 </div>
               </div>
             </div>
+            </>}
           </aside>
         </div>
 
-        {motionExpanded && !captured && (
+        {motionExpanded && !captured && anatomyReady && (
           <section className="motion-panel">
             <div className="motion-explanation">
               <span className="section-overline">
@@ -1563,6 +1574,7 @@ export default function App() {
           </section>
         )}
 
+        {returnToLearn && <button className="back-to-lesson" onClick={() => setDialog("guide")}><BookOpen size={17} /> Back to lesson</button>}
         <footer className="app-footer">
           <span>
             <span className="footer-brand">PLETHSCAPE</span>
@@ -1581,21 +1593,26 @@ export default function App() {
           {toast}
         </div>
       )}
-      {
-        <Modal
-          open={dialog === "guide"}
-          drawer
-          title={
-            siteLessonOpen
-              ? "Choosing your PPG location"
-              : "Learn through exploration"
-          }
-          onClose={() => setDialog(null)}
-        >
-          {siteLessonOpen && (
-            <SiteChoiceLesson
-              onBack={() => setSiteLessonOpen(false)}
-              onTry={(action) => {
+      <Modal open={dialog === "guide"} page title="Plethscape · Learn" onClose={() => setDialog(null)}>
+        <LearnPage ready={anatomyReady} onSources={() => { setReturnToLearn(true); setDialog("sources"); }}
+          onTry={(topic: LearnTopic, settings) => {
+            if (captured) closeStudio();
+            setTourStep(null);
+            setExperience("explore");
+            setPulseStart(null);
+            const resting = { ...DEFAULT_PHYSIOLOGY, age: topic === "pulse" ? settings.age : 32, heartRate: 72, wavelength: settings.band };
+            setPhysiology(topic === "motion" ? { ...resting, activity: settings.activity, heartRate: settings.activity === "run" ? 130 : settings.activity === "walk" ? 98 : 72 } : resting);
+            chooseSite(topic === "locations" ? settings.site : "wrist");
+            setBaseline(topic === "locations" ? { physiology: resting, site: "finger" } : null);
+            setWavelength(settings.band);
+            setMode(topic === "pulse" ? "beat" : "stream");
+            setMotionExpanded(topic === "motion");
+            setMobileSignalExpanded(topic === "wavelengths");
+            setRunning(true);
+            setReturnToLearn(true);
+            setDialog(null);
+          }}
+          onLocationTry={(action) => {
                 if (captured) closeStudio();
                 const resting = {
                   ...DEFAULT_PHYSIOLOGY,
@@ -1629,170 +1646,9 @@ export default function App() {
                       ? "Walking at the wrist. Compare the live PPG with acceleration; this is an illustrative activity preset."
                       : "Explore the wrist at rest. Everyday wearability is a design goal, not a universal signal-quality ranking.",
                 );
-              }}
-            />
-          )}
-          <div hidden={siteLessonOpen}>
-            {experience !== "understand" && (
-              <div className="tour-invitation">
-                <span>LEARN BY DOING · FIVE SHORT EXPERIMENTS</span>
-                <h2>Keep the signal in sight.</h2>
-                <p>
-                  Follow a pulse, compare locations, and play with age, heart
-                  rate and breathing. Each step runs beside the waveform.
-                </p>
-                <button
-                  className="experience-primary"
-                  disabled={!anatomyReady}
-                  onClick={() => startTour(0)}
-                >
-                  Start guided tour <ArrowRight size={18} />
-                </button>
-                {tourStep !== null && (
-                  <button
-                    className="experience-why"
-                    onClick={() => {
-                      setDialog(null);
-                      revealTour();
-                    }}
-                  >
-                    Resume current experiment →
-                  </button>
-                )}
-              </div>
-            )}
-            <button
-              className="site-lesson-feature"
-              onClick={() => setSiteLessonOpen(true)}
-            >
-              <span>FEATURED EXPLORATION · 4 SHORT STEPS</span>
-              <strong>Where should you measure your pulse?</strong>
-              <span>
-                Signal quality meets everyday wearability.{" "}
-                <ArrowRight size={18} />
-              </span>
-            </button>
-            <div
-              className="learning-modes"
-              role="group"
-              aria-label="Learning mode"
-            >
-              {(["explore", "experiment", "understand"] as const).map(
-                (item) => (
-                  <button
-                    key={item}
-                    aria-pressed={experience === item}
-                    onClick={() =>
-                      item === "understand"
-                        ? changeExperience(item)
-                        : startTour(item === "experiment" ? 1 : 0)
-                    }
-                  >
-                    {item === "explore"
-                      ? "Follow a pulse"
-                      : item === "experiment"
-                        ? "Experiments"
-                        : "The science"}
-                  </button>
-                ),
-              )}
-            </div>
-            {experience === "understand" && (
-              <ExperienceGuide
-                active={dialog === "guide"}
-                ready={anatomyReady}
-                mode={experience}
-                site={site}
-                visited={visited}
-                physiology={physiology}
-                baseline={baseline}
-                clock={clock}
-                pulseStart={pulseStart}
-                onPulse={() => {
-                  followPulse();
-                  setDialog(null);
-                }}
-                onMode={changeExperience}
-                onSite={chooseSite}
-                onPrepare={(next, saved) => {
-                  setPhysiology(next);
-                  if (saved) setBaseline(saved);
-                  setMode(
-                    next.age === 25 || next.age === 70 ? "beat" : "stream",
-                  );
-                  if (next.heartRate === 120) setMode("stream");
-                  setRunning(true);
-                }}
-                onWhy={() => changeExperience("understand")}
-              />
-            )}
-            <section
-              className="understand-panel"
-              hidden={experience !== "understand"}
-            >
-              <div dangerouslySetInnerHTML={{ __html: learningReference }} />
-              <details open>
-                <summary>What does PPG actually see?</summary>
-                <p>
-                  Light enters the skin. A detector measures how much returns or
-                  passes through. Blood-volume changes with each heartbeat
-                  modulate that light, creating the pulse waveform.
-                </p>
-              </details>
-              <details>
-                <summary>Why do different sites look different?</summary>
-                <p>
-                  The pulse travels through branching arteries. Local vessels,
-                  tissue and sensor placement shape the optical signal. The
-                  timing and contour here are illustrative, not calibrated
-                  measurements.
-                </p>
-              </details>
-              <details>
-                <summary>What are the peak and second rise?</summary>
-                <p>
-                  The systolic peak follows the initial upstroke. Later features
-                  reflect interacting forward and reflected waves. A dicrotic
-                  notch may be subtle or absent in real PPG; it is not a
-                  universal landmark.
-                </p>
-              </details>
-              <details>
-                <summary>Why does the rhythm change with breathing?</summary>
-                <p>
-                  In this virtual subject, heart rate rises gently while
-                  breathing in and falls while breathing out. This is
-                  respiratory sinus arrhythmia. Breathing also changes pulse
-                  height and baseline. The live heart, beat spacing and rate
-                  display share one clock; the heart-rate control sets the mean.
-                  Try slower breathing in Live stream to make the coupling
-                  easier to see.
-                </p>
-                <p>
-                  These are illustrative responses, not a calibrated digital
-                  twin of a real person.
-                </p>
-              </details>
-              <details>
-                <summary>Why does the shape change with age?</summary>
-                <p>
-                  This teaching model brings the reflected component earlier as
-                  age and stiffness rise, blending the later rise. Real people
-                  vary, so age cannot be read directly from a single trace.
-                </p>
-              </details>
-              <div className="understand-links">
-                <button onClick={() => setDialog("learn")}>
-                  <BookOpen size={17} /> Guided lessons
-                </button>
-                <button onClick={() => setDialog("sources")}>
-                  <Info size={17} /> Model & sources
-                </button>
-              </div>
-            </section>
-          </div>
-        </Modal>
-      }
+            setReturnToLearn(true);
+          }} />
+      </Modal>
       {dialog === "learn" && (
         <Modal
           title="A closer look at the pulse"
@@ -1843,7 +1699,7 @@ export default function App() {
       {dialog === "sources" && (
         <Modal
           title="The science behind the signal"
-          onClose={() => setDialog(null)}
+          onClose={() => setDialog(returnToLearn ? "guide" : null)}
           wide
         >
           <p className="modal-intro">
