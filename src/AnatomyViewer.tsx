@@ -335,15 +335,12 @@ export default function AnatomyViewer(props: Props) {
         setRotate(false);
         anatomy.group.updateMatrixWorld(true);
         locateDevice(id);
-        // Frame a region, not a product close-up: leave the adjacent anatomy visible.
+        // Center the wearable itself while retaining the surrounding body region.
         const target = deviceCenter.clone();
         const wideStage = element.clientWidth >= 1100;
-        if (wideStage) target.lerp(new THREE.Vector3(0, 1.82, 0), 0.7);
-        target.x *= 0.82;
-        if (!wideStage && id === "toe") target.y += 0.24;
-        if (!wideStage && (id === "ear" || id === "forehead")) target.y -= 0.24;
+        const regionalDistance = id === "upperarm" ? 2.1 : 1.8;
         const distance =
-          (wideStage ? 5.2 : id === "upperarm" ? 2.9 : 2.5) *
+          (wideStage ? regionalDistance * 1.6 : regionalDistance) *
           Math.max(1, 0.55 / camera.aspect);
         const destination = target
           .clone()
