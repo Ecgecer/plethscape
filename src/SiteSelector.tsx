@@ -36,6 +36,147 @@ const wearables: Record<SiteId, string> = {
   toe: "Toe band",
 };
 
+function WearableGlyph({ site }: { site: SiteId }) {
+  const shapes: Record<SiteId, React.ReactNode> = {
+    wrist: (
+      <>
+        <path d="M10 8V4.5h8V8m-8 12v3.5h8V20" />
+        <rect
+          x="7.5"
+          y="7.5"
+          width="13"
+          height="13"
+          rx="4"
+          fill="currentColor"
+          fillOpacity=".1"
+        />
+        <path d="M11 14h2l1-2 1.5 4 1-2H18" strokeWidth="1.2" />
+      </>
+    ),
+    finger: (
+      <>
+        <ellipse
+          cx="14"
+          cy="14"
+          rx="8"
+          ry="9"
+          transform="rotate(-25 14 14)"
+          fill="currentColor"
+          fillOpacity=".1"
+        />
+        <ellipse cx="14" cy="14" rx="5" ry="6" transform="rotate(-25 14 14)" />
+        <path d="M8 8.5l2 1.5m8 8 2 1" opacity=".5" />
+      </>
+    ),
+    ear: (
+      <>
+        <path d="M9 6v9.5a5.5 5.5 0 0 0 11 0V7" />
+        <path d="M12 6v9.5a2.5 2.5 0 0 0 5 0V7" opacity=".45" />
+        <circle cx="9" cy="5.5" r="1.5" fill="currentColor" />
+        <path d="M17 7h3" />
+      </>
+    ),
+    forehead: (
+      <g transform="rotate(35 14 14)">
+        <rect
+          x="8.5"
+          y="4"
+          width="11"
+          height="20"
+          rx="5.5"
+          fill="currentColor"
+          fillOpacity=".1"
+        />
+        <rect x="11" y="7" width="6" height="14" rx="3" opacity=".45" />
+        <circle cx="14" cy="14" r="1.5" fill="currentColor" stroke="none" />
+      </g>
+    ),
+    carotid: (
+      <>
+        <rect
+          x="6"
+          y="4"
+          width="16"
+          height="20"
+          rx="7"
+          strokeDasharray="2 2"
+          opacity=".45"
+        />
+        <rect
+          x="9"
+          y="7"
+          width="10"
+          height="14"
+          rx="4"
+          fill="currentColor"
+          fillOpacity=".1"
+        />
+        <circle cx="14" cy="14" r="2" />
+      </>
+    ),
+    upperarm: (
+      <>
+        <rect
+          x="3"
+          y="8"
+          width="22"
+          height="12"
+          rx="5"
+          fill="currentColor"
+          fillOpacity=".08"
+        />
+        <rect
+          x="10"
+          y="6"
+          width="8"
+          height="16"
+          rx="3"
+          fill="currentColor"
+          fillOpacity=".12"
+        />
+        <path d="M6 12v4m16-4v4" opacity=".5" />
+        <circle cx="14" cy="14" r="1.3" fill="currentColor" stroke="none" />
+      </>
+    ),
+    toe: (
+      <>
+        <ellipse
+          cx="14"
+          cy="15"
+          rx="10"
+          ry="6.5"
+          fill="currentColor"
+          fillOpacity=".1"
+        />
+        <ellipse cx="14" cy="15" rx="6.5" ry="3.5" />
+        <rect
+          x="11"
+          y="6.5"
+          width="6"
+          height="5"
+          rx="2"
+          fill="currentColor"
+          fillOpacity=".25"
+        />
+      </>
+    ),
+  };
+  return (
+    <svg
+      className="wearable-glyph"
+      viewBox="0 0 28 28"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      focusable="false"
+    >
+      {shapes[site]}
+    </svg>
+  );
+}
+
 export default function SiteSelector(p: {
   layout?: "panel" | "overlay";
   physiology: Physiology;
@@ -101,7 +242,7 @@ export default function SiteSelector(p: {
             onClick={() => p.onSelect(row.id)}
           >
             <span className="site-selector-icon" aria-hidden="true">
-              <i className={`device-icon device-icon-${row.id}`} />
+              <WearableGlyph site={row.id} />
             </span>
             <span className="site-selector-name">
               <strong>{names[row.id]}</strong>

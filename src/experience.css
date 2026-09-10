@@ -2177,3 +2177,20 @@
 .spectral-explanation p {
   margin: 12px 0;
 }
+
+/* Detailed, consistent wearable silhouettes remain legible at control size. */
+.site-selector-icon .wearable-glyph {
+  display: block;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+}
+.site-selector-icon:has(.wearable-glyph) {
+  min-width: 30px;
+  width: 30px;
+  color: #c9b49a;
+}
+.site-selector-list button[aria-pressed="true"] .wearable-glyph {
+  color: #ffd5a7;
+  filter: drop-shadow(0 1px 4px rgb(243 174 99 / 16%));
+}

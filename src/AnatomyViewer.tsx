@@ -923,10 +923,6 @@ export default function AnatomyViewer(props: Props) {
         hidden
         aria-live="polite"
       />
-      <div className="scene-corner">
-        <span className="cross-hair">+</span> ANATOMICAL ATLAS{" "}
-        <span className="scene-corner-detail">BODYPARTS3D / REAL TIME</span>
-      </div>
       <div className="view-orientation">
         <span className="view-dot" />
         {back ? "Posterior" : "Anterior"}

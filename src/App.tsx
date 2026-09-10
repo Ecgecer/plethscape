@@ -801,9 +801,6 @@ export default function App() {
       <main id="workspace" tabIndex={-1}>
         <div className="workspace-heading">
           <div>
-            <span className="workspace-kicker">
-              Explore how your pulse changes across seven body locations.
-            </span>
             <h1>
               {captured
                 ? "Explore the details of a single heartbeat."
