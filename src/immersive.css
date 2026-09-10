@@ -1020,3 +1020,32 @@
   .immersive-shell .mobile-signal-toggle:hover { background: #44311f; border-color: #edb87d; }
   .immersive-shell .mobile-signal-toggle:focus-visible { outline: 2px solid #ffd3a0; outline-offset: 3px; }
 }
+
+/* Keep the two-column location cards compact at narrow sidebar widths. */
+.immersive-shell .location-selector .site-selector-list button {
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 7px;
+  padding: 10px 8px;
+  min-height: 60px;
+  align-items: center;
+}
+.immersive-shell .location-selector .site-selector-icon {
+  width: 22px;
+  min-width: 22px;
+}
+.immersive-shell .location-selector .wearable-glyph {
+  width: 22px;
+  height: 22px;
+  flex-basis: 22px;
+}
+.immersive-shell .location-selector .site-selector-name strong {
+  font-size: 12px;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.immersive-shell .location-selector .site-selector-name small {
+  font-size: 10px;
+  line-height: 1.4;
+  margin-top: 3px;
+  white-space: nowrap;
+}
