@@ -1121,3 +1121,16 @@
     margin: 0 12px 16px;
   }
 }
+
+/* Static SVG floor: no animation, transforms, bloom or WebGL depth overlap. */
+.immersive-shell .three-host {
+  background-color: #010202;
+  background-image: url("./assets/scene-grid.svg");
+  background-position: center;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+.immersive-shell .three-host[data-atmosphere="off"],
+.immersive-shell .three-host[data-device-isolated="true"] {
+  background-image: none;
+}
