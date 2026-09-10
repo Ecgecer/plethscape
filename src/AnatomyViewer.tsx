@@ -287,8 +287,12 @@ export default function AnatomyViewer(props: Props) {
       },
       chest: () => {
         clearDeviceFocus();
-        camera.position.set(0.16, 2.76, 1.72);
-        controls.target.set(0.025, 2.72, 0);
+        camera.position
+          .set(0.16, 2.76, 1.72)
+          .multiplyScalar(anatomy.group.scale.y);
+        controls.target
+          .set(0.025, 2.72, 0)
+          .multiplyScalar(anatomy.group.scale.y);
         controls.update();
         setBack(false);
         setFocus(true);
@@ -299,7 +303,7 @@ export default function AnatomyViewer(props: Props) {
       },
       heart: () => {
         clearDeviceFocus();
-        const center = anatomy.heartCenter;
+        const center = anatomy.group.localToWorld(anatomy.heartCenter.clone());
         const distance = Math.max(0.67, 0.45 / camera.aspect);
         camera.position
           .copy(center)

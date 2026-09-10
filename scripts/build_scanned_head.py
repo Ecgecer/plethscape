@@ -17,7 +17,7 @@ SOURCE=ROOT/f'artifacts/{PERSON}-source'
 CUT=1.60 if FEMALE else 1.635
 SLOPE=0 if FEMALE else .4
 CENTER=1.636 if FEMALE else 1.72481
-HEAD_Y=3.308 if FEMALE else 3.388
+HEAD_Y=3.273 if FEMALE else 3.388
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
 bpy.ops.import_scene.gltf(filepath=str(ROOT/'public/models/neutral-skin.glb'))
 body=next(o for o in bpy.context.scene.objects if o.type=='MESH')

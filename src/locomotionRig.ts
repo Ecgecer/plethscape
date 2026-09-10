@@ -221,7 +221,7 @@ export function solveLeg(
     Math.atan2(lower * Math.sin(knee), upper + lower * Math.cos(knee));
   return { hip, knee };
 }
-export function createLocomotionRig() {
+export function createLocomotionRig(presentation: "male" | "female" = "male") {
   const root = new THREE.Group();
   const bones = definitions.map(([name]) => {
     const b = new THREE.Bone();
@@ -242,6 +242,16 @@ export function createLocomotionRig() {
   const skeleton = new THREE.Skeleton(bones);
   skeleton.calculateInverses();
   skeleton.update();
+  // Mild presentation proportions, applied through the same skeleton to skin,
+  // organs, vessels and attachments. Counter-scales preserve head and limb shape.
+  if (presentation === "female") {
+    bones[0].scale.x = 1.04;
+    bones[1].scale.x = 0.92 / 1.04;
+    bones[2].scale.x = 0.96 / 0.92;
+    bones[3].scale.x = 1 / 0.96;
+    for (const joint of [5, 8]) bones[joint].scale.x = 1 / 0.96;
+    for (const joint of [11, 15]) bones[joint].scale.x = 1 / 1.04;
+  }
   const rest = bones.map((b) => b.position.clone());
   const forearmAxes = [
     rest[7].clone().normalize(),

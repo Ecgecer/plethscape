@@ -229,3 +229,31 @@ test("forearm rotation preserves thickness instead of collapsing the skin betwee
     }
   rig.dispose();
 });
+
+test("female presentation keeps head and limb scale while mildly shaping the torso", () => {
+  const rig = createLocomotionRig("female");
+  rig.pose(0, "rest");
+  const scale = new THREE.Vector3();
+  for (const joint of [4, 5, 7, 8, 10, 11, 15]) {
+    scale.setFromMatrixScale(rig.bones[joint].matrixWorld);
+    assert.ok(scale.distanceTo(new THREE.Vector3(1, 1, 1)) < 1e-6);
+  }
+  assert.ok(rig.bones[1].getWorldScale(scale).x < 1);
+  assert.ok(rig.bones[0].getWorldScale(scale).x > 1);
+  for (const activity of ["rest", "walk", "run"] as const) {
+    for (let t = 0; t < 2; t += 0.1) {
+      rig.pose(t, activity);
+      for (const matrix of rig.matrices)
+        assert.ok(matrix.elements.every(Number.isFinite));
+      const device = new THREE.Object3D();
+      const point = new THREE.Vector3(0.532, 1.935, 0.018);
+      rig.attach(device, point, new THREE.Quaternion(), DEVICE_JOINTS.wrist);
+      assert.ok(
+        device.position.distanceTo(
+          rig.transformPoint(point, new THREE.Vector3(), DEVICE_JOINTS.wrist),
+        ) < 1e-9,
+      );
+    }
+  }
+  rig.dispose();
+});

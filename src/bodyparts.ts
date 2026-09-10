@@ -95,6 +95,7 @@ const defaults: Record<string, Point> = {
 export function createAnatomy(presentation: "male" | "female" = "male") {
   const group = new THREE.Group();
   group.name = "BodyParts3D reference anatomy";
+  group.scale.setScalar(presentation === "female" ? 0.94 : 1);
   group.userData.bodyLoaded = false;
   group.userData.loadProgress = 0;
   const heart = new THREE.Group();
@@ -140,18 +141,14 @@ export function createAnatomy(presentation: "male" | "female" = "male") {
       // Piercing anchor on the lower anterior lobe of the visible neutral skin.
       position: new THREE.Vector3(
         presentation === "female" ? 0.153 : 0.172,
-        presentation === "female" ? 3.4 : 3.335,
+        presentation === "female" ? 3.365 : 3.335,
         -0.042,
       ),
       axis: new THREE.Vector3(0, 1, 0),
       rotation: Math.PI / 2,
     },
     forehead: {
-      position: new THREE.Vector3(
-        0,
-        presentation === "female" ? 3.47 : 3.435,
-        0.025,
-      ),
+      position: new THREE.Vector3(0, 3.435, 0.025),
       axis: new THREE.Vector3(0, 1, 0),
       rotation: 0,
     },
@@ -185,7 +182,7 @@ export function createAnatomy(presentation: "male" | "female" = "male") {
         ),
     ]),
   ) as Record<(typeof WEARABLE_SITES)[number], THREE.Quaternion>;
-  const rig = createLocomotionRig();
+  const rig = createLocomotionRig(presentation);
   const rigidDetails: {
     object: THREE.Object3D;
     position: THREE.Vector3;
@@ -408,7 +405,7 @@ export function createAnatomy(presentation: "male" | "female" = "male") {
         .replace(
           "#include <color_fragment>",
           `#include <color_fragment>
-        if (atlasPosition.y > 3.100 ${tissue === "arteries" ? "&& neckWindowAt(atlasPosition)<.015" : ""}) discard;
+        if (atlasPosition.y > ${tissue === "arteries" ? "3.30" : "3.100"}) discard;
         ${
           tissue === "eyes"
             ? "discard;"
@@ -471,7 +468,7 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
             totalEmissiveRadiance = atlasGlowColor*(.035+pow(rim,1.5)*2.1)*(1.-atlasSurface)*(1.-atlasHeartFocus);
             float gentleHead = smoothstep(3.0,3.10,atlasPosition.y);
             diffuseColor.rgb = mix(diffuseColor.rgb, vec3(.32,.21,.145), gentleHead);
-            diffuseColor.a = mix(diffuseColor.a, 1.*(1.-atlasHeartFocus), gentleHead);
+            diffuseColor.a = mix(diffuseColor.a, .40*(1.-atlasHeartFocus), gentleHead);
             totalEmissiveRadiance = mix(totalEmissiveRadiance, vec3(.018,.009,.006)+atlasGlowColor*pow(rim,2.)*.12, gentleHead);
             float patchSkin = 1.-smoothstep(.038,.073,distance(atlasPosition,atlasNeckPatch));
             diffuseColor.a = max(diffuseColor.a,patchSkin*.42*(1.-atlasHeartFocus));
@@ -731,7 +728,7 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
             )
             .replace(
               "#include <color_fragment>",
-              "#include <color_fragment>\nif(atlasHeartFocus > .5) discard; diffuseColor.rgb = mix(vec3(.32,.21,.145), diffuseColor.rgb, smoothstep(3.26,3.34,headHeight)); diffuseColor.a *= 1.-.72*neckWindowAt(headRestPosition);",
+              "#include <color_fragment>\nif(atlasHeartFocus > .5) discard; diffuseColor.rgb = mix(vec3(.32,.21,.145), diffuseColor.rgb, smoothstep(3.26,3.34,headHeight)); diffuseColor.a *= mix(.40,1.,smoothstep(3.18,3.30,headHeight))*(1.-.50*neckWindowAt(headRestPosition));",
             );
         };
         const headFinish = material.onBeforeCompile;
@@ -758,7 +755,7 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
             finish.call(material, shader, renderer);
             shader.fragmentShader = shader.fragmentShader.replaceAll(
               "smoothstep(3.26,3.34,headHeight)",
-              "smoothstep(3.25,3.32,headHeight)",
+              "smoothstep(3.215,3.285,headHeight)",
             );
           };
         }
@@ -771,7 +768,7 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
           );
         };
         material.customProgramCacheKey = () =>
-          `scanned-head-neck-window-v7-${presentation}`;
+          `scanned-head-neck-window-v8-${presentation}`;
         for (const texture of [material.map, material.normalMap])
           if (texture) {
             texture.anisotropy = 4;
