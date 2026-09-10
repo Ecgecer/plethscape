@@ -69,7 +69,7 @@ export function createSceneAtmosphere() {
         vec2 p = (vUv-.5)*vec2(1.35,1.);
         float glow = exp(-dot(p,p)*19.);
         float shoulder = exp(-dot(p-vec2(0.,.13),p-vec2(0.,.13))*40.);
-        float alpha = (glow*.04 + shoulder*.012) * (1.+pulse*.24) * strength;
+        float alpha = (glow*.04 + shoulder*.012) * strength;
         gl_FragColor=vec4(vec3(.73,.31,.105),alpha);
       }`,
   });

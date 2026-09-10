@@ -5,10 +5,6 @@ import type { RefObject } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
-import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
-import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
-import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
-import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 import {
   ArrowCounterClockwise,
   ArrowsOut,
@@ -122,6 +118,7 @@ export default function AnatomyViewer(props: Props) {
     try {
       renderer = new THREE.WebGLRenderer({
         antialias: true,
+        stencil: true,
         alpha: true,
         powerPreference: "high-performance",
       });
@@ -203,17 +200,8 @@ export default function AnatomyViewer(props: Props) {
       ground.add(ring);
     }
     scene.add(ground);
-    const composer = new EffectComposer(renderer);
-    composer.renderTarget1.stencilBuffer = true;
-    composer.renderTarget2.stencilBuffer = true;
-    composer.renderTarget1.samples = 2;
-    composer.renderTarget2.samples = 2;
-    const renderPass = new RenderPass(scene, camera);
-    const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.38, 0.55, 0.9);
-    const output = new OutputPass();
-    composer.addPass(renderPass);
-    composer.addPass(bloom);
-    composer.addPass(output);
+    // Render anatomy directly into one antialiased buffer. Scene-wide bloom
+    // would amplify moving specular/flow highlights across the body.
     let sceneVisible = true;
     let sceneDirty = true;
     const invalidateScene = () => {
@@ -658,7 +646,6 @@ export default function AnatomyViewer(props: Props) {
           renderWidth = width;
           renderHeight = height;
           renderer.setSize(width, height);
-          composer.setSize(width, height);
           camera.aspect = width / height;
           camera.updateProjectionMatrix();
           sceneDirty = true;
@@ -863,7 +850,7 @@ export default function AnatomyViewer(props: Props) {
             : "visible";
       }
       renderer.info.reset();
-      composer.render(delta);
+      renderer.render(scene, camera);
       sceneDirty = false;
       lastRenderedTime = p.clock.current.time;
       lastRenderedRevision = renderRevision.current;
@@ -906,10 +893,6 @@ export default function AnatomyViewer(props: Props) {
       atmosphere.dispose();
       auras.dispose();
       controls.dispose();
-      bloom.dispose();
-      output.dispose();
-      renderPass.dispose();
-      composer.dispose();
       anatomy.dispose();
       ground.children.forEach((o) => (o as THREE.Mesh).geometry.dispose());
       groundMat.dispose();
