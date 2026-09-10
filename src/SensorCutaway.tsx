@@ -301,7 +301,13 @@ export default function SensorCutaway(props: Props) {
     const glow = new THREE.PointLight(0x8de8a3, 1.8, 4);
     glow.position.set(-0.9, -0.25, 1);
     group.add(glow);
+    let dirty = true;
+    const invalidate = () => {
+      dirty = true;
+    };
+    controls.addEventListener("change", invalidate);
     const resize = () => {
+      dirty = true;
       const { width, height } = element.getBoundingClientRect();
       if (width < 1 || height < 1) return;
       renderer.setSize(width, height);
@@ -319,11 +325,24 @@ export default function SensorCutaway(props: Props) {
     intersection.observe(element);
     let frame = 0,
       last = -Infinity;
+    let lastTime = NaN;
+    let lastProps: typeof props | null = null;
     const draw = (now: number) => {
       frame = requestAnimationFrame(draw);
       if (document.hidden || !visible || now - last < 1000 / 30) return;
       last = now;
       const p = current.current;
+      const cameraChanged = controls.update();
+      if (
+        !dirty &&
+        !cameraChanged &&
+        lastTime === p.clock.current.time &&
+        lastProps === p
+      )
+        return;
+      dirty = false;
+      lastTime = p.clock.current.time;
+      lastProps = p;
       const band = OPTICAL_BANDS[p.wavelength];
       if (previousBand !== p.wavelength) {
         rebuild(p.wavelength);
@@ -351,7 +370,6 @@ export default function SensorCutaway(props: Props) {
       element.dataset.pulse = String(pulse);
       element.dataset.detectedLight = String(detected);
       element.dataset.wavelength = p.wavelength;
-      controls.update();
       renderer.render(scene, camera);
     };
     frame = requestAnimationFrame(draw);
@@ -359,6 +377,7 @@ export default function SensorCutaway(props: Props) {
       cancelAnimationFrame(frame);
       observer.disconnect();
       intersection.disconnect();
+      controls.removeEventListener("change", invalidate);
       controls.dispose();
       const geometries = new Set<THREE.BufferGeometry>(),
         materials = new Set<THREE.Material>();

@@ -87,6 +87,7 @@ function RangeControl({
   max?: number;
   unit?: string;
 }) {
+  const descriptionId = useId();
   return (
     <label className="range-control" data-control={label}>
       <div>
@@ -104,6 +105,8 @@ function RangeControl({
       <input
         type="range"
         aria-label={label}
+        aria-describedby={descriptionId}
+        aria-valuetext={`${Math.round(value)} ${unit}`}
         min={min}
         max={max}
         value={value}
@@ -114,6 +117,9 @@ function RangeControl({
           } as CSSProperties
         }
       />
+      <span id={descriptionId} className="sr-only">
+        {description}
+      </span>
       <span className="range-labels">
         <span>{minLabel}</span>
         <span>{maxLabel}</span>
@@ -235,6 +241,17 @@ export default function App() {
   };
   useEffect(() => {
     if (!toolsOpen) return;
+    const panel = document.getElementById("view-options");
+    panel?.querySelector<HTMLButtonElement>("button")?.focus();
+    const onOutside = (event: PointerEvent) => {
+      if (
+        event.target instanceof Node &&
+        !panel?.contains(event.target) &&
+        !viewOptionsTrigger.current?.contains(event.target)
+      )
+        setToolsOpen(false);
+    };
+    document.addEventListener("pointerdown", onOutside);
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setToolsOpen(false);
@@ -242,7 +259,10 @@ export default function App() {
       }
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onOutside);
+    };
   }, [toolsOpen]);
   const [visited, setVisited] = useState<SiteId[]>([]);
   const [anatomyReady, setAnatomyReady] = useState(false);
@@ -718,6 +738,19 @@ export default function App() {
       className={`app-shell ${tourStep !== null ? "tour-active" : ""} instrument-shell immersive-shell ${sceneOnly ? "scene-only" : ""} experience-shell experience-${experience} ${captured ? "studio-open" : ""}`}
       data-experience={experience}
     >
+      <a className="skip-link" href="#workspace">
+        Skip to simulator
+      </a>
+      <a
+        className="skip-link"
+        href="#signal-workspace"
+        onClick={() => {
+          setSceneOnly(false);
+          if (captured) closeStudio();
+        }}
+      >
+        Skip to PPG signal
+      </a>
       <header className="app-header">
         <a
           className="brand"
@@ -765,7 +798,7 @@ export default function App() {
         </div>
       </header>
 
-      <main>
+      <main id="workspace" tabIndex={-1}>
         <div className="workspace-heading">
           <div>
             <span className="workspace-kicker">
@@ -774,7 +807,7 @@ export default function App() {
             <h1>
               {captured
                 ? "One heartbeat. Every perspective."
-                : "One heartbeat. Different places. Different signals."}
+                : "One heartbeat. Different places. Different PPG signals."}
             </h1>
             <p>Choose a wearable location and explore what shapes its pulse.</p>
           </div>
@@ -1076,7 +1109,13 @@ export default function App() {
               />
             </Suspense>
           )}
-          <aside className="signal-panel" hidden={!!captured}>
+          <aside
+            className="signal-panel"
+            id="signal-workspace"
+            aria-label="PPG signal workspace"
+            tabIndex={-1}
+            hidden={!!captured}
+          >
             <section className="signal-section">
               <div className="signal-header">
                 <div>

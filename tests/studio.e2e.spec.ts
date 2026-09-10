@@ -102,7 +102,12 @@ test("captured pulse scrubs both scenes, supports fiducials and resumes live exp
     "infrared",
   );
   expect(await number(page, "optical-canvas", "data-time")).toBe(peakTime);
-  expect(await number(page, "optical-canvas", "data-pulse")).toBe(pulse);
+  expect(await number(page, "optical-canvas", "data-pulse")).not.toBe(pulse);
+  await page.getByRole("button", { name: /^Green/ }).click();
+  await expect
+    .poll(() => number(page, "optical-canvas", "data-pulse"))
+    .toBe(pulse);
+  expect(await number(page, "optical-canvas", "data-time")).toBe(peakTime);
   await page.getByRole("button", { name: "Whole body", exact: true }).click();
   await expect
     .poll(() => number(page, "anatomy-canvas", "data-simulation-time"))
@@ -175,7 +180,7 @@ test("phone inspection, keyboard seeking and repeat entry keep a clean layout", 
   await scrubber.press("Home");
   await expect(scrubber).toHaveValue("0");
   await page.getByRole("button", { name: /^Red/ }).click();
-  await page.locator(".wavelength-evidence > summary").click();
+  await page.locator(".studio-optics .wavelength-evidence > summary").click();
   await expect(
     page.getByRole("link", { name: "Waveform comparison, figure 3 ↗" }),
   ).toBeVisible();

@@ -62,6 +62,8 @@ export default function AnatomyViewer(props: Props) {
   useEffect(() => {
     setViewMenu(document.getElementById("anatomy-view-actions"));
   }, []);
+  const renderRevision = useRef(0);
+  renderRevision.current++;
   const host = useRef<HTMLDivElement>(null);
   const markers = useRef<Record<string, HTMLButtonElement | null>>({});
   const current = useRef(props);
@@ -212,6 +214,10 @@ export default function AnatomyViewer(props: Props) {
     composer.addPass(output);
     let sceneVisible = true;
     let sceneDirty = true;
+    const invalidateScene = () => {
+      sceneDirty = true;
+    };
+    controls.addEventListener("change", invalidateScene);
     const visibilityObserver = new IntersectionObserver(([entry]) => {
       sceneVisible = entry.isIntersecting;
       if (sceneVisible) sceneDirty = true;
@@ -603,6 +609,9 @@ export default function AnatomyViewer(props: Props) {
       toe: new THREE.Vector3(0, 0, 0.031),
     };
     let last = 0;
+    let lastRenderedRevision = -1;
+    let lastRenderedTime = NaN;
+    let lastRenderedHover: string | null = null;
     let previousPresentation: Presentation = "atlas";
     let disposed = false;
     let loaded = false;
@@ -643,6 +652,22 @@ export default function AnatomyViewer(props: Props) {
       }
       const delta = Math.min((now - last) / 1000, 0.05);
       last = now;
+      controls.autoRotate =
+        rotateRef.current && p.clock.current.running && !gestures.active;
+      const cameraChanged = !gestures.active && controls.update(delta);
+      // A paused scene only needs another GPU frame after an interaction or state change.
+      // Keep controls ticking so damping can settle before sleeping the expensive work.
+      if (
+        loaded &&
+        !sceneDirty &&
+        !cameraFlight &&
+        !cameraChanged &&
+        !gestures.active &&
+        lastRenderedTime === p.clock.current.time &&
+        lastRenderedRevision === renderRevision.current &&
+        lastRenderedHover === hoveredDevice
+      )
+        return;
       anatomy.setCutaway(deviceFocusRef.current ? false : cutawayRef.current);
       anatomy.setGlow("amber");
       const journeyProgress =
@@ -735,6 +760,7 @@ export default function AnatomyViewer(props: Props) {
         controls.target.add(cameraShift);
         previousDeviceCenter.copy(deviceCenter);
       }
+      const flying = Boolean(cameraFlight);
       if (cameraFlight) {
         cameraFlight.from.add(cameraShift);
         cameraFlight.to.add(cameraShift);
@@ -754,9 +780,8 @@ export default function AnatomyViewer(props: Props) {
         );
         if (t >= 1) cameraFlight = null;
       }
-      controls.autoRotate =
-        rotateRef.current && p.clock.current.running && !gestures.active;
-      if (!gestures.active) controls.update(delta);
+
+      if (flying && !gestures.active) controls.update(delta);
       inspectionLight.intensity = isolatedDeviceRef.current ? 2.2 : 0;
       inspectionLight.visible = isolatedDeviceRef.current;
       inspectionLight.position.copy(camera.position);
@@ -823,6 +848,9 @@ export default function AnatomyViewer(props: Props) {
       renderer.info.reset();
       composer.render(delta);
       sceneDirty = false;
+      lastRenderedTime = p.clock.current.time;
+      lastRenderedRevision = renderRevision.current;
+      lastRenderedHover = hoveredDevice;
       element.dataset.cameraDistance = String(
         camera.position.distanceTo(controls.target),
       );
@@ -855,6 +883,7 @@ export default function AnatomyViewer(props: Props) {
       observer.disconnect();
       visibilityObserver.disconnect();
       controls.removeEventListener("start", onOrbitStart);
+      controls.removeEventListener("change", invalidateScene);
       gestures.dispose();
       element.removeEventListener("pointerdown", preserveMarkerClick, true);
       atmosphere.dispose();

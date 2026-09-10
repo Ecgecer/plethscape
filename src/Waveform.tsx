@@ -469,7 +469,7 @@ export default function Waveform(props: WaveformProps) {
   const accessibleLabel =
     props.mode === "accelerometer"
       ? "Simulated three-axis accelerometer data in g. Amber: X, cyan: Y, lavender: Z. Use left and right arrow keys to inspect values."
-      : `Synthetic ${props.mode === "beat" ? "single-cycle" : "streaming"} PPG waveform at the ${props.site === "forehead" ? "temple" : String(props.site).replaceAll("_", " ")}. Amplitude is in arbitrary units. ${RHYTHMS[getRhythm(props.physiology.rhythm)].name} teaching setting.${props.compare ? " Dashed lavender trace shows the saved comparison." : ""} Use left and right arrow keys to inspect values.`;
+      : `Synthetic ${props.mode === "beat" ? "single-cycle" : "streaming"} PPG waveform at the ${props.site === "forehead" ? "temple" : String(props.site).replaceAll("_", " ")}. ${OPTICAL_BANDS[props.physiology.wavelength ?? "green"].name} light, ${OPTICAL_BANDS[props.physiology.wavelength ?? "green"].nm}. Amplitude is in arbitrary units. ${RHYTHMS[getRhythm(props.physiology.rhythm)].name} teaching setting.${props.compare ? " Dashed lavender trace shows the saved comparison." : ""} Use left and right arrow keys to inspect values.`;
 
   return (
     <div

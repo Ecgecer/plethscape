@@ -8,7 +8,7 @@
     <title>Plethscape: Interactive PPG Waveform Simulator | ChatPPG</title>
     <meta
       name="description"
-      content="Explore PPG waveforms across seven wearable locations in 3D. Change age, heart rate, breathing and movement to see how simulated optical pulse signals respond."
+      content="Explore a free 3D PPG simulator. Compare seven wearable sites, green, red and infrared light, and see how age, breathing and movement change the pulse waveform."
     />
     <link rel="canonical" href="https://chatppg.com/plethscape" />
     <meta name="robots" content="index, follow, max-image-preview:large" />
@@ -21,7 +21,7 @@
     />
     <meta
       property="og:description"
-      content="Explore PPG waveforms across seven wearable locations in 3D. Change age, heart rate, breathing and movement to see how simulated optical pulse signals respond."
+      content="Explore a free 3D PPG simulator. Compare seven wearable sites, green, red and infrared light, and see how age, breathing and movement change the pulse waveform."
     />
     <meta property="og:url" content="https://chatppg.com/plethscape" />
     <meta
@@ -41,7 +41,7 @@
     />
     <meta
       name="twitter:description"
-      content="Explore PPG waveforms across seven wearable locations in 3D. Change age, heart rate, breathing and movement to see how simulated optical pulse signals respond."
+      content="Explore a free 3D PPG simulator. Compare seven wearable sites, green, red and infrared light, and see how age, breathing and movement change the pulse waveform."
     />
     <meta
       name="twitter:image"
@@ -61,7 +61,7 @@
             "@id": "https://chatppg.com/plethscape#page",
             "url": "https://chatppg.com/plethscape",
             "name": "Plethscape: Interactive PPG Waveform Simulator | ChatPPG",
-            "description": "Explore PPG waveforms across seven wearable locations in 3D. Change age, heart rate, breathing and movement to see how simulated optical pulse signals respond.",
+            "description": "Explore a free 3D PPG simulator. Compare seven wearable sites, green, red and infrared light, and see how age, breathing and movement change the pulse waveform.",
             "inLanguage": "en",
             "isPartOf": {
               "@type": "WebSite",
@@ -82,11 +82,12 @@
             "inLanguage": "en",
             "learningResourceType": "Interactive simulation",
             "educationalUse": "Exploration",
-            "description": "Explore PPG waveforms across seven wearable locations in 3D. Change age, heart rate, breathing and movement to see how simulated optical pulse signals respond.",
+            "description": "Explore a free 3D PPG simulator. Compare seven wearable sites, green, red and infrared light, and see how age, breathing and movement change the pulse waveform.",
             "teaches": [
               "Photoplethysmography waveform morphology",
               "Anatomical sensing locations",
-              "Effects of breathing and motion on simulated PPG"
+              "Effects of breathing and motion on simulated PPG",
+              "Green, red and infrared light: illustrative tissue penetration and pulse morphology"
             ],
             "publisher": {
               "@type": "Organization",
@@ -162,6 +163,28 @@
         </section>
       </div>
       <section>
+        <h3>How do green, red and infrared PPG differ?</h3>
+        <p>
+          Choose green (530 nm), red (660 nm) or infrared (940 nm) and save a
+          reference to compare their illustrative pulse contours at the same
+          location. Green generally samples shallower tissue, while red and
+          infrared sample deeper, overlapping regions. Open Light penetration
+          &amp; simulation science beneath the waveform to explore this
+          visually.
+        </p>
+        <p>
+          Walking and running introduce baseline shifts, impact spikes and
+          temporary contact loss. In this simulation, red and infrared amplify
+          those artifacts.
+          <a href="https://pubmed.ncbi.nlm.nih.gov/20703691/"
+            >Research comparing green and infrared during movement</a
+          >
+          informs this scenario, but the exact shapes and noise strengths are
+          teaching assumptions, not measured device performance. Skin, sensor
+          contact, geometry and processing all influence real recordings.
+        </p>
+      </section>
+      <section>
         <h3>Read the shape of a pulse</h3>
         <p>
           The single-beat view labels pulse onset, the systolic peak, the
@@ -209,6 +232,11 @@
           >.
         </p>
       </section>
+      <p>
+        <a href="https://chatppg.com/about">About ChatPPG</a> ·
+        <a href="https://chatppg.com/privacy">Privacy</a> ·
+        <a href="https://chatppg.com/terms">Terms</a>
+      </p>
     </article>
     <script type="module" src="/src/main.tsx"></script>
   </body>
