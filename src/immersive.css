@@ -1073,3 +1073,51 @@
 .learning-reference section { border-top: 1px solid #ffffff14; padding: 8px 0; }
 .learning-reference a { color: #efbb85; text-decoration: underline; text-underline-offset: 3px; }
 .learning-reference li { margin: 12px 0; }
+
+/* The mobile scene reaches every edge; navigation floats above it. */
+@media (max-width: 700px) {
+  .immersive-shell .mobile-site-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .app-shell.immersive-shell:not(.studio-open) {
+    position: relative;
+    padding: 0;
+  }
+  .immersive-shell:not(.studio-open) > main {
+    padding: 0;
+    margin: 0;
+    max-width: none;
+  }
+  .immersive-shell:not(.studio-open) .app-header {
+    position: absolute;
+    inset: 0 0 auto;
+    padding: calc(8px + env(safe-area-inset-top)) 12px 8px;
+    background: linear-gradient(#090b0ab8, transparent);
+  }
+  .immersive-shell:not(.studio-open) .mobile-adjust-bar {
+    position: absolute;
+    top: calc(68px + env(safe-area-inset-top));
+    left: 12px;
+    right: 12px;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+    background: transparent;
+  }
+  .immersive-shell:not(.studio-open) .body-panel {
+    width: 100%;
+    margin: 0;
+    height: max(360px, calc(100svh - 210px));
+    border: 0;
+    border-radius: 0;
+  }
+  .immersive-shell:not(.studio-open) .signal-panel {
+    width: calc(100% - 24px);
+    margin: 0 12px 16px;
+  }
+}

@@ -899,7 +899,7 @@ export default function App() {
         </div>
         <div className="mobile-adjust-bar">
           <label className="mobile-site-picker">
-            Wearable location
+            <span className="mobile-site-label">Wearable location</span>
             <select
               value={site}
               onChange={(e) => chooseSite(e.target.value as SiteId)}
