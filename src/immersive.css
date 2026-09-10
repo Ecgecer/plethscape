@@ -1049,3 +1049,14 @@
   margin-top: 3px;
   white-space: nowrap;
 }
+
+/* Shared control typography, including the mobile physiology drawer. */
+.immersive-shell .rhythm-lab { font-family: "Inter Variable", sans-serif; font-size: 13px; line-height: 1.5; }
+.immersive-shell .rhythm-lab > summary { font-size: 14px; line-height: 1.4; }
+.immersive-shell .rhythm-lab > summary small { font-size: 12px; }
+.immersive-shell .rhythm-options button { padding: 10px 12px; min-height: 54px; border-radius: 10px; font-size: 13px; line-height: 1.4; }
+.immersive-shell .rhythm-options button b { display: block; font-size: 13px; line-height: 1.4; font-weight: 600; }
+.immersive-shell .rhythm-options button span { display: block; font-size: 12px; line-height: 1.4; margin-top: 3px; }
+.immersive-shell .rhythm-explanation h3 { font-size: 14px; line-height: 1.4; margin: 16px 0 6px; }
+.immersive-shell .rhythm-lab p, .immersive-shell .rhythm-lab .rhythm-watch { font-size: 13px; line-height: 1.55; margin: 8px 0; }
+.immersive-shell .rhythm-science summary, .immersive-shell .rhythm-compare, .immersive-shell .deficit-control label { font-size: 13px; line-height: 1.45; }
