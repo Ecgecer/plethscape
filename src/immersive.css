@@ -549,8 +549,7 @@
 }
 #workspace:focus,
 #signal-workspace:focus {
-  outline: 2px solid #efb273;
-  outline-offset: -2px;
+  outline: none;
 }
 .immersive-shell .control-rail,
 .immersive-shell .signal-panel {
