@@ -1708,8 +1708,6 @@
         "FJ3481",
         "FJ3483",
         "FJ3494",
-        "FJ3496",
-        "FJ3497",
         "FJ3499",
         "FJ3501",
         "FJ3511",
@@ -1721,7 +1719,6 @@
         "FJ3519",
         "FJ3520",
         "FJ3529",
-        "FJ3532",
         "FJ3534",
         "FJ3542",
         "FJ3544",
@@ -1748,13 +1745,10 @@
         "FJ3584",
         "FJ3586",
         "FJ3590",
-        "FJ3592",
-        "FJ3593",
         "FJ3594",
         "FJ3596",
         "FJ3604",
         "FJ3614",
-        "FJ3617",
         "FJ3619",
         "FJ3620",
         "FJ3621",
@@ -2190,8 +2184,6 @@
         "Ureteric segment of left renal artery",
         "Left common carotid artery",
         "Left colic artery",
-        "Left dorsal artery of penis",
-        "Left dorsal artery of penis",
         "Left gastric artery",
         "Left gastro-epiploic artery",
         "Left inferior epigastric artery",
@@ -2203,7 +2195,6 @@
         "Left inferior phrenic artery",
         "Left inferior phrenic artery",
         "Left superficial epigastric artery",
-        "Left testicular artery",
         "Marginal artery of colon",
         "Middle colic artery",
         "Splenic artery",
@@ -2230,13 +2221,10 @@
         "Right inferior suprarenal artery",
         "Right middle suprarenal artery",
         "Right colic artery",
-        "Right dorsal artery of penis",
-        "Right dorsal artery of penis",
         "Right gastric artery",
         "Right gastro-epiploic artery",
         "Right inferior epigastric artery",
         "Right superficial epigastric artery",
-        "Right testicular artery",
         "Right inferior phrenic artery",
         "Right inferior phrenic artery",
         "Right inferior phrenic artery",
@@ -2252,8 +2240,8 @@
         "Trunk of superior mesenteric artery",
         "Superior rectal artery"
       ],
-      "sourceTriangles": 901016,
-      "triangles": 239999,
+      "sourceTriangles": 862476,
+      "triangles": 240000,
       "bounds": [
         [
           -0.6886739730834961,
@@ -2610,7 +2598,6 @@
         "FJ1994",
         "FJ1995",
         "FJ1996",
-        "FJ2056",
         "FJ2059",
         "FJ2060",
         "FJ2061",
@@ -2669,7 +2656,6 @@
         "FJ2201",
         "FJ2202",
         "FJ2207",
-        "FJ2208",
         "FJ2213",
         "FJ2217",
         "FJ2218",
@@ -2745,7 +2731,6 @@
         "FJ3400",
         "FJ3415",
         "FJ3416",
-        "FJ3426",
         "FJ3429",
         "FJ3434",
         "FJ3438",
@@ -2779,12 +2764,10 @@
         "FJ3522",
         "FJ3523",
         "FJ3524",
-        "FJ3525",
         "FJ3526",
         "FJ3527",
         "FJ3530",
         "FJ3531",
-        "FJ3533",
         "FJ3541",
         "FJ3543",
         "FJ3545",
@@ -2809,15 +2792,12 @@
         "FJ3607",
         "FJ3608",
         "FJ3609",
-        "FJ3610",
         "FJ3611",
         "FJ3612",
         "FJ3615",
         "FJ3616",
-        "FJ3618",
         "FJ3631",
         "FJ3635",
-        "FJ3637",
         "FJ3639",
         "FJ3641",
         "FJ3645",
@@ -2848,7 +2828,6 @@
         "Set of anterior intercostal veins",
         "Right subcostal vein",
         "Right musculophrenic vein",
-        "Deep dorsal vein of penis",
         "Dorsal venous arch of left foot",
         "Dorsal venous arch of left foot",
         "Dorsal venous arch of right foot",
@@ -2907,7 +2886,6 @@
         "Right lateral circumflex femoral vein",
         "Right medial circumflex femoral vein",
         "Plantar metatarsal vein",
-        "Superficial dorsal vein of penis",
         "Left anterior circumflex humeral vein",
         "Left axillary vein",
         "Left basilic vein",
@@ -2983,7 +2961,6 @@
         "Left colic vein",
         "Ileocolic vein",
         "Azygos vein",
-        "Left superficial dorsal vein of penis",
         "Left colic vein",
         "Hemiazygos vein",
         "Ileal vein",
@@ -3017,12 +2994,10 @@
         "Left external iliac vein",
         "Left external iliac vein",
         "Left external iliac vein",
-        "Left internal pudendal vein",
         "Left lateral sacral vein",
         "Left obturator vein",
         "Left superior epigastric vein",
         "Left superior gluteal vein",
-        "Left testicular vein",
         "Median sacral vein",
         "Middle colic vein",
         "Pancreaticoduodenal vein",
@@ -3047,15 +3022,12 @@
         "Right internal iliac vein",
         "Right internal iliac vein",
         "Right internal iliac vein",
-        "Right internal pudendal vein",
         "Right lateral sacral vein",
         "Right obturator vein",
         "Right superior epigastric vein",
         "Right superior gluteal vein",
-        "Right testicular vein",
         "Lumbar vein",
         "Lumbar vein",
-        "Right superficial dorsal vein of penis",
         "Sigmoid vein",
         "Splenic vein",
         "Superior vena cava",
@@ -3073,8 +3045,8 @@
         "Ascending lumbar vein",
         "Inferior vena cava"
       ],
-      "sourceTriangles": 865396,
-      "triangles": 200000,
+      "sourceTriangles": 810964,
+      "triangles": 199999,
       "bounds": [
         [
           -0.6884977221488953,
@@ -4975,6 +4947,16 @@
       "system": "digestive"
     },
     {
+      "id": "FJ2056",
+      "name": "Deep dorsal vein of penis",
+      "system": "venous"
+    },
+    {
+      "id": "FJ2208",
+      "name": "Superficial dorsal vein of penis",
+      "system": "venous"
+    },
+    {
       "id": "FJ2422",
       "name": "Cavity of left ventricle",
       "system": "cardiac"
@@ -5593,6 +5575,66 @@
       "id": "FJ3398",
       "name": "Transverse mesocolon",
       "system": "digestive"
+    },
+    {
+      "id": "FJ3426",
+      "name": "Left superficial dorsal vein of penis",
+      "system": "venous"
+    },
+    {
+      "id": "FJ3496",
+      "name": "Left dorsal artery of penis",
+      "system": "arterial"
+    },
+    {
+      "id": "FJ3497",
+      "name": "Left dorsal artery of penis",
+      "system": "arterial"
+    },
+    {
+      "id": "FJ3525",
+      "name": "Left internal pudendal vein",
+      "system": "venous"
+    },
+    {
+      "id": "FJ3532",
+      "name": "Left testicular artery",
+      "system": "arterial"
+    },
+    {
+      "id": "FJ3533",
+      "name": "Left testicular vein",
+      "system": "venous"
+    },
+    {
+      "id": "FJ3592",
+      "name": "Right dorsal artery of penis",
+      "system": "arterial"
+    },
+    {
+      "id": "FJ3593",
+      "name": "Right dorsal artery of penis",
+      "system": "arterial"
+    },
+    {
+      "id": "FJ3610",
+      "name": "Right internal pudendal vein",
+      "system": "venous"
+    },
+    {
+      "id": "FJ3617",
+      "name": "Right testicular artery",
+      "system": "arterial"
+    },
+    {
+      "id": "FJ3618",
+      "name": "Right testicular vein",
+      "system": "venous"
+    },
+    {
+      "id": "FJ3637",
+      "name": "Right superficial dorsal vein of penis",
+      "system": "venous"
     }
   ],
   "flowPaths": [
@@ -8802,7 +8844,7 @@
     "Source mesh batching and quadric simplification",
     "Smooth vertex normals",
     "Uniform 3.65-unit height normalization",
-    "Reproductive structures and pubic/scalp hair omitted",
+    "Reproductive structures, genital vessels and pubic/scalp hair omitted",
     "External genital prominence of skin flattened for non-sexual display"
   ],
   "limitations": [
@@ -8826,8 +8868,8 @@
   },
   "asset": {
     "url": "/models/bodyparts-atlas.glb",
-    "bytes": 9500404,
-    "sha256": "067edfa88589f857cabf284e43f1a1ce1bfafaa9a935e5fe6f37c0fce961ec9f",
+    "bytes": 9493496,
+    "sha256": "f19027268a92fc1faeb5ecd8bbd870041ccbfb3107eb3e8869c56929bf9f2ceb",
     "compression": "KHR_draco_mesh_compression",
     "decoderPath": "/models/draco/",
     "triangles": 2086188,

@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import SiteSelector from "./SiteSelector";
 import { useEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
@@ -22,6 +23,7 @@ import type { Presentation } from "./bodyparts";
 import { SITES, getCardiacState } from "./simulation";
 import type { Physiology, SiteId } from "./simulation";
 import { DEVICES, WEARABLE_SITES, isWearableSite } from "./devices";
+import { createSceneAtmosphere } from "./sceneAtmosphere";
 import { createSensorAuras } from "./sensorAuras";
 import { installBodyGestures } from "./bodyGestures";
 import type { WearableSite } from "./devices";
@@ -37,6 +39,7 @@ export type Layers = {
   muscles: boolean;
 };
 interface Props {
+  presentation?: "male" | "female";
   hideSelector?: boolean;
   hideSiteCard?: boolean;
   siteSelection?: number;
@@ -55,6 +58,10 @@ interface Props {
 }
 
 export default function AnatomyViewer(props: Props) {
+  const [viewMenu, setViewMenu] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    setViewMenu(document.getElementById("anatomy-view-actions"));
+  }, []);
   const host = useRef<HTMLDivElement>(null);
   const markers = useRef<Record<string, HTMLButtonElement | null>>({});
   const current = useRef(props);
@@ -69,6 +76,8 @@ export default function AnatomyViewer(props: Props) {
     select: (id: WearableSite, notify?: boolean) => void;
     opticalSide: () => void;
   } | null>(null);
+  const atmosphereRef = useRef(true);
+  const [atmosphereEnabled, setAtmosphereEnabled] = useState(true);
   const rotateRef = useRef(false);
   const [rotate, setRotate] = useState(false);
   const [error, setError] = useState(false);
@@ -117,7 +126,7 @@ export default function AnatomyViewer(props: Props) {
       return;
     }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.65));
-    renderer.setClearColor(0x010101, 1);
+    renderer.setClearColor(0x010202, 1);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 0.95;
     renderer.info.autoReset = false;
@@ -164,8 +173,10 @@ export default function AnatomyViewer(props: Props) {
     const inspectionLight = new THREE.DirectionalLight(0xeaf2ff, 0);
     inspectionLight.visible = false;
     scene.add(inspectionLight, inspectionLight.target);
-    const anatomy = createAnatomy();
+    const anatomy = createAnatomy(props.presentation);
     scene.add(anatomy.group);
+    const atmosphere = createSceneAtmosphere();
+    scene.add(atmosphere.group);
     const auras = createSensorAuras();
     scene.add(...Object.values(auras.sprites));
     let hoveredDevice: string | null = null;
@@ -316,11 +327,14 @@ export default function AnatomyViewer(props: Props) {
         locateDevice(id);
         // Frame a region, not a product close-up: leave the adjacent anatomy visible.
         const target = deviceCenter.clone();
+        const wideStage = element.clientWidth >= 1100;
+        if (wideStage) target.set(0, 1.82, 0);
         target.x *= 0.82;
-        if (id === "toe") target.y += 0.24;
-        if (id === "ear" || id === "forehead") target.y -= 0.24;
+        if (!wideStage && id === "toe") target.y += 0.24;
+        if (!wideStage && (id === "ear" || id === "forehead")) target.y -= 0.24;
         const distance =
-          (id === "upperarm" ? 3.1 : 2.65) * Math.max(1, 0.55 / camera.aspect);
+          (wideStage ? 6.1 : id === "upperarm" ? 3.1 : 2.65) *
+          Math.max(1, 0.55 / camera.aspect);
         const destination = target
           .clone()
           .add(
@@ -665,6 +679,13 @@ export default function AnatomyViewer(props: Props) {
       });
       anatomy.heart.visible = !isolatedDeviceRef.current;
       const cardiac = getCardiacState(p.clock.current.time, p.physiology);
+      atmosphere.update(
+        p.clock.current.time,
+        cardiac.phase,
+        reducedMotion.matches,
+        atmosphereRef.current && !isolatedDeviceRef.current,
+      );
+      element.dataset.atmosphere = atmosphereRef.current ? "on" : "off";
       anatomy.animate(
         p.clock.current.time,
         cardiac.heartRate,
@@ -811,6 +832,12 @@ export default function AnatomyViewer(props: Props) {
       element.dataset.bodyLoaded = String(
         Boolean(anatomy.group.userData.bodyLoaded),
       );
+      element.dataset.neckPatchHeight = String(
+        anatomy.group.userData.neckPatchHeight ?? 0,
+      );
+      element.dataset.neckReveal = String(
+        anatomy.group.userData.neckReveal ?? 0,
+      );
       element.dataset.headSource = String(
         anatomy.group.userData.headSource ?? "loading",
       );
@@ -826,6 +853,7 @@ export default function AnatomyViewer(props: Props) {
       controls.removeEventListener("start", onOrbitStart);
       gestures.dispose();
       element.removeEventListener("pointerdown", preserveMarkerClick, true);
+      atmosphere.dispose();
       auras.dispose();
       controls.dispose();
       bloom.dispose();
@@ -864,16 +892,6 @@ export default function AnatomyViewer(props: Props) {
         <span className="cross-hair">+</span> ANATOMICAL ATLAS{" "}
         <span className="scene-corner-detail">BODYPARTS3D / REAL TIME</span>
       </div>
-      <button
-        className={`cutaway-button ${cutaway ? "selected" : ""}`}
-        aria-pressed={cutaway}
-        onClick={() => {
-          cutawayRef.current = !cutaway;
-          setCutaway(!cutaway);
-        }}
-      >
-        <span className="cutaway-indicator" /> Chest cutaway
-      </button>
       <div className="view-orientation">
         <span className="view-dot" />
         {back ? "Posterior" : "Anterior"}
@@ -885,22 +903,34 @@ export default function AnatomyViewer(props: Props) {
           <Cube size={16} />
         </button>
       </div>
-      <button
-        className="focus-chest-button"
-        onClick={() => actions.current?.chest()}
-      >
-        <Heart size={13} />
-        Heart & lungs
-        <ArrowsOut size={11} />
-      </button>
-      <button
-        className={`focus-heart-button ${heartDetail ? "selected" : ""}`}
-        aria-pressed={heartDetail}
-        disabled={!ready}
-        onClick={() => actions.current?.heart()}
-      >
-        <Heart size={12} weight="fill" /> Heart detail
-      </button>
+      {viewMenu &&
+        createPortal(
+          <>
+            <button
+              disabled={!ready}
+              aria-pressed={cutaway}
+              onClick={() => {
+                cutawayRef.current = !cutaway;
+                setCutaway(!cutaway);
+              }}
+            >
+              <span className="cutaway-indicator" /> Chest cutaway
+            </button>
+            <button disabled={!ready} onClick={() => actions.current?.chest()}>
+              <Heart size={13} />
+              Heart & lungs
+              <ArrowsOut size={11} />
+            </button>
+            <button
+              aria-pressed={heartDetail}
+              disabled={!ready}
+              onClick={() => actions.current?.heart()}
+            >
+              <Heart size={12} weight="fill" /> Heart detail
+            </button>
+          </>,
+          viewMenu,
+        )}
       <div ref={host} className="three-host" data-testid="anatomy-canvas">
         {ready &&
           SITES.map((s) => (
@@ -1089,6 +1119,18 @@ export default function AnatomyViewer(props: Props) {
           </span>
         </div>
         <div className="scene-toolbar">
+          <button
+            className="atmosphere-toggle"
+            aria-label="Decorative atmosphere"
+            aria-pressed={atmosphereEnabled}
+            title="Toggle decorative particles and heartbeat glow"
+            onClick={() => {
+              atmosphereRef.current = !atmosphereEnabled;
+              setAtmosphereEnabled(!atmosphereEnabled);
+            }}
+          >
+            ✧
+          </button>
           <button
             aria-label="Zoom in"
             title="Zoom in"

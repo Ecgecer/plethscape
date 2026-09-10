@@ -67,6 +67,8 @@ group_info={
 def classify(p):
     pid=p['id'];name=p['name'].lower();system=p['system']
     if system=='reproductive' or pid in {'FJ2813','FJ2815'}:return None
+    # Genital vessels can be classified as cardiovascular rather than reproductive.
+    if any(term in name for term in ('penis','penile','testicular','scrotal','pudendal','prostatic','seminal','deferential')):return None
     if pid=='FJ2810':return 'body'
     # The pinnae are a separate sensory mesh, not part of the main skin shell.
     if pid in {'FJ2811','FJ2812','FJ2814'}:return 'face_details'
@@ -140,7 +142,7 @@ manifest={
  'classification':{'musculoskeletal':'Official BodyParts3D IS-A leaf memberships: FMA5022 muscle organ, FMA55107 cartilage organ, FMA7538 cartilage component, FMA9721 tendon, FMA21496 ligament organ, FMA59762 gingiva; named iliotibial tracts assigned fibrous connective tissue','vascular':'Audited source ID memberships in scripts/bodyparts3d-vascular-classification.json'},
  'transform':{'sourceUnits':'mm','sourceAxes':'X lateral, Z superior, -Y anterior','scale':SCALE,'formula':['x_mm * 0.001 * scale','(z_mm * 0.001 + 0.0781112) * scale','(-y_mm * 0.001 - 0.1) * scale']},
  'groups':[],'excluded':excluded,'flowPaths':[],'sites':{},
- 'adaptations':['Source mesh batching and quadric simplification','Smooth vertex normals','Uniform 3.65-unit height normalization','Reproductive structures and pubic/scalp hair omitted','External genital prominence of skin flattened for non-sexual display'],
+ 'adaptations':['Source mesh batching and quadric simplification','Smooth vertex normals','Uniform 3.65-unit height normalization','Reproductive structures, genital vessels and pubic/scalp hair omitted','External genital prominence of skin flattened for non-sexual display'],
  'limitations':['BodyParts3D 4.0 does not include a complete peripheral nervous system','HRA lungs and BodyParts3D originate from different reference anatomies; their registration is approximate','Flow paths are approximate centerlines of source vessels, not calibrated hemodynamics'],
 }
 objects=[]

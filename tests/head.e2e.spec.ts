@@ -53,3 +53,29 @@ for (const width of [1440, 390])
     await expect(scene).toHaveAttribute("data-region-focus", "ear");
     expect(errors).toEqual([]);
   });
+
+test("neck selection reveals source arteries under a raised patch and uses a plain location heading", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const scene = page.getByTestId("anatomy-canvas");
+  await expect(scene).toHaveAttribute("data-body-loaded", "true");
+  await expect(page.locator(".signal-header h2")).toHaveText("Top of wrist");
+  const height = Number(await scene.getAttribute("data-neck-patch-height"));
+  expect(height).toBeGreaterThan(3.12);
+  expect(height).toBeLessThan(3.18);
+  await page
+    .getByRole("button", { name: "Pause simulation", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Select Neck patch", exact: true })
+    .click();
+  await expect(scene).toHaveAttribute("data-neck-reveal", "1");
+  await expect(page.locator(".signal-header h2")).toHaveText("Carotid / neck");
+  await page.waitForTimeout(1000);
+  await page.screenshot({ path: "artifacts/neck-final.png" });
+  await page
+    .getByRole("button", { name: "Select Sensor band", exact: true })
+    .click();
+  await expect(scene).toHaveAttribute("data-neck-reveal", "0");
+});

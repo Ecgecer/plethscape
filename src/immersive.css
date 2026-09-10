@@ -1,0 +1,486 @@
+/* A continuous anatomical stage with readable, floating instrument panels. */
+.immersive-shell {
+  --stage-left: 280px;
+  --stage-right: clamp(370px, 28vw, 460px);
+}
+.scene-focus-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 10px 16px;
+  border: 1px solid #c3966466;
+  border-radius: 9px;
+  color: #ffd3a3;
+  background: #241b13b3;
+}
+.scene-focus-button:hover,
+.scene-focus-button[aria-pressed="true"] {
+  background: #614126;
+  border-color: #e5b581;
+}
+.scene-focus-button:focus-visible {
+  outline: 2px solid #ffc88d;
+  outline-offset: 4px;
+}
+.atmosphere-toggle[aria-pressed="true"] {
+  color: #ffc88d;
+  background: #c5883026;
+}
+@media (min-width: 1100px) {
+  .app-shell.immersive-shell {
+    max-width: none;
+    padding: 0 24px;
+    background: #080a0b;
+  }
+  .immersive-shell > main {
+    padding: 0;
+    max-width: none;
+  }
+  .immersive-shell .app-header {
+    position: relative;
+    z-index: 4;
+    min-height: 70px;
+    border-bottom: 1px solid #ecc39719;
+    background: linear-gradient(#0b0c0de6, #0b0c0d66);
+  }
+  .immersive-shell .brand small {
+    font-size: 10px;
+    letter-spacing: 0.13em;
+  }
+  .immersive-shell .workspace-heading {
+    position: relative;
+    z-index: 4;
+    min-height: 90px;
+    padding: 14px 0 18px;
+    gap: 20px;
+    pointer-events: none;
+  }
+  .immersive-shell .workspace-heading h1 {
+    font-size: clamp(21px, 1.75vw, 30px);
+    margin: 6px 0 0;
+    max-width: none;
+  }
+  .immersive-shell .workspace-heading p {
+    display: none;
+  }
+  .immersive-shell .workspace-kicker {
+    font-size: 10px;
+    color: #d0b296;
+  }
+  .immersive-shell .workspace-tools {
+    pointer-events: auto;
+  }
+  .immersive-shell .lab-workspace {
+    display: grid;
+    grid-template-columns: var(--stage-left) minmax(0, 1fr) var(--stage-right);
+    gap: 24px;
+    min-height: 520px;
+    height: calc(100dvh - 176px);
+    isolation: isolate;
+  }
+  .immersive-shell .body-panel {
+    position: absolute;
+    z-index: -1;
+    grid-area: auto;
+    align-self: stretch;
+    inset: -160px -24px auto;
+    width: calc(100% + 48px);
+    height: calc(100% + 176px);
+    min-height: 0;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+    background: #080a0b;
+  }
+  .immersive-shell .anatomy-viewer {
+    background: none;
+  }
+  .immersive-shell .three-host {
+    inset: 65px 0 40px;
+  }
+  .immersive-shell .control-rail,
+  .immersive-shell .signal-panel {
+    position: relative;
+    top: auto;
+    height: auto;
+    max-height: 100%;
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #a579494d transparent;
+    border: 1px solid #e7bc8629;
+    border-radius: 16px;
+    background: linear-gradient(140deg, #1c1916eb, #100f0edb);
+    backdrop-filter: blur(16px);
+    box-shadow:
+      inset 0 1px #ffe1bb0a,
+      0 16px 50px #00000029;
+  }
+  .immersive-shell .control-rail {
+    grid-column: 1;
+    padding: 18px;
+  }
+  .immersive-shell .signal-panel {
+    grid-column: 3;
+    padding: 22px;
+  }
+  .immersive-shell .location-selector .site-selector-list button {
+    min-height: 58px;
+    background: #11100e66;
+  }
+  .immersive-shell .selected-site-panel {
+    padding: 12px 0 16px;
+    border: 0;
+    border-bottom: 1px solid #d7ac7626;
+    border-radius: 0;
+    background: transparent;
+    margin: 12px 0 18px;
+  }
+  .immersive-shell .selected-device-actions {
+    gap: 6px;
+  }
+  .immersive-shell .selected-device-actions button {
+    padding: 8px 4px;
+  }
+  .immersive-shell .physiology-section {
+    margin-top: 0;
+    border-top: 0;
+    padding-top: 0;
+  }
+  .immersive-shell .signal-chart {
+    height: clamp(240px, 29dvh, 360px);
+    margin-inline: -8px;
+  }
+  .immersive-shell .signal-header h2 {
+    font-size: clamp(23px, 1.9vw, 32px);
+  }
+  .immersive-shell .signal-meta {
+    line-height: 1.5;
+  }
+  .immersive-shell .baseline-button {
+    margin-top: 14px;
+  }
+  .immersive-shell .chart-controls {
+    flex-wrap: wrap;
+  }
+  .immersive-shell .segmented button {
+    padding: 9px 10px;
+  }
+  .immersive-shell .signal-change-note {
+    margin: 14px 0;
+  }
+  .immersive-shell .signal-readouts {
+    border-top: 1px solid #d7ac7626;
+    padding-top: 12px;
+  }
+  .immersive-shell .scene-corner {
+    top: 164px;
+    left: calc(var(--stage-left) + 54px);
+    font-size: 10px;
+    color: #a28e7b;
+  }
+  .immersive-shell .scene-corner-detail {
+    display: none;
+  }
+  .immersive-shell .cutaway-button {
+    top: 192px;
+    left: calc(var(--stage-left) + 54px);
+    font-size: 11px;
+  }
+  .immersive-shell .focus-chest-button {
+    top: 162px;
+    right: calc(var(--stage-right) + 48px);
+    font-size: 11px;
+  }
+  .immersive-shell .focus-heart-button {
+    top: 202px;
+    right: calc(var(--stage-right) + 48px);
+    font-size: 11px;
+  }
+  .immersive-shell .scene-bottom,
+  .immersive-shell .anatomy-viewer[data-moving="true"] .scene-bottom {
+    left: calc(var(--stage-left) + 54px);
+    right: calc(var(--stage-right) + 48px);
+    bottom: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .immersive-shell .scene-hint {
+    display: block;
+    max-width: none;
+    text-align: center;
+    font-size: 11px;
+    color: #bca28d;
+  }
+  .immersive-shell .scene-toolbar {
+    background: #151310b3;
+    border: 1px solid #c99d6c40;
+    border-radius: 30px;
+    padding: 5px 10px;
+    backdrop-filter: blur(12px);
+  }
+  .immersive-shell .scene-toolbar button {
+    min-width: 38px;
+    min-height: 38px;
+  }
+  .immersive-shell .body-status {
+    position: absolute;
+    bottom: 4px;
+    left: calc(var(--stage-left) + 48px);
+    right: calc(var(--stage-right) + 48px);
+    padding: 6px 0;
+    border: 0;
+    background: none;
+    font-size: 10px;
+    justify-content: center;
+  }
+  .immersive-shell .body-status > span:last-child {
+    display: none;
+  }
+  .immersive-shell .anatomy-viewer .device-inspector {
+    left: calc(var(--stage-left) + 48px);
+    right: calc(var(--stage-right) + 48px);
+    bottom: 110px;
+    width: auto;
+    max-width: none;
+  }
+  .immersive-shell .breathing-cue {
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 150px;
+  }
+  .immersive-shell .motion-panel {
+    margin-top: 40px;
+  }
+  .immersive-shell .app-footer {
+    position: relative;
+    margin-top: 32px;
+  }
+  .immersive-shell.scene-only .control-rail,
+  .immersive-shell.scene-only .signal-panel {
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .immersive-shell.scene-only {
+    --stage-left: 0px;
+    --stage-right: 0px;
+  }
+  .immersive-shell.scene-only .scene-corner {
+    top: 164px;
+  }
+  /* Comparing a captured beat keeps its dedicated study workspace. */
+  .immersive-shell.studio-open .body-panel {
+    position: relative;
+    inset: auto;
+    grid-column: 2;
+    grid-row: 1;
+    height: 100%;
+  }
+  .immersive-shell.studio-open .three-host {
+    inset: 0;
+  }
+  .immersive-shell.studio-open .scene-corner,
+  .immersive-shell.studio-open .cutaway-button {
+    left: 16px;
+  }
+  .immersive-shell.studio-open .focus-chest-button,
+  .immersive-shell.studio-open .focus-heart-button {
+    right: 16px;
+  }
+  .immersive-shell.studio-open .scene-bottom {
+    left: 16px;
+    right: 16px;
+  }
+  .immersive-shell.studio-open .body-status {
+    left: 16px;
+    right: 16px;
+  }
+}
+@media (max-width: 1099px) {
+  .scene-focus-button {
+    display: none;
+  }
+  .immersive-shell .body-panel {
+    border-color: #ce9a5233;
+    background: #080a0b;
+  }
+}
+@media (max-width: 700px) {
+  .immersive-shell .workspace-heading h1 {
+    font-size: 23px;
+  }
+  .immersive-shell .body-panel {
+    height: 54dvh;
+    min-height: 380px;
+    max-height: 600px;
+    margin-inline: -12px;
+    border-radius: 0;
+    border-inline: 0;
+  }
+  .immersive-shell .signal-panel {
+    margin-top: -12px;
+    position: relative;
+    border-color: #bc8b583d;
+    background: linear-gradient(#1c1814f2, #100f0e);
+  }
+  .immersive-shell .anatomy-viewer .three-host {
+    top: 48px;
+    bottom: 38px;
+  }
+  .immersive-shell .control-rail {
+    margin-top: 8px;
+  }
+  .immersive-shell .signal-chart {
+    height: 260px;
+  }
+}
+
+/* Keep comparison with the signal, and let the scene extend around the instruments. */
+.signal-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+.immersive-shell .signal-actions .baseline-button {
+  margin: 0;
+  flex: 1;
+  min-width: 130px;
+}
+.compare-locations-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #c09a7240;
+  border-radius: 8px;
+  color: #dfc6ad;
+  background: #a77b3910;
+  font-size: 13px;
+}
+.compare-locations-button:hover {
+  color: #ffdbb6;
+  border-color: #d7a46f;
+  background: #b77e3326;
+}
+.compare-locations-button:focus-visible {
+  outline: 2px solid #ffc88d;
+  outline-offset: 3px;
+}
+.compare-locations-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+@media (min-width: 1100px) {
+  .immersive-shell .app-header {
+    min-height: 64px;
+    padding: 10px 0;
+    border-bottom-color: #e8c49b0e;
+  }
+  .immersive-shell .brand small {
+    display: none;
+  }
+  .immersive-shell .workspace-heading {
+    min-height: 76px;
+    padding: 12px 0;
+  }
+  .immersive-shell .workspace-heading h1 {
+    font-size: clamp(20px, 1.5vw, 26px);
+  }
+  .immersive-shell .lab-workspace {
+    height: calc(100dvh - 156px);
+  }
+  .immersive-shell:not(.studio-open) .body-panel {
+    top: -140px;
+    height: calc(100% + 156px);
+  }
+  .immersive-shell .three-host {
+    inset: 40px 0 24px;
+  }
+  .immersive-shell .control-rail,
+  .immersive-shell .signal-panel {
+    align-self: center;
+    max-height: calc(100dvh - 230px);
+    background: linear-gradient(140deg, #181715d9, #0d0e0dc9);
+    border-color: #dfb98425;
+    box-shadow: 0 18px 65px #0003;
+    border-radius: 12px;
+  }
+  .immersive-shell .signal-chart {
+    height: clamp(230px, 27dvh, 340px);
+  }
+  .immersive-shell .scene-corner {
+    top: 148px;
+  }
+  .immersive-shell .cutaway-button {
+    top: 176px;
+  }
+  .immersive-shell .focus-chest-button {
+    top: 146px;
+  }
+  .immersive-shell .focus-heart-button {
+    top: 186px;
+  }
+}
+
+.model-picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #dac6b0;
+  font-size: 14px;
+}
+.model-picker select {
+  min-height: 44px;
+  padding: 8px 30px 8px 12px;
+  border: 1px solid #a87c4c;
+  border-radius: 10px;
+  color: #ffce9b;
+  background: #19140f;
+  font: inherit;
+  cursor: pointer;
+}
+
+.control-rail > .model-picker {
+  justify-content: space-between;
+  padding: 0 0 18px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid #ffffff1a;
+}
+.control-rail > .model-picker select {
+  min-width: 130px;
+}
+.anatomy-view-actions {
+  display: grid;
+  gap: 10px;
+  padding: 18px 0;
+  border-bottom: 1px solid #ffffff1a;
+}
+.anatomy-view-actions button {
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid #ffffff25;
+  border-radius: 9px;
+  background: #ffffff06;
+  color: #e9d3ba;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.anatomy-view-actions button[aria-pressed="true"] {
+  border-color: #eeb071;
+  background: #eeb07122;
+}
+
+@media (max-width: 700px) {
+  .control-rail > .model-picker {
+    display: none;
+  }
+}

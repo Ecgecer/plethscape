@@ -292,3 +292,28 @@ test("the 18 selected source routes move downstream from anatomically correct pr
     "Abdominal aorta continues inferiorly from thoracic aorta",
   );
 });
+
+test("genital vascular branches are omitted while major leg circulation remains", () => {
+  const ids = new Set(
+    metadata.groups.flatMap((group) => group.sourceIds ?? []),
+  );
+  for (const id of [
+    "FJ3496",
+    "FJ3497",
+    "FJ3532",
+    "FJ3592",
+    "FJ3593",
+    "FJ3617",
+    "FJ2056",
+    "FJ2208",
+    "FJ3426",
+    "FJ3525",
+    "FJ3533",
+    "FJ3610",
+    "FJ3618",
+    "FJ3637",
+  ])
+    assert(!ids.has(id), `Genital vessel ${id} must not be displayed`);
+  for (const id of ["FJ2074", "FJ2143"])
+    assert(ids.has(id), "Main femoral arteries remain");
+});

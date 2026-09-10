@@ -68,6 +68,18 @@ type Metadata = {
 
 // Geometry is BodyParts3D 4.0, CC BY 4.0. All positions use one uniform
 // source-to-scene transform. This module supplies presentation and animation.
+// A localized anatomical window reveals the existing carotid tree; the scan
+// remains opaque elsewhere. The device keeps its own depth/stencil occlusion.
+const neckWindowShader = `
+uniform vec3 atlasNeckPatch;
+uniform float atlasNeckReveal;
+float neckWindowAt(vec3 p) {
+  vec3 center = atlasNeckPatch + vec3(-.025, -.012, -.035);
+  float oval = length((p-center)/vec3(.075,.075,.09));
+  return (1.-smoothstep(.55,1.,oval))*atlasNeckReveal
+    * smoothstep(3.035,3.08,p.y)*(1.-smoothstep(3.23,3.27,p.y));
+}
+`;
 const movement = `uniform float atlasTime;\n${rigShader}`;
 
 const defaults: Record<string, Point> = {
@@ -80,7 +92,7 @@ const defaults: Record<string, Point> = {
   toe: [0.15, 0.065, 0.3],
 };
 
-export function createAnatomy() {
+export function createAnatomy(presentation: "male" | "female" = "male") {
   const group = new THREE.Group();
   group.name = "BodyParts3D reference anatomy";
   group.userData.bodyLoaded = false;
@@ -126,17 +138,25 @@ export function createAnatomy() {
     },
     ear: {
       // Piercing anchor on the lower anterior lobe of the visible neutral skin.
-      position: new THREE.Vector3(0.172, 3.335, -0.042),
+      position: new THREE.Vector3(
+        presentation === "female" ? 0.153 : 0.172,
+        presentation === "female" ? 3.4 : 3.335,
+        -0.042,
+      ),
       axis: new THREE.Vector3(0, 1, 0),
       rotation: Math.PI / 2,
     },
     forehead: {
-      position: new THREE.Vector3(0, 3.42, -0.045),
+      position: new THREE.Vector3(
+        0,
+        presentation === "female" ? 3.47 : 3.435,
+        0.025,
+      ),
       axis: new THREE.Vector3(0, 1, 0),
       rotation: 0,
     },
     carotid: {
-      position: new THREE.Vector3(0.085, 3.065, 0.08),
+      position: new THREE.Vector3(0.085, 3.145, 0.08),
       axis: new THREE.Vector3(0, 1, 0),
       rotation: 0.65,
     },
@@ -208,7 +228,8 @@ export function createAnatomy() {
     atlasFlowEnabled: { value: 1 },
     atlasHeart: { value: new THREE.Vector3(0.11, 2.64, 0.1) },
     atlasGlowColor: { value: new THREE.Color("#ff933f") },
-    atlasNeckPatch: { value: new THREE.Vector3(0, 3.065, 0) },
+    atlasNeckPatch: { value: new THREE.Vector3(0, 3.145, 0) },
+    atlasNeckReveal: { value: 0 },
   };
   const tissueMaterials: {
     material: THREE.MeshStandardMaterial;
@@ -372,6 +393,7 @@ export function createAnatomy() {
         .replace(
           "#include <common>",
           `#include <common>
+        ${neckWindowShader}
         uniform float atlasCutaway;
         uniform float atlasXray;
         uniform float atlasSurface;
@@ -386,12 +408,12 @@ export function createAnatomy() {
         .replace(
           "#include <color_fragment>",
           `#include <color_fragment>
-        if (atlasPosition.y > 3.105) discard;
+        if (atlasPosition.y > 3.100 ${tissue === "arteries" ? "&& neckWindowAt(atlasPosition)<.015" : ""}) discard;
         ${
           tissue === "eyes"
             ? "discard;"
             : tissue !== "body"
-              ? "if (atlasPosition.y > 3.18 && atlasHeartFocus < .5) discard;"
+              ? "if (atlasPosition.y > 3.27 && atlasHeartFocus < .5) discard;"
               : ""
         }
         ${
@@ -439,7 +461,7 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
         shader.fragmentShader = shader.fragmentShader
           .replace(
             "uniform float atlasFlow;",
-            "uniform float atlasFlow;\nuniform vec3 atlasGlowColor;\nuniform vec3 atlasNeckPatch;",
+            "uniform float atlasFlow;\nuniform vec3 atlasGlowColor;",
           )
           .replace(
             "#include <emissivemap_fragment>",
@@ -454,6 +476,7 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
             float patchSkin = 1.-smoothstep(.038,.073,distance(atlasPosition,atlasNeckPatch));
             diffuseColor.a = max(diffuseColor.a,patchSkin*.42*(1.-atlasHeartFocus));
             diffuseColor.rgb = mix(diffuseColor.rgb,vec3(.32,.21,.145),patchSkin*.65);
+            diffuseColor.a *= 1.-.78*neckWindowAt(atlasPosition);
 
           `,
           );
@@ -475,6 +498,7 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
             "#include <emissivemap_fragment>",
             `#include <emissivemap_fragment>
             totalEmissiveRadiance += diffuseColor.rgb * atlasFlowEnabled * (.035 + .16 * atlasContraction);
+            totalEmissiveRadiance += diffuseColor.rgb * neckWindowAt(atlasPosition) * (.18 + .4 * atlasContraction);
           `,
           );
       }
@@ -637,7 +661,12 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
       return r.json() as Promise<Metadata>;
     }),
     loader.loadAsync(import.meta.env.BASE_URL + "models/neutral-skin.glb"),
-    loader.loadAsync(import.meta.env.BASE_URL + "models/scanned-head.glb"),
+    loader.loadAsync(
+      import.meta.env.BASE_URL +
+        (presentation === "female"
+          ? "models/scanned-head-female.glb"
+          : "models/scanned-head.glb"),
+    ),
   ])
     .then(([gltf, metadata, skin, scanned]) => {
       if (disposed) {
@@ -675,6 +704,9 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
         geometry.computeBoundingSphere();
         const material = object.material as THREE.MeshStandardMaterial;
         material.roughness = 0.7;
+        material.vertexColors = false;
+        material.transparent = true;
+        material.depthWrite = true;
         material.emissive.setRGB(0.018, 0.009, 0.006);
         material.side = THREE.FrontSide;
         material.onBeforeCompile = (shader) => {
@@ -682,24 +714,24 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
           shader.vertexShader = shader.vertexShader
             .replace(
               "#include <common>",
-              `#include <common>\nvarying float headHeight;\n${movement}`,
+              `#include <common>\nvarying float headHeight; varying vec3 headRestPosition; attribute vec3 color; varying float hairWeight;\n${movement}`,
             )
             .replace(
               "#include <begin_vertex>",
-              "#include <begin_vertex>\nheadHeight = position.y; transformed = atlasGait(transformed);",
+              "#include <begin_vertex>\nheadHeight = position.y; headRestPosition = position; hairWeight = color.r; transformed = atlasGait(transformed);",
             )
             .replace(
               "#include <defaultnormal_vertex>",
-              "objectNormal = normalize(mat3(atlasSkinMatrix()) * objectNormal);\n#include <defaultnormal_vertex>",
+              "vec3 neckRadial = normalize(vec3(position.x, .025, position.z + .025)); objectNormal = normalize(mix(objectNormal, neckRadial, (1.-color.r)*smoothstep(3.10,3.135,position.y)*(1.-smoothstep(3.20,3.30,position.y)))); objectNormal = normalize(mat3(atlasSkinMatrix()) * objectNormal);\n#include <defaultnormal_vertex>",
             );
           shader.fragmentShader = shader.fragmentShader
             .replace(
               "#include <common>",
-              "#include <common>\nvarying float headHeight; uniform float atlasHeartFocus;",
+              `#include <common>\nvarying float headHeight; varying vec3 headRestPosition; varying float hairWeight; uniform float atlasHeartFocus; ${neckWindowShader}`,
             )
             .replace(
               "#include <color_fragment>",
-              "#include <color_fragment>\nif(atlasHeartFocus > .5) discard; diffuseColor.rgb = mix(vec3(.32,.21,.145), diffuseColor.rgb, smoothstep(3.185,3.215,headHeight));",
+              "#include <color_fragment>\nif(atlasHeartFocus > .5) discard; diffuseColor.rgb = mix(vec3(.32,.21,.145), diffuseColor.rgb, smoothstep(3.26,3.34,headHeight)); diffuseColor.a *= 1.-.72*neckWindowAt(headRestPosition);",
             );
         };
         const headFinish = material.onBeforeCompile;
@@ -707,10 +739,39 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
           headFinish.call(material, shader, renderer);
           shader.fragmentShader = shader.fragmentShader.replace(
             "#include <normal_fragment_maps>",
-            "vec3 neckNormal = normal;\n#include <normal_fragment_maps>\nnormal = normalize(mix(neckNormal,normal,smoothstep(3.22,3.30,headHeight)));",
+            "vec3 neckNormal = normal;\n#include <normal_fragment_maps>\nnormal = normalize(mix(neckNormal,normal,smoothstep(3.26,3.34,headHeight)));",
           );
         };
-        material.customProgramCacheKey = () => "scanned-head-neck-blend-v2";
+        const coveredHeadFinish = material.onBeforeCompile;
+        material.onBeforeCompile = (shader, renderer) => {
+          coveredHeadFinish.call(material, shader, renderer);
+          // Keep the local anatomical window's coverage instead of Three's
+          // opaque-material alpha override. All other head pixels remain opaque.
+          shader.fragmentShader = shader.fragmentShader.replace(
+            "#include <opaque_fragment>",
+            "gl_FragColor = vec4(outgoingLight, diffuseColor.a);",
+          );
+        };
+        if (presentation === "female") {
+          const finish = material.onBeforeCompile;
+          material.onBeforeCompile = (shader, renderer) => {
+            finish.call(material, shader, renderer);
+            shader.fragmentShader = shader.fragmentShader.replaceAll(
+              "smoothstep(3.26,3.34,headHeight)",
+              "smoothstep(3.25,3.32,headHeight)",
+            );
+          };
+        }
+        const neckBlendFinish = material.onBeforeCompile;
+        material.onBeforeCompile = (shader, renderer) => {
+          neckBlendFinish.call(material, shader, renderer);
+          shader.fragmentShader = shader.fragmentShader.replaceAll(
+            "headHeight)",
+            "headHeight + max(0.,headRestPosition.z-.02)*.8 + hairWeight)",
+          );
+        };
+        material.customProgramCacheKey = () =>
+          `scanned-head-neck-window-v7-${presentation}`;
         for (const texture of [material.map, material.normalMap])
           if (texture) {
             texture.anisotropy = 4;
@@ -728,13 +789,18 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
         scannedHead.name = "Scanned presentation head";
         scannedHead.userData.tissue = "presentationHead";
         scannedHead.frustumCulled = false;
+        scannedHead.renderOrder = 4;
         layers.body.add(scannedHead);
-
+        // The color pass writes its own depth. A duplicate depth prepass can
+        // disagree at grazing angles on the skinned neck and create hard patches.
         headOccluders.push(scannedHead);
       });
       if (!scannedHead)
         throw new Error("Scanned presentation head unavailable");
-      group.userData.headSource = "Renderpeople Eric Rigged 001";
+      group.userData.headSource =
+        presentation === "female"
+          ? "Renderpeople Claudia Rigged 002"
+          : "Renderpeople Eric Rigged 001";
       let presentationSkin: THREE.Mesh | undefined;
       skin.scene.traverse((o) => {
         if (o instanceof THREE.Mesh) presentationSkin = o;
@@ -788,7 +854,7 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
                 positions.getY(a),
                 positions.getY(b),
                 positions.getY(c),
-              ) <= 3.105
+              ) <= 3.1
             )
               kept.push(a, b, c);
           }
@@ -897,6 +963,9 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
       geometries.add(fittedGeometry);
       fittingSkin.geometry = fittedGeometry;
       fitParts.forEach((geometry) => geometry.dispose());
+      wearables.devices.forehead.traverse((part) => {
+        if (part instanceof THREE.Mesh) part.geometry.scale(0.86, 0.86, 1);
+      });
       const fitted = fitWearablesToSkin(
         fittingSkin,
         wearables.devices.forehead,
@@ -907,6 +976,7 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
       attachmentTurns.forehead.copy(fitted.temple.quaternion);
       attachmentPoses.carotid.position.copy(fitted.neck.position);
       shared.atlasNeckPatch.value.copy(fitted.neck.position);
+      group.userData.neckPatchHeight = fitted.neck.position.y;
       attachmentTurns.carotid.copy(fitted.neck.quaternion);
       if (!heartBounds.isEmpty()) {
         shared.atlasHeart.value.copy(
@@ -1065,7 +1135,9 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
       setPresentation(mode);
     },
     setFlowFocus: (site: SiteId, enabled: boolean) => {
+      shared.atlasNeckReveal.value = site === "carotid" && enabled ? 1 : 0;
       shared.atlasFlowFocus.value.copy(sites[site]);
+      group.userData.neckReveal = shared.atlasNeckReveal.value;
       shared.atlasFlowFocusRadius.value =
         site === "ear" || site === "forehead"
           ? 0.65

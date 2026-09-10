@@ -51,7 +51,7 @@ export const DEFAULT_PHYSIOLOGY: Physiology = {
 };
 
 /** Fixed optical plot limits preserve relative amplitudes across controls. */
-export const PPG_DISPLAY_RANGE = { min: -0.5, max: 1.7 } as const;
+export const PPG_DISPLAY_RANGE = { min: -0.8, max: 2.1 } as const;
 
 export const SITES: AnatomicalSite[] = [
   {
@@ -454,6 +454,46 @@ export function sampleBeat(
   return beat(clamp(phase0to1, 0, 1), model(p, siteId));
 }
 
+/** Mechanism-driven teaching coefficients, not a validated ranking of devices.
+ * Evidence and limits: docs/MOTION-ARTIFACTS.md. Uses the body's shared gait clock.
+ */
+const MOTION_PROFILES: Record<
+  SiteId,
+  { swing: number; impact: number; slip: number; phase: number }
+> = {
+  wrist: { swing: 1, impact: 0.65, slip: 0.85, phase: 0.2 },
+  finger: { swing: 0.9, impact: 0.8, slip: 0.95, phase: 0.55 },
+  upperarm: { swing: 0.5, impact: 0.4, slip: 0.5, phase: 0.1 },
+  ear: { swing: 0.3, impact: 0.5, slip: 0.55, phase: 0.85 },
+  forehead: { swing: 0.22, impact: 0.42, slip: 0.3, phase: 0.7 },
+  carotid: { swing: 0.35, impact: 0.4, slip: 0.45, phase: 0.4 },
+  toe: { swing: 0.45, impact: 1.35, slip: 1, phase: 0 },
+};
+
+function motionArtifact(
+  t: number,
+  motion: ReturnType<typeof movementSignal>,
+  site: SiteId,
+) {
+  const profile = MOTION_PROFILES[site];
+  const strength = 0.58 * motion.m.walk + motion.m.run;
+  const phase = motion.a * 2 + profile.phase;
+  const envelope = 0.75 + 0.25 * Math.sin(t * 0.83 + profile.phase);
+  const swing =
+    Math.sin(motion.a + profile.phase) + 0.38 * Math.sin(phase + 0.6);
+  const strike = Math.pow(Math.max(0, Math.cos(phase)), 12);
+  // Intermittent coupling loss modulates real pulses rather than inventing extra heartbeats.
+  const slip = Math.pow(Math.max(0, Math.sin(t * 1.13 + profile.phase)), 6);
+  const contact = 1 - strength * profile.slip * (0.42 * slip + 0.18 * strike);
+  const offset =
+    strength *
+    (0.34 * profile.swing * swing * envelope +
+      0.37 * profile.impact * (strike - 0.13) +
+      0.15 * profile.slip * smoothNoise(t * 0.65, 871) +
+      0.13 * profile.slip * slip * Math.sin(phase * 3.7 + Math.sin(t)));
+  return { contact, offset };
+}
+
 /** Continuous synthetic optical trace. Time may be negative for history buffers. */
 export function samplePPG(
   timeSec: number,
@@ -486,15 +526,8 @@ export function samplePPG(
       0.021 * Math.sin(TAU * 23.71 * t + Math.sin(t * 0.83)) +
       0.014 * Math.sin(TAU * 37.31 * t + 1.7));
   const motion = movementSignal(t, p.activity, p.motionHistory);
-  const cadencePhase = motion.a * 2;
-  const movement =
-    motion.amount *
-    m.motionSensitivity *
-    (0.08 + 0.1 * (1 - m.perfusion)) *
-    (Math.sin(cadencePhase + 0.6) +
-      0.4 * Math.sin(cadencePhase * 2 + 1.2) +
-      0.22 * Math.sin(cadencePhase * 3.13 + Math.sin(t * 0.37)));
-  return clean + drift + sensor + movement;
+  const artifact = motionArtifact(t, motion, siteId);
+  return clean * artifact.contact + drift + sensor + artifact.offset;
 }
 
 /** Synthetic wrist-oriented accelerometer output in g; z includes gravity. */
@@ -572,7 +605,7 @@ export function getInsight(
         p.activity === "run"
           ? "Movement joins the pulse"
           : "Two rhythms, one sensor",
-      body: "Periodic movement adds contact artifacts to the optical trace. Compare its rhythm with acceleration. The heart-rate control remains independent so you can isolate each effect.",
+      body: "Walking and running add site-specific baseline shifts, impact spikes and temporary contact loss. Compare locations and watch the raw trace against acceleration. These are illustrative artifacts, not measured device performance; the heart-rate control stays independent.",
     };
   if (siteId === "carotid")
     return {

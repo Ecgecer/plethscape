@@ -387,3 +387,62 @@ test("sensing sites share the same irregular rhythm after their propagation dela
     "Changing sites must not generate a different virtual heartbeat",
   );
 });
+
+test("gait artifacts are substantial, site dependent and replayable without changing clean morphology", () => {
+  const energies: Record<string, number> = {};
+  for (const site of SITES) {
+    let walk = 0,
+      run = 0;
+    // Keep the running physiological model fixed; override only its gait history.
+    const base = { ...DEFAULT_PHYSIOLOGY, activity: "run" as const };
+    const still = {
+      ...base,
+      motionHistory: [
+        {
+          time: -100,
+          to: "rest" as const,
+          previous: "rest" as const,
+          phase: 0,
+          cadence: 0,
+          walk: 0,
+          run: 0,
+        },
+      ],
+    };
+    const walking = {
+      ...base,
+      motionHistory: [
+        {
+          time: -100,
+          to: "walk" as const,
+          previous: "walk" as const,
+          phase: 0,
+          cadence: 1.8,
+          walk: 1,
+          run: 0,
+        },
+      ],
+    };
+    for (let i = 0; i < 3000; i++) {
+      const t = i / 100;
+      const clean = samplePPG(t, still, site.id);
+      const w = samplePPG(t, walking, site.id);
+      const r = samplePPG(t, base, site.id);
+      walk += (w - clean) ** 2;
+      run += (r - clean) ** 2;
+      assert.equal(r, samplePPG(t, base, site.id));
+    }
+    energies[site.id] = Math.sqrt(run / 3000);
+    assert(
+      Math.sqrt(walk / 3000) > 0.025,
+      `${site.id}: visible walking artifacts`,
+    );
+    assert(run > walk * 1.6, `${site.id}: running increases distortion`);
+    assert.equal(
+      sampleBeat(0.3, base, site.id),
+      sampleBeat(0.3, still, site.id),
+    );
+  }
+  assert(energies.wrist > energies.forehead * 1.5);
+  assert(energies.toe > energies.upperarm * 1.3);
+});

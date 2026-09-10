@@ -7,10 +7,10 @@ import { fitWearablesToSkin } from "../src/surfaceFit.ts";
 test("wearable fitting follows a curved head and curved neck rather than floating on fixed planes", () => {
   const head = new THREE.SphereGeometry(1, 96, 64)
     .scale(0.17, 0.26, 0.22)
-    .translate(0, 3.4, -0.045);
+    .translate(0, 3.6, -0.045);
   const neck = new THREE.SphereGeometry(1, 96, 64)
     .scale(0.13, 0.17, 0.115)
-    .translate(0, 3.04, -0.09);
+    .translate(0, 3.14, -0.09);
   const geometry = mergeGeometries([head, neck]);
   const skin = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial());
   skin.updateMatrixWorld();
@@ -24,7 +24,7 @@ test("wearable fitting follows a curved head and curved neck rather than floatin
     skin,
     band,
     patch,
-    new THREE.Vector3(0, 3.42, -0.045),
+    new THREE.Vector3(0, 3.62, -0.045),
   );
   const positions = bandGeometry.getAttribute("position");
   const templePoint = new THREE.Vector3();
@@ -35,7 +35,7 @@ test("wearable fitting follows a curved head and curved neck rather than floatin
       .add(fit.temple.position);
     const ellipsoid =
       (templePoint.x / 0.17) ** 2 +
-      ((templePoint.y - 3.4) / 0.26) ** 2 +
+      ((templePoint.y - 3.6) / 0.26) ** 2 +
       ((templePoint.z + 0.045) / 0.22) ** 2;
     assert(
       ellipsoid >= 0.998 && ellipsoid < 1.15,
@@ -52,7 +52,7 @@ test("wearable fitting follows a curved head and curved neck rather than floatin
       .add(fit.neck.position);
     const ellipsoid =
       Math.pow(world.x / 0.13, 2) +
-      Math.pow((world.y - 3.04) / 0.17, 2) +
+      Math.pow((world.y - 3.14) / 0.17, 2) +
       Math.pow((world.z + 0.09) / 0.115, 2);
     assert(
       ellipsoid >= 0.998 && ellipsoid < 1.12,

@@ -85,6 +85,7 @@ export function fitWearablesToSkin(
     center: THREE.Vector3,
     direction: THREE.Vector3,
     clearance: number,
+    tilt = 0,
   ) {
     direction.normalize();
     ray.set(
@@ -96,6 +97,7 @@ export function fitWearablesToSkin(
     const normal = (hit.normal ?? hit.face!.normal).clone().normalize();
     if (normal.dot(direction) < 0) normal.negate();
     const right = new THREE.Vector3(0, 1, 0).cross(normal).normalize();
+    right.applyAxisAngle(normal, tilt);
     const up = normal.clone().cross(right).normalize();
     const orientation = new THREE.Quaternion().setFromRotationMatrix(
       new THREE.Matrix4().makeBasis(right, up, normal),
@@ -120,7 +122,8 @@ export function fitWearablesToSkin(
             base.clone().addScaledVector(normal, 0.12),
             normal.clone().negate(),
           );
-          const contact = intersect(base.y, 1);
+          // A tilted surface normal can cross several height bins along this ray.
+          const contact = intersect(base.y, 5);
           if (!contact) throw new Error("Sensor patch edge missed the skin");
           depth = contact.point.sub(base).dot(normal);
           cache.set(key, depth);
@@ -139,11 +142,12 @@ export function fitWearablesToSkin(
       temple,
       templeOrigin,
       new THREE.Vector3(0.84, 0, 0.54),
-      0.0055,
+      0.0036,
+      -Math.PI / 7 + Math.PI / 2,
     );
     const neckFit = fitPatch(
       neck,
-      new THREE.Vector3(0, 3.065, -0.09),
+      new THREE.Vector3(0, 3.145, -0.055),
       new THREE.Vector3(0.82, 0, 0.57),
       0.0028,
     );

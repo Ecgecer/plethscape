@@ -105,7 +105,7 @@ wearable types underneath. Selecting a site updates both the large live trace
 and representative beat. **Save reference** retains an overlay while changing
 location or physiology. Signals are simulated examples, not measured recordings.
 
-Open **Compare sites** above the body to capture one heartbeat and immediately see
+Open **Compare locations** beside **Save reference** in the PPG panel to capture one heartbeat and immediately see
 synchronized site traces beside the anatomy. **Light & tissue** on the selected
 device card opens the optical cutaway instead. Scrub time, replay at 0.2× / 0.5× / 1×,
 or jump to a resolved pulse landmark. **Inside sensor** displays a custom-coded

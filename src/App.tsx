@@ -3,6 +3,7 @@ import { transitionMotion } from "./locomotion";
 import { lazy, Suspense, useEffect, useId, useRef, useState } from "react";
 import type { CSSProperties, ReactNode, SetStateAction } from "react";
 import {
+  ArrowsOut,
   ArrowDown,
   ArrowRight,
   ArrowUpRight,
@@ -175,6 +176,7 @@ function Modal({
 }
 
 export default function App() {
+  const [presentation, setPresentation] = useState<"male" | "female">("male");
   const [mobileControlsOpen, setMobileControlsOpen] = useState(false);
   const [siteSelection, setSiteSelection] = useState(0);
   const [tourStep, setTourStep] = useState<number | null>(null);
@@ -194,6 +196,15 @@ export default function App() {
     null,
   );
   const studioTrigger = useRef<HTMLButtonElement>(null);
+  const studioBack = useRef<HTMLButtonElement>(null);
+  const restoreStudioFocus = useRef(false);
+  useEffect(() => {
+    if (captured) studioBack.current?.focus();
+    else if (restoreStudioFocus.current) {
+      restoreStudioFocus.current = false;
+      studioTrigger.current?.focus();
+    }
+  }, [captured]);
   const [inspectRequest, setInspectRequest] = useState<{
     site: SiteId;
     nonce: number;
@@ -278,7 +289,7 @@ export default function App() {
     setPhysiology((p) => ({ ...p, [key]: value }));
   };
   const chooseSite = (id: SiteId) => {
-    setSiteSelection(n => n + 1);
+    setSiteSelection((n) => n + 1);
     setChangeNote(
       `${SITES.find((s) => s.id === id)?.name}: compare this site’s pulse shape and modeled arrival time with a saved reference.`,
     );
@@ -295,10 +306,11 @@ export default function App() {
     setRunning(true);
   };
   const closeStudio = () => {
+    restoreStudioFocus.current = true;
+    setSceneOnly(false);
     setCaptured(null);
     playback.current = null;
     setRunning(true);
-    studioTrigger.current?.focus();
   };
   const openStudio = () => {
     setTourStep(null);
@@ -386,7 +398,7 @@ export default function App() {
   }, [toast]);
   const activity = (value: Activity) => {
     setChangeNote(
-      "Movement presets change the mean heart rate and add motion artifacts. You can adjust the rate independently.",
+      "Movement presets change the mean heart rate and add site-specific impact spikes, baseline movement and contact loss. Running is stronger than walking. Illustrative raw signal; adjust heart rate independently.",
     );
     setPhysiology((p) => ({
       ...p,
@@ -527,6 +539,25 @@ export default function App() {
     setTourApplied(false);
     setPulseStart(null);
   };
+
+  const modelPicker = (
+    <label className="model-picker">
+      Model
+      <select
+        aria-label="Model appearance"
+        value={presentation}
+        onChange={(event) => {
+          if (event.target.value === presentation) return;
+          setPresentation(event.target.value as "male" | "female");
+          setAnatomyReady(false);
+          setInspectRequest(null);
+        }}
+      >
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+    </label>
+  );
 
   const physiologyControls = (
     <fieldset className="physiology-controls" disabled={!!captured}>
@@ -672,6 +703,8 @@ export default function App() {
       </section>
     </fieldset>
   );
+  const [sceneOnly, setSceneOnly] = useState(false);
+
   return (
     <div
       data-tour={
@@ -679,7 +712,7 @@ export default function App() {
           ? TOUR_STEPS[tourStep].target
           : undefined
       }
-      className={`app-shell ${tourStep !== null ? "tour-active" : ""} instrument-shell experience-shell experience-${experience} ${captured ? "studio-open" : ""}`}
+      className={`app-shell ${tourStep !== null ? "tour-active" : ""} instrument-shell immersive-shell ${sceneOnly ? "scene-only" : ""} experience-shell experience-${experience} ${captured ? "studio-open" : ""}`}
       data-experience={experience}
     >
       <header className="app-header">
@@ -712,7 +745,13 @@ export default function App() {
           >
             Workspace
           </button>
-          <button className="nav-item" onClick={() => setDialog("guide")}>
+          <button
+            className="nav-item"
+            onClick={() => {
+              setSceneOnly(false);
+              setDialog("guide");
+            }}
+          >
             <BookOpen size={18} /> Learn
           </button>
         </nav>
@@ -738,21 +777,22 @@ export default function App() {
           </div>
           <div className="workspace-tools">
             <button
-              ref={studioTrigger}
-              className="studio-launch"
-              aria-expanded={!!captured}
-              disabled={!anatomyReady}
-              onClick={
-                captured
-                  ? closeStudio
-                  : () => {
-                      openStudio();
-                      setStudioView("body");
-                    }
-              }
+              className="scene-focus-button"
+              aria-pressed={sceneOnly}
+              onClick={() => setSceneOnly((v) => !v)}
             >
-              {captured ? "← Back to live" : "Compare sites ↗"}
+              {sceneOnly ? "Show controls" : "Immerse"} <ArrowsOut size={16} />
             </button>
+            {captured && (
+              <button
+                ref={studioBack}
+                className="view-options-button"
+                onClick={closeStudio}
+              >
+                ← Back to live
+              </button>
+            )}
+
             <button
               ref={viewOptionsTrigger}
               hidden={!!captured}
@@ -792,6 +832,7 @@ export default function App() {
             drawer
             onClose={() => setMobileControlsOpen(false)}
           >
+            {modelPicker}
             {physiologyControls}
             <button
               className="button primary"
@@ -806,6 +847,7 @@ export default function App() {
             className="control-rail"
             aria-label="Wearable location and physiology"
           >
+            {modelPicker}
             <SiteSelector
               physiology={physiology}
               site={site}
@@ -860,6 +902,7 @@ export default function App() {
                 <X size={18} />
               </button>
             </div>
+            <div id="anatomy-view-actions" className="anatomy-view-actions" />
             <div className="layer-section">
               <div className="panel-heading">
                 <h2>
@@ -929,6 +972,8 @@ export default function App() {
               }
             >
               <AnatomyViewer
+                key={presentation}
+                presentation={presentation}
                 hideSelector
                 hideSiteCard
                 inspectRequest={inspectRequest}
@@ -1036,8 +1081,6 @@ export default function App() {
                     PHOTOPLETHYSMOGRAPHY · SIMULATED
                   </span>
                   <h2>
-                    Your signal{" "}
-                    <span className="signal-title-separator">/</span>{" "}
                     {selected.name}
                     <span className="signal-site-dot" />
                   </h2>
@@ -1073,25 +1116,63 @@ export default function App() {
                   {RHYTHMS[getRhythm(physiology.rhythm)].name} · simulated
                 </div>
               )}
-              <button
-                className={`baseline-button ${baseline ? "enabled" : ""}`}
-                aria-label={baseline ? undefined : "Save reference"}
-                onClick={() =>
-                  setBaseline((b) =>
-                    b ? null : { physiology: { ...physiology }, site },
-                  )
-                }
-              >
-                <span>
-                  {baseline ? <CheckCircle size={16} /> : <Stack size={16} />}
+              <div className="signal-actions">
+                <button
+                  ref={studioTrigger}
+                  className="compare-locations-button"
+                  disabled={!anatomyReady}
+                  onClick={() => {
+                    setSceneOnly(false);
+                    openStudio();
+                    setStudioView("body");
+                  }}
+                >
+                  <svg
+                    width="22"
+                    height="18"
+                    viewBox="0 0 24 20"
+                    fill="none"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path
+                      d="M1 8h3l2-5 4 11 3-8 2 2h8"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M1 14h5l2-5 4 9 3-7 2 3h6"
+                      stroke="currentColor"
+                      strokeOpacity=".45"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>{" "}
+                  Compare locations
+                </button>
+                <button
+                  className={`baseline-button ${baseline ? "enabled" : ""}`}
+                  aria-label={baseline ? undefined : "Save reference"}
+                  onClick={() =>
+                    setBaseline((b) =>
+                      b ? null : { physiology: { ...physiology }, site },
+                    )
+                  }
+                >
                   <span>
-                    {baseline
-                      ? `Comparing: ${SITES.find((s) => s.id === baseline.site)?.name} · ${baseline.physiology.age}y · ${baseline.physiology.heartRate} bpm · ${RHYTHMS[getRhythm(baseline.physiology.rhythm)].short}`
-                      : "Save reference"}
+                    {baseline ? <CheckCircle size={16} /> : <Stack size={16} />}
+                    <span>
+                      {baseline
+                        ? `Comparing: ${SITES.find((s) => s.id === baseline.site)?.name} · ${baseline.physiology.age}y · ${baseline.physiology.heartRate} bpm · ${RHYTHMS[getRhythm(baseline.physiology.rhythm)].short}`
+                        : "Save reference"}
+                    </span>
                   </span>
-                </span>
-                {baseline ? <X size={13} /> : <PlusSmall />}
-              </button>
+                  {baseline ? <X size={13} /> : <PlusSmall />}
+                </button>
+              </div>
               <div className="signal-chart">
                 <Waveform
                   physiology={physiology}

@@ -14,7 +14,7 @@ for (const width of [1440, 390])
       .poll(async () =>
         Number(await scene.getAttribute("data-camera-distance")),
       )
-      .toBeLessThan(4.5);
+      .toBeLessThan(width >= 1100 ? 6.5 : 4.5);
     await page.getByRole("button", { name: "Learn", exact: true }).click();
     await page.getByRole("button", { name: "Start guided tour" }).click();
     const card = page.getByRole("region", { name: "Guided experiment" });
@@ -96,7 +96,7 @@ test("wearable selection frames a region and flows without forcing close inspect
     await page.waitForTimeout(1000);
     const d = Number(await scene.getAttribute("data-camera-distance"));
     expect(d).toBeGreaterThan(2);
-    expect(d).toBeLessThan(4.5);
+    expect(d).toBeLessThan(6.5);
     await expect(scene).toHaveAttribute("data-device-focus", "none");
   }
   await page

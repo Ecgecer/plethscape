@@ -289,10 +289,6 @@
   margin-top: 8px;
   letter-spacing: -0.04em;
 }
-.instrument-shell .signal-title-separator {
-  color: #78624c;
-  padding: 0 5px;
-}
 .instrument-shell .section-overline {
   font-size: 0.6875rem;
   letter-spacing: 0.1em;

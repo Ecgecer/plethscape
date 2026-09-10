@@ -11,7 +11,7 @@ async function ready(page: Page) {
 async function openStudio(page: Page) {
   await ready(page);
   await page
-    .getByRole("button", { name: "Compare sites ↗", exact: true })
+    .getByRole("button", { name: "Compare locations", exact: true })
     .click();
   await page
     .getByRole("button", { name: "Inside sensor", exact: true })
@@ -40,7 +40,7 @@ test("site discovery starts at the wrist and opens anatomical comparisons direct
     .evaluateAll((paths) => paths.map((path) => path.getAttribute("d")));
   expect(new Set(previews).size).toBe(7);
   await page
-    .getByRole("button", { name: "Compare sites ↗", exact: true })
+    .getByRole("button", { name: "Compare locations", exact: true })
     .click();
   await expect(
     page.getByRole("button", { name: "Whole body", exact: true }),
@@ -51,6 +51,9 @@ test("site discovery starts at the wrist and opens anatomical comparisons direct
   await page
     .getByRole("button", { name: "← Back to live", exact: true })
     .click();
+  await expect(
+    page.getByRole("button", { name: "Compare locations", exact: true }),
+  ).toBeFocused();
   await page.setViewportSize({ width: 390, height: 1100 });
   await selector
     .getByRole("button", { name: "Select Toe band", exact: true })
@@ -185,7 +188,7 @@ test("phone inspection, keyboard seeking and repeat entry keep a clean layout", 
     .getByRole("button", { name: "← Back to live", exact: true })
     .click();
   await page
-    .getByRole("button", { name: "Compare sites ↗", exact: true })
+    .getByRole("button", { name: "Compare locations", exact: true })
     .click();
   await page
     .getByRole("button", { name: "Inside sensor", exact: true })

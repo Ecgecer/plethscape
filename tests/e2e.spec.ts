@@ -129,6 +129,7 @@ test("body hotspots, anatomy layers, and chest camera controls work together", a
     page.getByRole("button", { name: "X-ray", exact: true }),
   ).toHaveCount(0);
   await page.getByRole("button", { name: "Reset camera", exact: true }).click();
+  await page.getByRole("button", { name: "View options", exact: true }).click();
   const cutaway = page.getByRole("button", {
     name: "Chest cutaway",
     exact: true,
@@ -145,8 +146,6 @@ test("body hotspots, anatomy layers, and chest camera controls work together", a
     .not.toBe(0);
   await cutaway.click();
   await expect(cutaway).toHaveAttribute("aria-pressed", "true");
-
-  await page.getByRole("button", { name: "View options", exact: true }).click();
 
   const muscles = page.getByRole("switch", {
     name: "Muscle anatomy",
@@ -190,6 +189,7 @@ test("body hotspots, anatomy layers, and chest camera controls work together", a
     .getByRole("button", { name: "Close view options", exact: true })
     .click();
 
+  await page.getByRole("button", { name: "View options", exact: true }).click();
   await page
     .getByRole("button", { name: "Heart & lungs", exact: true })
     .click();
@@ -243,6 +243,7 @@ test("anatomical view and heart detail retain the signal lab", async ({
     contentType: "image/png",
   });
 
+  await page.getByRole("button", { name: "View options", exact: true }).click();
   const detail = page.getByRole("button", {
     name: "Heart detail",
     exact: true,
@@ -266,6 +267,9 @@ test("anatomical view and heart detail retain the signal lab", async ({
   ).toHaveValue("72");
 
   await page
+    .getByRole("button", { name: "Close view options", exact: true })
+    .click();
+  await page
     .getByRole("button", { name: "Resume simulation", exact: true })
     .click();
   await expect
@@ -275,7 +279,11 @@ test("anatomical view and heart detail retain the signal lab", async ({
     .toBe(false);
   await page.getByRole("button", { name: "Reset camera", exact: true }).click();
   await expect(anatomy).toHaveAttribute("data-heart-focus", "false");
+  await page.getByRole("button", { name: "View options", exact: true }).click();
   await expect(detail).toHaveAttribute("aria-pressed", "false");
+  await page
+    .getByRole("button", { name: "Close view options", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Select Upper arm on body", exact: true })
     .click();
