@@ -802,14 +802,17 @@ export default function App() {
         <div className="workspace-heading">
           <div>
             <span className="workspace-kicker">
-              ONE BODY · SEVEN SENSING SITES
+              Explore how your pulse changes across seven body locations.
             </span>
             <h1>
               {captured
-                ? "One heartbeat. Every perspective."
-                : "One heartbeat. Different places. Different PPG signals."}
+                ? "Explore the details of a single heartbeat."
+                : "See how sensor location changes your PPG signal."}
             </h1>
-            <p>Choose a wearable location and explore what shapes its pulse.</p>
+            <p>
+              Choose where to wear the sensor, then adjust the settings to see
+              how the simulated pulse waveform changes.
+            </p>
           </div>
           <div className="workspace-tools">
             <button
