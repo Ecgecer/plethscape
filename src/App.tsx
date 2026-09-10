@@ -186,6 +186,7 @@ export default function App() {
   const [presentation, setPresentation] = useState<"male" | "female">("male");
   const [mobileControlsOpen, setMobileControlsOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileSignalExpanded, setMobileSignalExpanded] = useState(false);
   const [siteSelection, setSiteSelection] = useState(0);
   const [tourStep, setTourStep] = useState<number | null>(null);
   const [tourApplied, setTourApplied] = useState(false);
@@ -1163,12 +1164,19 @@ export default function App() {
             </Suspense>
           )}
           <aside
-            className="signal-panel"
+            className={`signal-panel ${mobileSignalExpanded ? "mobile-signal-expanded" : ""}`}
             id="signal-workspace"
             aria-label="PPG signal workspace"
             tabIndex={-1}
             hidden={!!captured}
           >
+            <button
+              className="mobile-signal-toggle"
+              aria-expanded={mobileSignalExpanded}
+              onClick={() => setMobileSignalExpanded((v) => !v)}
+            >
+              {mobileSignalExpanded ? "Minimize signal ↓" : "Signal details ↑"}
+            </button>
             <section className="signal-section">
               <div className="signal-header">
                 <div>
