@@ -216,6 +216,7 @@ export function createAnatomy(presentation: "male" | "female" = "male") {
     atlasXray: { value: 0 },
     atlasSurface: { value: 0 },
     atlasHeartFocus: { value: 0 },
+    atlasHairGray: { value: 0 },
     atlasContraction: { value: 0 },
     atlasBreath: { value: 0 },
     atlasLungEmphasis: { value: 1 },
@@ -724,7 +725,7 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
           shader.fragmentShader = shader.fragmentShader
             .replace(
               "#include <common>",
-              `#include <common>\nvarying float headHeight; varying vec3 headRestPosition; varying float hairWeight; uniform float atlasHeartFocus; ${neckWindowShader}`,
+              `#include <common>\nvarying float headHeight; varying vec3 headRestPosition; varying float hairWeight; uniform float atlasHairGray; uniform float atlasHeartFocus; ${neckWindowShader}`,
             )
             .replace(
               "#include <color_fragment>",
@@ -767,8 +768,25 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
             "headHeight + max(0.,headRestPosition.z-.02)*.8 + hairWeight)",
           );
         };
+        const ageFinish = material.onBeforeCompile;
+        material.onBeforeCompile = (shader, renderer) => {
+          ageFinish.call(material, shader, renderer);
+          shader.fragmentShader = shader.fragmentShader.replace(
+            "#include <color_fragment>",
+            `#include <color_fragment>
+            float hairLuma = dot(diffuseColor.rgb, vec3(.2126,.7152,.0722));
+            float hairline = mix(3.34,3.57,smoothstep(-.10,.15,headRestPosition.z));
+            float scalpHair = smoothstep(hairline-.06,hairline+.025,headRestPosition.y);
+            vec3 earOffset = (vec3(abs(headRestPosition.x),headRestPosition.y,headRestPosition.z) - vec3(.165,3.375,-.045)) / vec3(.065,.058,.043);
+            float outsideEar = smoothstep(.95,1.45,length(earOffset));
+            float hairRegion = max(hairWeight, scalpHair) * outsideEar;
+            float hairPigment = 1.-smoothstep(.18,.30,hairLuma);
+            vec3 silverHair = vec3(.92,.95,1.) * (.07 + 1.35 * sqrt(max(0.,hairLuma)));
+            diffuseColor.rgb = mix(diffuseColor.rgb, silverHair, atlasHairGray * hairRegion * hairPigment);`,
+          );
+        };
         material.customProgramCacheKey = () =>
-          `scanned-head-neck-window-v8-${presentation}`;
+          `scanned-head-age-v9-${presentation}`;
         for (const texture of [material.map, material.normalMap])
           if (texture) {
             texture.anisotropy = 4;
@@ -1124,6 +1142,11 @@ gl_FragColor = vec4(outgoingLight, diffuseColor.a);`,
     headOccluders,
     animate,
     setPresentation,
+    setAge: (age: number) => {
+      const amount = THREE.MathUtils.smoothstep(age, 35, 75);
+      shared.atlasHairGray.value = amount;
+      group.userData.hairGray = amount;
+    },
     heartCenter: shared.atlasHeart.value,
     setHeartFocus: (enabled: boolean) => {
       if (enabled === heartFocus) return;

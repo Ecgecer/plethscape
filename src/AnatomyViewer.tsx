@@ -670,6 +670,8 @@ export default function AnatomyViewer(props: Props) {
         return;
       anatomy.setCutaway(deviceFocusRef.current ? false : cutawayRef.current);
       anatomy.setGlow("amber");
+      anatomy.setAge(p.physiology.age);
+      element.dataset.hairGray = String(anatomy.group.userData.hairGray);
       const journeyProgress =
         p.pulseStart == null ? -1 : (p.clock.current.time - p.pulseStart) / 8;
       anatomy.setJourney(
