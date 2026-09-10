@@ -998,3 +998,15 @@
   color: #f3cdaa;
   text-decoration: underline;
 }
+
+/* Mobile uses one scrolling page: the scene leads into the signal. */
+@media (max-width: 700px) {
+  .immersive-shell:not(.studio-open) { height: auto; min-height: 100dvh; overflow: visible; background: #090b0a; }
+  .immersive-shell:not(.studio-open) .lab-workspace { position: relative; display: flex; flex-direction: column; gap: 0; }
+  .immersive-shell:not(.studio-open) .body-panel { position: relative; inset: auto; width: calc(100% + 24px); margin-left: -12px; height: clamp(300px, calc(100svh - 330px), 580px); min-height: 300px; flex: none; z-index: 0; }
+  .immersive-shell:not(.studio-open) .scene-bottom { position: absolute; bottom: 12px; left: 0; right: 0; width: 100%; }
+  .immersive-shell:not(.studio-open) .signal-panel { position: relative; inset: auto; width: 100%; max-height: none; overflow: visible; margin: 0 0 16px; background: #141411; backdrop-filter: none; flex: none; }
+  .immersive-shell:not(.studio-open) .signal-panel.mobile-signal-expanded { max-height: none; overflow: visible; }
+  .immersive-shell .landing-guide { display: block; position: relative; background: #090b0a; }
+  .immersive-shell .mobile-signal-toggle { right: 52px; }
+}
