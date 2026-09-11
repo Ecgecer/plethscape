@@ -1,3 +1,4 @@
+import PpgLoader from "./PpgLoader";
 import { createPortal } from "react-dom";
 import SiteSelector from "./SiteSelector";
 import { useEffect, useRef, useState } from "react";
@@ -1091,8 +1092,8 @@ export default function AnatomyViewer(props: Props) {
         </div>
       )}
       {!ready && !error && (
-        <div className="scene-loading">
-          <span className="loader" />
+        <div className="scene-loading" role="status" aria-live="polite">
+          <PpgLoader />
           <span>
             Loading reference anatomy{" "}
             {loadProgress > 0 ? `${loadProgress}%` : ""}
@@ -1104,7 +1105,7 @@ export default function AnatomyViewer(props: Props) {
           <Cube size={35} />
           <b>The anatomy could not load</b>
           <p>
-            The signal lab still works. Reload to retry the anatomy download,
+            Reload to retry the anatomy download and start the simulation,
             and use a browser with WebGL hardware acceleration.
           </p>
           <button onClick={() => window.location.reload()}>

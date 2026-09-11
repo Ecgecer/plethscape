@@ -1,3 +1,5 @@
+import IntroDemo from "./IntroDemo";
+import PpgLoader from "./PpgLoader";
 import LearnPage, { type LearnTopic } from "./LearnPage";
 import { transitionMotion } from "./locomotion";
 import { lazy, Suspense, useEffect, useId, useRef, useState } from "react";
@@ -231,6 +233,7 @@ export default function App() {
   const [baseline, setBaseline] = useState<Baseline | null>(null);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [returnToLearn, setReturnToLearn] = useState(false);
+  const [sourcesFromLearn, setSourcesFromLearn] = useState(false);
   const [toast, setToast] = useState("");
   const [changeNote, setChangeNote] = useState(
     "Choose a location or move a slider. The pulse responds immediately.",
@@ -273,6 +276,7 @@ export default function App() {
   }, [toolsOpen]);
   const [visited, setVisited] = useState<SiteId[]>([]);
   const [anatomyReady, setAnatomyReady] = useState(false);
+  const [demoReplay, setDemoReplay] = useState(0);
   const [pulseStart, setPulseStart] = useState<number | null>(null);
   const clock = useRef({ time: 8, running: true });
   const setPhysiology = (update: SetStateAction<Physiology>) => {
@@ -807,7 +811,7 @@ export default function App() {
         </nav>
         <div className="header-actions">
           <span className="simulation-badge">
-            <span /> SIMULATION
+            <button className="replay-demo" disabled={!anatomyReady} onClick={() => setDemoReplay(value => value + 1)}>Replay demo</button>
           </span>
         </div>
       </header>
@@ -836,6 +840,7 @@ export default function App() {
             >
               <BookOpen size={20} /> Learn through exploration
             </button>
+            <button disabled={!anatomyReady} onClick={() => { setMobileMenuOpen(false); setDemoReplay(value => value + 1); }}>Replay demo</button>
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
@@ -1057,10 +1062,22 @@ export default function App() {
           </aside>
 
           <section className="body-panel" aria-label="Interactive anatomy">
+            <IntroDemo ready={anatomyReady} replay={demoReplay}
+              onStep={(step) => {
+                if (step === 0) { if (captured) closeStudio(); chooseSite("wrist"); setMode("stream"); setBaseline(null); setTourStep(null); setExperience("explore"); setRunning(true); }
+                const band = step === 1 ? "red" : step === 2 || step === 3 ? "infrared" : "green";
+                setWavelength(band);
+                setPhysiology({ ...DEFAULT_PHYSIOLOGY, age: 32, heartRate: step === 3 ? 98 : 72, activity: step === 3 ? "walk" : "rest", wavelength: band });
+              }}
+              onFinish={() => {
+                setWavelength("green");
+                setPhysiology({ ...DEFAULT_PHYSIOLOGY, age: 32, heartRate: 72, wavelength: "green", activity: "rest" });
+                setChangeNote("Your turn: choose a wearable, change the light, or explore a lesson.");
+              }} />
             <Suspense
               fallback={
                 <div className="scene-loading">
-                  <span className="loader" />
+                  <PpgLoader />
                   Loading the 3D explorer
                 </div>
               }
@@ -1172,15 +1189,10 @@ export default function App() {
             id="signal-workspace"
             aria-label="PPG signal workspace"
             tabIndex={-1}
-            hidden={!!captured}
+            hidden={!!captured || !anatomyReady}
+            style={!anatomyReady ? { display: "none" } : undefined}
           >
-            {!anatomyReady ? (
-              <div className="signal-loading" role="status" aria-live="polite">
-                <span className="signal-loading-spinner" aria-hidden="true" />
-                <strong>Preparing your simulation</strong>
-                <span>The pulse waveform will appear when the anatomy is ready.</span>
-              </div>
-            ) : <>
+            {anatomyReady && <>
             <button
               className="mobile-signal-toggle"
               aria-expanded={mobileSignalExpanded}
@@ -1577,12 +1589,12 @@ export default function App() {
         {returnToLearn && <button className="back-to-lesson" onClick={() => setDialog("guide")}><BookOpen size={17} /> Back to lesson</button>}
         <footer className="app-footer">
           <span>
-            <span className="footer-brand">PLETHSCAPE</span>
-            <i />A little curiosity. A deeper understanding.
+            <span className="footer-brand">Plethscape</span>
+            <span className="footer-tagline">A little curiosity. A deeper understanding.</span>
           </span>
           <button onClick={() => setDialog("sources")}>
-            Educational simulation · Inspired by the Pulse Wave Database
-            <ArrowUpRight size={12} />
+            <span>Educational simulation · Model & sources</span>
+            <ArrowUpRight size={12} aria-hidden="true" />
           </button>
         </footer>
       </main>
@@ -1594,7 +1606,7 @@ export default function App() {
         </div>
       )}
       <Modal open={dialog === "guide"} page title="Plethscape · Learn" onClose={() => setDialog(null)}>
-        <LearnPage ready={anatomyReady} onSources={() => { setReturnToLearn(true); setDialog("sources"); }}
+        <LearnPage ready={anatomyReady} onSources={() => { setSourcesFromLearn(true); setDialog("sources"); }}
           onTry={(topic: LearnTopic, settings) => {
             if (captured) closeStudio();
             setTourStep(null);
@@ -1609,11 +1621,16 @@ export default function App() {
             setMotionExpanded(topic === "motion");
             setMobileSignalExpanded(topic === "wavelengths");
             setRunning(true);
+            setChangeNote("Your lesson settings are applied. Change one setting at a time, then return to the lesson to review the explanation.");
             setReturnToLearn(true);
             setDialog(null);
           }}
           onLocationTry={(action) => {
                 if (captured) closeStudio();
+                setTourStep(null);
+                setExperience("explore");
+                setPulseStart(null);
+                setWavelength("green");
                 const resting = {
                   ...DEFAULT_PHYSIOLOGY,
                   age: 32,
@@ -1699,7 +1716,7 @@ export default function App() {
       {dialog === "sources" && (
         <Modal
           title="The science behind the signal"
-          onClose={() => setDialog(returnToLearn ? "guide" : null)}
+          onClose={() => { setDialog(sourcesFromLearn ? "guide" : null); setSourcesFromLearn(false); }}
           wide
         >
           <p className="modal-intro">

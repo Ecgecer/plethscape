@@ -896,7 +896,7 @@
     > :not(.signal-header):not(.spectral-control):not(.signal-chart),
   .immersive-shell
     .signal-panel:not(.mobile-signal-expanded)
-    > :not(.signal-section):not(.mobile-signal-toggle):not(.signal-loading) {
+    > :not(.signal-section):not(.mobile-signal-toggle) {
     display: none;
   }
   .immersive-shell:not(.studio-open) .signal-panel.mobile-signal-expanded {
@@ -1135,29 +1135,6 @@
   background-image: none;
 }
 
-/* Keep signal charts unmounted until the anatomy has finished loading. */
-.signal-loading {
-  min-height: 180px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 24px;
-  text-align: center;
-}
-.signal-loading strong { font-size: 15px; font-weight: 500; }
-.signal-loading > span:last-child { font-size: 13px; line-height: 1.5; color: #b9afa2; max-width: 260px; }
-.signal-loading-spinner {
-  width: 24px; height: 24px; border-radius: 50%;
-  border: 2px solid #f0b47526; border-top-color: #f0b475;
-  animation: signal-loading-turn 1.2s linear infinite;
-}
-@keyframes signal-loading-turn { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) {
-  .signal-loading-spinner { animation: none; }
-}
-
 /* Learn is a dedicated reading surface; simulation state stays mounted behind it. */
 .instrument-shell .modal.learning-page {
   position: fixed; inset: 0; margin: 0; width: 100%; height: 100dvh;
@@ -1276,3 +1253,35 @@
   .immersive-shell .device-attribution-mobile { display: flex; padding: 8px 0; }
   .device-attribution a { min-height: 44px; }
 }
+
+.immersive-shell .app-footer {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  position: relative; width: 100%; margin: 24px auto 0; padding: 28px 20px 32px;
+  gap: 8px; text-align: center; color: #a09a90;
+}
+.immersive-shell .app-footer > span { display: flex; flex-direction: column; align-items: center; gap: 7px; text-align: center; }
+.immersive-shell .app-footer .footer-brand { font-size: 13px; font-weight: 500; letter-spacing: -.15px; color: #bcb4a8; }
+.immersive-shell .app-footer .footer-tagline { font-size: 12px; line-height: 1.6; text-wrap: balance; }
+.immersive-shell .app-footer button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; max-width: 100%; min-height: 44px; margin: 0; padding: 6px 8px; font-size: 11px; line-height: 1.5; color: #a09a90; text-align: center; background: transparent; border: 0; }
+.immersive-shell .app-footer button svg { flex-shrink: 0; }
+.immersive-shell .app-footer button:hover { color: #e3be92; }
+
+.ppg-line-loader { width: 180px; height: 48px; overflow: visible; }
+.ppg-line-loader path { fill: none; stroke-width: 2; stroke-linecap: round; }
+.ppg-loader-track { stroke: #eab47c30; }
+.ppg-loader-sweep { stroke: #edb57d; stroke-dasharray: 25 75; animation: ppg-loading-sweep 2.4s linear infinite; }
+@keyframes ppg-loading-sweep { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { .ppg-loader-sweep { animation: none; stroke-dasharray: none; } }
+
+.intro-demo { position: absolute; z-index: 12; bottom: 82px; left: 50%; transform: translateX(-50%); width: min(370px, calc(100% - 32px)); box-sizing: border-box; padding: 16px 20px; border: 1px solid #d7a76e55; border-radius: 16px; background: #15140ff5; color: #f1e6d6; box-shadow: 0 10px 36px #0005; }
+.intro-demo-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
+.intro-demo-top > span { font-size: 9px; letter-spacing: 1.2px; color: #ba9d7b; }
+.intro-demo button { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 8px 10px; border: 1px solid #c6a17b50; border-radius: 8px; font-size: 12px; color: #efd3b1; background: #34291d; }
+.intro-demo strong { font-size: 21px; font-weight: 500; letter-spacing: -.4px; }
+.intro-demo p { font-size: 13px; line-height: 1.6; color: #c0b7a9; margin: 8px 0 14px; }
+.intro-demo-progress { display: flex; gap: 5px; }
+.intro-demo-progress i { height: 2px; flex: 1; background: #63503960; border-radius: 2px; }
+.intro-demo-progress i.complete { background: #ecb578; }
+.replay-demo { background: transparent; border: 0; color: #bca98f; font-size: 12px; padding: 10px; }
+@media(min-width: 1100px) { .intro-demo { width: min(350px, calc(100% - 760px)); } }
+@media(prefers-reduced-motion: reduce) { .intro-demo * { transition: none; animation: none; } }

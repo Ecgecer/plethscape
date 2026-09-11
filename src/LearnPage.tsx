@@ -78,9 +78,10 @@ export default function LearnPage({ ready, onTry, onSources, onLocationTry }: {
           <figure className={`learn-illustration learn-illustration-${topic.id}`}>
             <div className="learn-wave-preview"><Waveform
               clock={previewClock}
-              physiology={{ ...DEFAULT_PHYSIOLOGY, age: chapter === 'pulse' ? age : 32, wavelength: band, activity: chapter === 'motion' ? activity : 'rest', heartRate: chapter === 'motion' && activity !== 'rest' ? activity === 'run' ? 130 : 98 : 72 }}
+              physiology={{ ...DEFAULT_PHYSIOLOGY, age: chapter === 'pulse' ? age : 32, wavelength: chapter === 'motion' || chapter === 'wavelengths' ? band : 'green', activity: chapter === 'motion' ? activity : 'rest', heartRate: chapter === 'motion' && activity !== 'rest' ? activity === 'run' ? 130 : 98 : 72 }}
               site={chapter === 'locations' ? previewSite : 'wrist'}
               mode={chapter === 'motion' ? 'stream' : 'beat'}
+              compare={chapter === 'locations' ? { physiology: { ...DEFAULT_PHYSIOLOGY, age: 32, heartRate: 72, wavelength: 'green' }, site: 'finger' } : undefined}
               annotate={chapter === 'pulse'}
             /></div>
             <div className="learn-preview-controls" role="group" aria-label="Lesson experiment">
@@ -89,10 +90,10 @@ export default function LearnPage({ ready, onTry, onSources, onLocationTry }: {
               {chapter === 'pulse' && [25, 50, 75].map(value => <button key={value} aria-pressed={age === value} onClick={() => { setAge(value); setChanged(true); }}>Age {value}</button>)}
               {chapter === 'locations' && (['wrist', 'finger', 'ear'] as const).map(value => <button key={value} aria-pressed={previewSite === value} onClick={() => { setPreviewSite(value); setChanged(true); }}>{value === 'wrist' ? 'Wrist' : value === 'finger' ? 'Finger' : 'Ear'}</button>)}
             </div>
-            <figcaption>Interactive simulation · {chapter === 'motion' ? 'A frozen five-second sample' : 'A single beat on a shared amplitude scale'}<br/>These lesson controls do not change your Workspace.</figcaption>
+            <figcaption>{chapter === 'locations' && <>Purple trace: resting finger reference.<br/></>}Interactive simulation · {chapter === 'motion' ? 'A frozen five-second sample' : 'A single beat on a shared amplitude scale'}<br/>These lesson controls do not change your Workspace.</figcaption>
             <div className="learn-feedback" role="status" aria-live="polite" aria-atomic="true"><strong>{changed ? 'What changed and why' : 'What to look for'}</strong><p>{feedback}</p></div>
           </figure>
-          <div className="learn-explanation"><h3>{topic.question}</h3><p>{topic.explanation}</p><h3>Explore one change at a time</h3><p>{topic.experiment}</p><button className="learn-primary" disabled={!ready} onClick={() => onTry(topic.id, { band, age, activity, site: previewSite })}>Try in Workspace <ArrowRight size={18}/></button>{!ready && <p className="learn-note">The interactive anatomy is still loading. You can keep reading.</p>}</div>
+          <div className="learn-explanation"><h3>{topic.question}</h3><p>{topic.explanation}</p><h3>Explore one change at a time</h3><p>{topic.experiment}</p><button className="learn-primary" disabled={!ready} onClick={() => onTry(topic.id, { band: chapter === 'motion' || chapter === 'wavelengths' ? band : 'green', age, activity, site: previewSite })}>Try in Workspace <ArrowRight size={18}/></button>{!ready && <p className="learn-note">The interactive anatomy is still loading. You can keep reading.</p>}</div>
         </div>
         {chapter === 'locations' && <SiteChoiceLesson onBack={() => select('overview')} onTry={onLocationTry}/>}
         <div className="learn-lesson-footer"><button onClick={() => select('overview')}><ArrowLeft size={16}/> All lessons</button><button onClick={() => select('science')}>Explore the science <ArrowRight size={16}/></button></div>

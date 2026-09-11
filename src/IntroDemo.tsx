@@ -1,0 +1,75 @@
+import { useEffect, useRef, useState } from 'react';
+
+const captions = [
+  ['One heartbeat.', 'Start with a resting pulse at the wrist.'],
+  ['Change the light.', 'Red samples a different mix of tissue than green.'],
+  ['Look a little deeper.', 'Infrared changes the simulated pulse contour.'],
+  ['Now add movement.', 'Walking can obscure the heartbeat with motion artifacts.'],
+  ['Find the pulse again.', 'Back to rest. Your turn to explore.'],
+];
+const seenKey = 'plethscape-intro-v1';
+export default function IntroDemo({ ready, replay, onStep, onFinish }: {
+  ready: boolean; replay: number; onStep: (step: number) => void; onFinish: () => void;
+}) {
+  const [step, setStep] = useState<number | null>(null);
+  const [staticIntro, setStaticIntro] = useState(false);
+  const callbacks = useRef({ onStep, onFinish });
+  callbacks.current = { onStep, onFinish };
+  const interacted = useRef(false);
+  const started = useRef(false);
+  const lastReplay = useRef(replay);
+  const stopRef = useRef<(settle: boolean) => void>(() => {});
+  useEffect(() => {
+    const cancel = (event: Event) => {
+      if (event.target instanceof Element && event.target.closest('.intro-demo')) return;
+      interacted.current = true;
+      stopRef.current(false);
+    };
+    const key = (event: KeyboardEvent) => { if (event.key !== 'Tab') cancel(event); };
+    document.addEventListener('pointerdown', cancel, true);
+    document.addEventListener('wheel', cancel, { capture: true, passive: true });
+    document.addEventListener('keydown', key, true);
+    return () => { document.removeEventListener('pointerdown', cancel, true); document.removeEventListener('wheel', cancel, true); document.removeEventListener('keydown', key, true); };
+  }, []);
+  useEffect(() => {
+    if (!ready) return;
+    const manual = replay !== lastReplay.current;
+    lastReplay.current = replay;
+    if (started.current && !manual) return;
+    if (!manual) {
+      let seen = false;
+      try { seen = localStorage.getItem(seenKey) === 'seen'; } catch { /* Storage can be unavailable. */ }
+      if (seen || interacted.current || location.search || location.hash) return;
+    }
+    started.current = true;
+    try { localStorage.setItem(seenKey, 'seen'); } catch { /* Demo still works without storage. */ }
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    let active = true;
+    const stop = (settle: boolean) => {
+      if (!active) return;
+      active = false;
+      timers.forEach(clearTimeout);
+      setStep(null); setStaticIntro(false);
+      if (settle) callbacks.current.onFinish();
+    };
+    stopRef.current = stop;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setStaticIntro(true);
+    } else {
+      setStep(0); callbacks.current.onStep(0);
+      [3000, 4500, 6500, 10500].forEach((delay, index) => timers.push(setTimeout(() => {
+        setStep(index + 1); callbacks.current.onStep(index + 1);
+      }, delay)));
+      timers.push(setTimeout(() => stop(true), 14500));
+    }
+    const visibility = () => { if (document.hidden) stop(true); };
+    document.addEventListener('visibilitychange', visibility);
+    return () => { timers.forEach(clearTimeout); document.removeEventListener('visibilitychange', visibility); stopRef.current = () => {}; };
+  }, [ready, replay]);
+  if (step === null && !staticIntro) return null;
+  return <aside className="intro-demo" aria-label="Introduction demo">
+    <div className="intro-demo-top"><span>ILLUSTRATIVE SIMULATION</span><button onClick={() => stopRef.current(true)}>{staticIntro ? 'Explore' : 'Skip demo'} <span aria-hidden="true">×</span></button></div>
+    <div aria-live="polite" aria-atomic="true"><strong>{staticIntro ? 'One heartbeat. Many ways to see it.' : captions[step!][0]}</strong><p>{staticIntro ? 'Choose a wearable, change the light, and explore how movement affects the signal.' : captions[step!][1]}</p></div>
+    {!staticIntro && <div className="intro-demo-progress" aria-hidden="true">{captions.map((_, index) => <i key={index} className={index <= step! ? 'complete' : ''} />)}</div>}
+  </aside>;
+}
