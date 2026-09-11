@@ -10,6 +10,8 @@ export const lungContextShader = /* glsl */ `
   // Keep the central great vessels; suppress peripheral thoracic branches in
   // the clean presentation instead of drawing ghost fragments through organs.
   float peripheralChest = smoothstep(.065,.115,abs(atlasPosition.x))
+    // Stop at the lateral chest wall; preserve shoulder and arm circulation.
+    * (1.-smoothstep(.30,.36,abs(atlasPosition.x)))
     * smoothstep(2.40,2.52,atlasPosition.y)
     * (1.-smoothstep(2.98,3.09,atlasPosition.y));
   if (atlasDetailedVessels < .5 && max(atlasLungEmphasis,atlasHeartFocus) > .5
