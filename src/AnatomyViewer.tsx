@@ -1008,7 +1008,13 @@ export default function AnatomyViewer(props: Props) {
           </>,
           viewMenu,
         )}
-      <div ref={host} className="three-host" data-testid="anatomy-canvas">
+      <div
+        ref={host}
+        className="three-host"
+        data-testid="anatomy-canvas"
+        style={{ visibility: ready && !error ? "visible" : "hidden" }}
+        aria-hidden={!ready || error}
+      >
         {ready &&
           SITES.map((s) => (
             <button
