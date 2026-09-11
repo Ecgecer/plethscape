@@ -1311,3 +1311,5 @@
 .intro-demo .intro-demo-description { display: none; }
 .intro-demo-progress { margin-top: 9px; }
 .intro-demo button { min-height: 44px; padding: 6px 10px; }
+
+.loading-explanation { max-width: 260px; text-align: center; font-size: 12px; line-height: 1.6; color: #aaa294; padding: 0 12px; }

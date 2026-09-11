@@ -8,7 +8,6 @@ const captions = [
   ['At the finger · Green', 'A ring sees another perspective.'],
   ['One body. Many perspectives.', 'Explore it from every angle.'],
 ];
-const seenKey = 'plethscape-intro-v1';
 export default function IntroDemo({ ready, replay, onStep, onFinish, onCancel }: {
   ready: boolean; replay: number; onStep: (step: number) => void; onFinish: () => void; onCancel: () => void;
 }) {
@@ -17,12 +16,15 @@ export default function IntroDemo({ ready, replay, onStep, onFinish, onCancel }:
   const callbacks = useRef({ onStep, onFinish, onCancel });
   callbacks.current = { onStep, onFinish, onCancel };
   const interacted = useRef(false);
+  const isReady = useRef(ready);
+  isReady.current = ready;
   const started = useRef(false);
   const lastReplay = useRef(replay);
   const stopRef = useRef<(settle: boolean) => void>(() => {});
   useEffect(() => {
     const cancel = (event: Event) => {
       if (event.target instanceof Element && event.target.closest('.intro-demo')) return;
+      if (!isReady.current && !(event.target instanceof Element && event.target.closest("button, select, input, a"))) return;
       interacted.current = true;
       stopRef.current(false);
     };
@@ -38,12 +40,11 @@ export default function IntroDemo({ ready, replay, onStep, onFinish, onCancel }:
     lastReplay.current = replay;
     if (started.current && !manual) return;
     if (!manual) {
-      let seen = false;
-      try { seen = localStorage.getItem(seenKey) === 'seen'; } catch { /* Storage can be unavailable. */ }
-      if (seen || interacted.current || location.search || location.hash) return;
+      const params = new URLSearchParams(location.search);
+      const sharedExperiment = ['site', 'age', 'wavelength', 'activity', 'state'].some(key => params.has(key));
+      if (interacted.current || sharedExperiment) return;
     }
     started.current = true;
-    try { localStorage.setItem(seenKey, 'seen'); } catch { /* Demo still works without storage. */ }
     const timers: ReturnType<typeof setTimeout>[] = [];
     let active = true;
     const stop = (settle: boolean) => {

@@ -109,8 +109,16 @@ export default function AnatomyViewer(props: Props) {
     if (isWearableSite(props.site)) actions.current?.select(props.site, false);
     else actions.current?.reset();
   }, [props.site, ready, props.siteSelection]);
+  const demoCameraActive = useRef(false);
   useEffect(() => {
-    if (ready) actions.current?.demo(props.demoCamera?.view ?? null);
+    if (!ready) return;
+    if (props.demoCamera) {
+      demoCameraActive.current = true;
+      actions.current?.demo(props.demoCamera.view);
+    } else if (demoCameraActive.current) {
+      demoCameraActive.current = false;
+      actions.current?.demo(null);
+    }
   }, [props.demoCamera, ready]);
 
 
@@ -349,7 +357,7 @@ export default function AnatomyViewer(props: Props) {
         // Center the wearable itself while retaining the surrounding body region.
         const target = deviceCenter.clone();
         const wideStage = element.clientWidth >= 1100;
-        const regionalDistance = id === "upperarm" ? 1.7 : 1.4;
+        const regionalDistance = id === "upperarm" ? 1.7 : id === "wrist" && element.clientWidth <= 700 ? 1.05 : 1.4;
         const distance =
           (wideStage ? regionalDistance * 1.6 : regionalDistance) *
           Math.max(1, 0.55 / camera.aspect);
@@ -1123,9 +1131,9 @@ export default function AnatomyViewer(props: Props) {
         <div className="scene-loading" role="status" aria-live="polite">
           <PpgLoader />
           <span>
-            Loading reference anatomy{" "}
-            {loadProgress > 0 ? `${loadProgress}%` : ""}
+            {loadProgress >= 100 ? "Preparing the 3D anatomy…" : loadProgress > 0 ? `Downloading anatomy · ${loadProgress}%` : "Downloading the 3D anatomy…"}
           </span>
+          <small className="loading-explanation">The tour starts when the model is ready. First visits can take a little longer.</small>
         </div>
       )}
       {error && (
