@@ -138,9 +138,9 @@ export function createAnatomy(presentation: "male" | "female" = "male") {
     ear: {
       // Piercing anchor on the lower anterior lobe of the visible neutral skin.
       position: new THREE.Vector3(
-        presentation === "female" ? 0.153 : 0.172,
-        presentation === "female" ? 3.365 : 3.335,
-        -0.042,
+        presentation === "female" ? 0.153 : 0.160,
+        presentation === "female" ? 3.351 : 3.335,
+        presentation === "female" ? -0.042 : -0.048,
       ),
       axis: new THREE.Vector3(0, 1, 0),
       rotation: Math.PI / 2,
@@ -677,7 +677,7 @@ export function createAnatomy(presentation: "male" | "female" = "male") {
           : "models/scanned-head.glb"),
     ),
   ])
-    .then(([gltf, metadata, skin, scanned]) => {
+    .then(async ([gltf, metadata, skin, scanned]) => {
       if (disposed) {
         for (const source of [gltf, skin, scanned])
           source.scene.traverse((o) => {
@@ -836,7 +836,7 @@ export function createAnatomy(presentation: "male" | "female" = "male") {
       let fittingSkin: THREE.Mesh | undefined;
       const heartBounds = new THREE.Box3();
       const heartMaterials: THREE.MeshStandardMaterial[] = [];
-      gltf.scene.traverse((object) => {
+      const prepareObject = (object: THREE.Object3D) => {
         if (!(object instanceof THREE.Mesh)) return;
         const tissue = tissueOf(object);
         const bakedSkin = object.name === "body";
@@ -982,7 +982,18 @@ export function createAnatomy(presentation: "male" | "female" = "male") {
           ? object.material
           : [object.material]
         ).forEach((m) => m.dispose());
-      });
+      };
+      const sourceObjects: THREE.Object3D[] = [];
+      gltf.scene.traverse(object => sourceObjects.push(object));
+      let sliceStart = performance.now();
+      for (const object of sourceObjects) {
+        prepareObject(object);
+        if (performance.now() - sliceStart > 8) {
+          await new Promise<void>(resolve => setTimeout(resolve, 0));
+          if (disposed) return;
+          sliceStart = performance.now();
+        }
+      }
       (Array.isArray(presentationSkin.material)
         ? presentationSkin.material
         : [presentationSkin.material]

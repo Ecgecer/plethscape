@@ -1313,3 +1313,24 @@
 .intro-demo button { min-height: 44px; padding: 6px 10px; }
 
 .loading-explanation { max-width: 260px; text-align: center; font-size: 12px; line-height: 1.6; color: #aaa294; padding: 0 12px; }
+
+/* Animate a prepainted waveform layer, not SVG stroke geometry on each frame. */
+.ppg-loader-window { width: 180px; height: 48px; overflow: hidden; mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent); }
+.ppg-loader-ribbon { display: flex; width: 360px; height: 48px; will-change: transform; animation: ppg-loader-scroll 2.8s linear infinite; }
+.ppg-loader-ribbon svg { flex: 0 0 180px; width: 180px; height: 48px; }
+.ppg-loader-ribbon path { fill: none; stroke: #edb57d; stroke-width: 2; stroke-linecap: round; }
+@keyframes ppg-loader-scroll { to { transform: translate3d(-180px, 0, 0); } }
+@media(prefers-reduced-motion: reduce) { .ppg-loader-ribbon { animation: none; will-change: auto; } }
+
+/* Use the same stage axis for loading content, hints, controls and status. */
+.immersive-shell .scene-loading { text-align: center; padding-inline: 16px; box-sizing: border-box; }
+.immersive-shell .scene-loading > span, .immersive-shell .loading-explanation { text-align: center; margin-inline: auto; }
+@media (min-width: 1100px) {
+  .immersive-shell:not(.studio-open) .scene-loading,
+  .immersive-shell:not(.studio-open) .scene-bottom,
+  .immersive-shell:not(.studio-open) .anatomy-viewer[data-moving="true"] .scene-bottom,
+  .immersive-shell:not(.studio-open) .body-status {
+    left: calc(var(--stage-left) + 48px);
+    right: calc(var(--stage-right) + 48px);
+  }
+}

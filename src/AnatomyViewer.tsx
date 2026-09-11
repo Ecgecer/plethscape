@@ -360,7 +360,7 @@ export default function AnatomyViewer(props: Props) {
         const regionalDistance = id === "upperarm" ? 1.7 : id === "wrist" && element.clientWidth <= 700 ? 1.05 : 1.4;
         const distance =
           (wideStage ? regionalDistance * 1.6 : regionalDistance) *
-          Math.max(1, 0.55 / camera.aspect);
+          Math.max(1, 0.55 / camera.aspect) / 1.5;
         // View the sensor-bearing side of the head; the face points left on screen.
         const sideView = id === "ear" || id === "forehead";
         const angle = sideView ? Math.PI * 0.39 : 0.06;
