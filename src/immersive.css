@@ -1285,3 +1285,29 @@
 .replay-demo { background: transparent; border: 0; color: #bca98f; font-size: 12px; padding: 10px; }
 @media(min-width: 1100px) { .intro-demo { width: min(350px, calc(100% - 760px)); } }
 @media(prefers-reduced-motion: reduce) { .intro-demo * { transition: none; animation: none; } }
+
+@media (max-width: 700px) {
+  .immersive-shell.anatomy-loading {
+    min-height: 100svh;
+    background: #010202 url("./assets/scene-grid.svg") center / 100% 100% no-repeat;
+  }
+  .immersive-shell.anatomy-loading .three-host,
+  .immersive-shell.anatomy-loading .body-panel,
+  .immersive-shell.anatomy-loading .scene-loading { background: transparent; }
+  .immersive-shell .mobile-adjust-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: center; }
+  .immersive-shell .mobile-site-picker { min-width: 0; width: 100%; }
+  .immersive-shell .mobile-site-picker select,
+  .immersive-shell .mobile-adjust-bar > button {
+    box-sizing: border-box; width: 100%; height: 44px; min-height: 44px; max-height: 44px;
+    border-radius: 10px; font-size: 14px; line-height: 20px; margin: 0;
+  }
+  .immersive-shell .mobile-site-picker select { padding: 10px 30px 10px 12px; }
+  .immersive-shell .mobile-adjust-bar > button { padding: 10px 8px; white-space: nowrap; }
+}
+.intro-demo { padding: 9px 14px; border-radius: 12px; }
+.intro-demo-top { margin-bottom: 1px; }
+.intro-demo-top > span { font-size: 8px; letter-spacing: .8px; }
+.intro-demo strong { font-size: 15px; line-height: 1.4; }
+.intro-demo .intro-demo-description { display: none; }
+.intro-demo-progress { margin-top: 9px; }
+.intro-demo button { min-height: 44px; padding: 6px 10px; }

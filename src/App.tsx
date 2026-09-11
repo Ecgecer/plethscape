@@ -277,6 +277,7 @@ export default function App() {
   const [visited, setVisited] = useState<SiteId[]>([]);
   const [anatomyReady, setAnatomyReady] = useState(false);
   const [demoReplay, setDemoReplay] = useState(0);
+  const [demoCamera, setDemoCamera] = useState<{ view: "full" | "wrist" | "ring" | "orbit"; nonce: number } | null>(null);
   const [pulseStart, setPulseStart] = useState<number | null>(null);
   const clock = useRef({ time: 8, running: true });
   const setPhysiology = (update: SetStateAction<Physiology>) => {
@@ -745,7 +746,7 @@ export default function App() {
           ? TOUR_STEPS[tourStep].target
           : undefined
       }
-      className={`app-shell ${tourStep !== null ? "tour-active" : ""} instrument-shell immersive-shell ${sceneOnly ? "scene-only" : ""} experience-shell experience-${experience} ${captured ? "studio-open" : ""}`}
+      className={`app-shell ${tourStep !== null ? "tour-active" : ""} instrument-shell immersive-shell ${!anatomyReady ? "anatomy-loading" : ""} ${sceneOnly ? "scene-only" : ""} experience-shell experience-${experience} ${captured ? "studio-open" : ""}`}
       data-experience={experience}
     >
       <a className="skip-link" href="#workspace">
@@ -1065,11 +1066,17 @@ export default function App() {
             <IntroDemo ready={anatomyReady} replay={demoReplay}
               onStep={(step) => {
                 if (step === 0) { if (captured) closeStudio(); chooseSite("wrist"); setMode("stream"); setBaseline(null); setTourStep(null); setExperience("explore"); setRunning(true); }
-                const band = step === 1 ? "red" : step === 2 || step === 3 ? "infrared" : "green";
+                const view = step === 0 || step === 3 ? "full" : step === 4 ? "ring" : step === 5 ? "orbit" : "wrist";
+                if (step === 4) chooseSite("finger");
+                setDemoCamera({ view, nonce: Date.now() });
+                const band = step === 2 || step === 3 ? "infrared" : "green";
                 setWavelength(band);
-                setPhysiology({ ...DEFAULT_PHYSIOLOGY, age: 32, heartRate: step === 3 ? 98 : 72, activity: step === 3 ? "walk" : "rest", wavelength: band });
+                setPhysiology({ ...DEFAULT_PHYSIOLOGY, age: 32, heartRate: step >= 3 ? 130 : 72, activity: step >= 3 ? "run" : "rest", wavelength: band });
               }}
+              onCancel={() => setDemoCamera(null)}
               onFinish={() => {
+                chooseSite("wrist");
+                setDemoCamera({ view: "wrist", nonce: Date.now() });
                 setWavelength("green");
                 setPhysiology({ ...DEFAULT_PHYSIOLOGY, age: 32, heartRate: 72, wavelength: "green", activity: "rest" });
                 setChangeNote("Your turn: choose a wearable, change the light, or explore a lesson.");
@@ -1089,6 +1096,7 @@ export default function App() {
                 hideSiteCard
                 inspectRequest={inspectRequest}
                 siteSelection={siteSelection}
+                demoCamera={demoCamera}
                 active={!captured || studioView === "body"}
                 inspection={!!captured}
                 onSensor={openStudio}

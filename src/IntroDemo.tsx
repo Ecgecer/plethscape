@@ -1,20 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 
 const captions = [
-  ['One heartbeat.', 'Start with a resting pulse at the wrist.'],
-  ['Change the light.', 'Red samples a different mix of tissue than green.'],
-  ['Look a little deeper.', 'Infrared changes the simulated pulse contour.'],
-  ['Now add movement.', 'Walking can obscure the heartbeat with motion artifacts.'],
-  ['Find the pulse again.', 'Back to rest. Your turn to explore.'],
+  ['Meet your pulse.', 'Explore the body behind the signal.'],
+  ['At the wrist · Green', 'A closer look at the resting pulse.'],
+  ['At the wrist · Infrared', 'Different light. A different contour.'],
+  ['Now start running.', 'Movement changes the signal.'],
+  ['At the finger · Green', 'A ring sees another perspective.'],
+  ['One body. Many perspectives.', 'Explore it from every angle.'],
 ];
 const seenKey = 'plethscape-intro-v1';
-export default function IntroDemo({ ready, replay, onStep, onFinish }: {
-  ready: boolean; replay: number; onStep: (step: number) => void; onFinish: () => void;
+export default function IntroDemo({ ready, replay, onStep, onFinish, onCancel }: {
+  ready: boolean; replay: number; onStep: (step: number) => void; onFinish: () => void; onCancel: () => void;
 }) {
   const [step, setStep] = useState<number | null>(null);
   const [staticIntro, setStaticIntro] = useState(false);
-  const callbacks = useRef({ onStep, onFinish });
-  callbacks.current = { onStep, onFinish };
+  const callbacks = useRef({ onStep, onFinish, onCancel });
+  callbacks.current = { onStep, onFinish, onCancel };
   const interacted = useRef(false);
   const started = useRef(false);
   const lastReplay = useRef(replay);
@@ -51,16 +52,17 @@ export default function IntroDemo({ ready, replay, onStep, onFinish }: {
       timers.forEach(clearTimeout);
       setStep(null); setStaticIntro(false);
       if (settle) callbacks.current.onFinish();
+      else callbacks.current.onCancel();
     };
     stopRef.current = stop;
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setStaticIntro(true);
     } else {
       setStep(0); callbacks.current.onStep(0);
-      [3000, 4500, 6500, 10500].forEach((delay, index) => timers.push(setTimeout(() => {
+      [1200, 2800, 4200, 5700, 7200].forEach((delay, index) => timers.push(setTimeout(() => {
         setStep(index + 1); callbacks.current.onStep(index + 1);
       }, delay)));
-      timers.push(setTimeout(() => stop(true), 14500));
+      timers.push(setTimeout(() => stop(true), 10800));
     }
     const visibility = () => { if (document.hidden) stop(true); };
     document.addEventListener('visibilitychange', visibility);
@@ -69,7 +71,7 @@ export default function IntroDemo({ ready, replay, onStep, onFinish }: {
   if (step === null && !staticIntro) return null;
   return <aside className="intro-demo" aria-label="Introduction demo">
     <div className="intro-demo-top"><span>ILLUSTRATIVE SIMULATION</span><button onClick={() => stopRef.current(true)}>{staticIntro ? 'Explore' : 'Skip demo'} <span aria-hidden="true">×</span></button></div>
-    <div aria-live="polite" aria-atomic="true"><strong>{staticIntro ? 'One heartbeat. Many ways to see it.' : captions[step!][0]}</strong><p>{staticIntro ? 'Choose a wearable, change the light, and explore how movement affects the signal.' : captions[step!][1]}</p></div>
+    <div aria-live="polite" aria-atomic="true"><strong>{staticIntro ? 'One heartbeat. Many ways to see it.' : captions[step!][0]}</strong><p className={staticIntro ? "" : "intro-demo-description"}>{staticIntro ? 'Choose a wearable, change the light, and explore how movement affects the signal.' : captions[step!][1]}</p></div>
     {!staticIntro && <div className="intro-demo-progress" aria-hidden="true">{captions.map((_, index) => <i key={index} className={index <= step! ? 'complete' : ''} />)}</div>}
   </aside>;
 }

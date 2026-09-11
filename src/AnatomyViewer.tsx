@@ -40,6 +40,7 @@ interface Props {
   hideSelector?: boolean;
   hideSiteCard?: boolean;
   siteSelection?: number;
+  demoCamera?: { view: "full" | "wrist" | "ring" | "orbit"; nonce: number } | null;
   inspectRequest?: { site: SiteId; nonce: number } | null;
   active?: boolean;
   inspection?: boolean;
@@ -74,6 +75,7 @@ export default function AnatomyViewer(props: Props) {
     device: (id: WearableSite) => void;
     select: (id: WearableSite, notify?: boolean) => void;
     opticalSide: () => void;
+    demo: (view: "full" | "wrist" | "ring" | "orbit" | null) => void;
   } | null>(null);
   const atmosphereRef = useRef(true);
   const [atmosphereEnabled, setAtmosphereEnabled] = useState(true);
@@ -107,6 +109,10 @@ export default function AnatomyViewer(props: Props) {
     if (isWearableSite(props.site)) actions.current?.select(props.site, false);
     else actions.current?.reset();
   }, [props.site, ready, props.siteSelection]);
+  useEffect(() => {
+    if (ready) actions.current?.demo(props.demoCamera?.view ?? null);
+  }, [props.demoCamera, ready]);
+
 
   useEffect(() => {
     if (props.pulseStart != null) actions.current?.reset();
@@ -233,8 +239,10 @@ export default function AnatomyViewer(props: Props) {
       targetTo: THREE.Vector3;
       elapsed: number;
     } | null = null;
+    let demoOrbit: { elapsed: number; angle: number } | null = null;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const onOrbitStart = () => {
+      demoOrbit = null;
       cameraFlight = null;
     };
     controls.addEventListener("start", onOrbitStart);
@@ -256,6 +264,17 @@ export default function AnatomyViewer(props: Props) {
         deviceCenter.y -= id === "wrist" ? 0.035 : 0.022;
     };
     actions.current = {
+      demo: (view) => {
+        demoOrbit = null;
+        if (!view) { cameraFlight = null; return; }
+        if (view === "wrist" || view === "ring") { actions.current?.select(view === "ring" ? "finger" : "wrist", false); return; }
+        clearDeviceFocus();
+        setFocus(false); setHeartDetail(false); heartDetailRef.current = false;
+        rotateRef.current = false; setRotate(false);
+        cameraFlight = { from: camera.position.clone(), to: new THREE.Vector3(.12, 1.87, 6.45), targetFrom: controls.target.clone(), targetTo: new THREE.Vector3(0, 1.82, 0), elapsed: 0 };
+        if (view === "orbit") demoOrbit = { elapsed: 0, angle: Math.atan2(.12, 6.45) };
+        sceneDirty = true;
+      },
       zoom: (factor) => {
         cameraFlight = null;
         camera.position
@@ -765,6 +784,15 @@ export default function AnatomyViewer(props: Props) {
         camera.position.add(cameraShift);
         controls.target.add(cameraShift);
         previousDeviceCenter.copy(deviceCenter);
+      }
+      if (demoOrbit && !cameraFlight) {
+        demoOrbit.elapsed = Math.min(1, demoOrbit.elapsed + delta / 2.0);
+        const t = demoOrbit.elapsed;
+        const angle = demoOrbit.angle + Math.PI * 2 * (t * t * (3 - 2 * t));
+        camera.position.set(Math.sin(angle) * 6.45, 1.87, Math.cos(angle) * 6.45);
+        controls.target.set(0, 1.82, 0);
+        controls.update();
+        if (t >= 1) demoOrbit = null;
       }
       const flying = Boolean(cameraFlight);
       if (cameraFlight) {
