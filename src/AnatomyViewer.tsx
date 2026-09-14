@@ -139,6 +139,10 @@ export default function AnatomyViewer(props: Props) {
       });
     } catch {
       setError(true);
+      // The signal workspace (PPG waveform, controls) does not depend on the
+      // 3D body renderer: unlock it even when WebGL is unavailable instead of
+      // leaving the app gated behind a failed canvas forever.
+      current.current.onReady?.();
       return;
     }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.65));
