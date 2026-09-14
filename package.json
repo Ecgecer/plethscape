@@ -12,9 +12,14 @@
     "format": "prettier --write src vite.config.ts playwright.config.ts README.md",
     "model:skin": "blender --background --python scripts/build_neutral_skin.py"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["ppg", "photoplethysmography", "3d", "physiology", "education", "three.js"],
+  "author": "Sameer Sontakey",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sontakey/plethscape.git"
+  },
+  "homepage": "https://chatppg.com/plethscape",
   "dependencies": {
     "@fontsource-variable/geist": "^5.3.0",
     "@fontsource-variable/geist-mono": "^5.3.0",

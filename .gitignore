@@ -1,0 +1,15 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+*.tsbuildinfo
+.DS_Store
+artifacts/
+scripts/bodyparts3d-source/
+
+.vercel/
+.env
+.env.*
+!.env.example
+__pycache__/
+*.py[cod]
