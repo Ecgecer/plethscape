@@ -89,23 +89,24 @@ test("guided age experiment changes the actual workspace and preserves its refer
   page,
 }) => {
   await page.getByRole("button", { name: "Learn", exact: true }).click();
-  await page.getByRole("button", { name: "Experiments", exact: true }).click();
-  const guide = page.getByRole("region", { name: "Guided experiment" });
-  await guide.getByRole("button", { name: "Go to Age experiment" }).click();
-  await guide.getByRole("button", { name: "Try age 70", exact: true }).click();
+  await page.getByRole("button", { name: "Read a heartbeat", exact: true }).click();
+  await page.getByRole("button", { name: "Age 75", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Try in Workspace", exact: true })
+    .click();
+  await expect(page.getByRole("dialog")).toBeHidden();
   await expect(
     page.getByRole("slider", { name: "Age", exact: true }),
-  ).toHaveValue("70");
+  ).toHaveValue("75");
+  await page.getByRole("slider", { name: "Age", exact: true }).fill("70");
   await expect(
-    page.getByRole("button", { name: /Comparing: Index finger · 25y/ }),
+    page.getByRole("button", { name: "Back to lesson", exact: false }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Learn", exact: true }).click();
-  await expect(
-    page.getByRole("button", { name: "Resume current experiment →" }),
-  ).toBeEnabled();
+  await page.getByRole("button", { name: "Back to lesson", exact: false }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
   await page.getByRole("button", { name: "The science", exact: true }).click();
   await expect(
-    page.getByText("What does PPG actually see?", { exact: true }),
+    page.getByRole("heading", { name: "What is a PPG signal?", exact: true }),
   ).toBeVisible();
 });
 
@@ -167,7 +168,14 @@ for (const width of [360, 820])
         }),
       )
       .toBe(true);
-    await page.getByRole("button", { name: "Learn", exact: true }).click();
+    if (width < 701) {
+      await page.getByRole("button", { name: "Open menu", exact: true }).click();
+      await page
+        .getByRole("button", { name: "Learn through exploration" })
+        .click();
+    } else {
+      await page.getByRole("button", { name: "Learn", exact: true }).click();
+    }
     await expect(page.getByRole("dialog")).toBeVisible();
     await expect
       .poll(() => page.evaluate(() => document.documentElement.scrollWidth))

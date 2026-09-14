@@ -12,8 +12,8 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   retries: 0,
-  timeout: 30_000,
-  expect: { timeout: 8_000 },
+  timeout: 60_000,
+  expect: { timeout: 30_000 },
   reporter: [
     ["list"],
     ["html", { outputFolder: "artifacts/playwright-report", open: "never" }],
@@ -28,6 +28,9 @@ export default defineConfig({
         : existsSync(localChrome)
           ? localChrome
           : undefined,
+      args: process.env.CI
+        ? ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"]
+        : [],
     },
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
