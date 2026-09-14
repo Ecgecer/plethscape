@@ -13,6 +13,8 @@ export default function IntroDemo({ ready, replay, onStep, onFinish, onCancel }:
 }) {
   const [step, setStep] = useState<number | null>(null);
   const [staticIntro, setStaticIntro] = useState(false);
+  const [playRequest, setPlayRequest] = useState(0);
+  const lastPlayRequest = useRef(0);
   const callbacks = useRef({ onStep, onFinish, onCancel });
   callbacks.current = { onStep, onFinish, onCancel };
   const interacted = useRef(false);
@@ -36,8 +38,9 @@ export default function IntroDemo({ ready, replay, onStep, onFinish, onCancel }:
   }, []);
   useEffect(() => {
     if (!ready) return;
-    const manual = replay !== lastReplay.current;
+    const manual = replay !== lastReplay.current || playRequest !== lastPlayRequest.current;
     lastReplay.current = replay;
+    lastPlayRequest.current = playRequest;
     if (started.current && !manual) return;
     if (!manual) {
       const params = new URLSearchParams(location.search);
@@ -56,9 +59,10 @@ export default function IntroDemo({ ready, replay, onStep, onFinish, onCancel }:
       else callbacks.current.onCancel();
     };
     stopRef.current = stop;
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (!manual && matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setStaticIntro(true);
     } else {
+      setStaticIntro(false);
       setStep(0); callbacks.current.onStep(0);
       [1200, 2800, 4200, 5700, 7200].forEach((delay, index) => timers.push(setTimeout(() => {
         setStep(index + 1); callbacks.current.onStep(index + 1);
@@ -68,11 +72,12 @@ export default function IntroDemo({ ready, replay, onStep, onFinish, onCancel }:
     const visibility = () => { if (document.hidden) stop(true); };
     document.addEventListener('visibilitychange', visibility);
     return () => { timers.forEach(clearTimeout); document.removeEventListener('visibilitychange', visibility); stopRef.current = () => {}; };
-  }, [ready, replay]);
+  }, [ready, replay, playRequest]);
   if (step === null && !staticIntro) return null;
   return <aside className="intro-demo" aria-label="Introduction demo">
     <div className="intro-demo-top"><span>ILLUSTRATIVE SIMULATION</span><button onClick={() => stopRef.current(true)}>{staticIntro ? 'Explore' : 'Skip demo'} <span aria-hidden="true">×</span></button></div>
     <div aria-live="polite" aria-atomic="true"><strong>{staticIntro ? 'One heartbeat. Many ways to see it.' : captions[step!][0]}</strong><p className={staticIntro ? "" : "intro-demo-description"}>{staticIntro ? 'Choose a wearable, change the light, and explore how movement affects the signal.' : captions[step!][1]}</p></div>
+    {staticIntro && <button onClick={() => setPlayRequest(value => value + 1)}>Play 11-second tour</button>}
     {!staticIntro && <div className="intro-demo-progress" aria-hidden="true">{captions.map((_, index) => <i key={index} className={index <= step! ? 'complete' : ''} />)}</div>}
   </aside>;
 }

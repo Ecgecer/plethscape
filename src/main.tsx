@@ -8,6 +8,7 @@ import "./styles.css";
 import "./experience.css";
 import "./instrument.css";
 import "./immersive.css";
+import "./navigation.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

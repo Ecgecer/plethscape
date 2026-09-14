@@ -369,7 +369,7 @@ export default function AnatomyViewer(props: Props) {
           0.04,
           Math.cos(angle) * distance,
         ));
-        if (reducedMotion.matches) {
+        if (reducedMotion.matches && !demoCameraActive.current) {
           camera.position.copy(destination);
           controls.target.copy(target);
           controls.update();

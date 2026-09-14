@@ -173,7 +173,18 @@ function Modal({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="modal-header">
+      {page ? <header className="app-header learning-navigation">
+        <h2 id={titleId} className="sr-only">{title}</h2>
+        <a className="brand" href="#workspace" aria-label="Plethscape home" onClick={(event) => { event.preventDefault(); onClose(); }}>
+          <span className="brand-icon"><WaveSine size={26} weight="bold" /></span>
+          <span className="brand-wordmark">Plethscape</span>
+        </a>
+        <nav aria-label="Main navigation">
+          <button className="nav-item" onClick={onClose}>Workspace</button>
+          <button className="nav-item active" aria-current="page"><BookOpen size={18} /> Learn</button>
+        </nav>
+        <div className="learning-header-spacer" aria-hidden="true" />
+      </header> : <div className="modal-header">
         <h2 id={titleId}>{title}</h2>
         <button
           className="icon-button"
@@ -182,7 +193,7 @@ function Modal({
         >
           {page ? <>Back to Workspace <ArrowRight size={18} /></> : <X size={20} />}
         </button>
-      </div>
+      </div>}
       <div className="modal-body">{children}</div>
     </dialog>
   );
@@ -1615,6 +1626,7 @@ export default function App() {
       )}
       <Modal open={dialog === "guide"} page title="Plethscape · Learn" onClose={() => setDialog(null)}>
         <LearnPage ready={anatomyReady} onSources={() => { setSourcesFromLearn(true); setDialog("sources"); }}
+          onStartTour={() => startTour(0)}
           onTry={(topic: LearnTopic, settings) => {
             if (captured) closeStudio();
             setTourStep(null);

@@ -14,9 +14,10 @@ const topics: { id: LearnTopic; title: string; description: string; question: st
   { id: 'motion', title: 'Understand movement', description: 'Find the heartbeat beneath motion artifacts.', question: 'What happens when you start walking?', explanation: 'Movement can change sensor contact and introduce baseline shifts, impact spikes and temporary signal loss. This simulation gives red and infrared stronger motion artifacts than green as a teaching scenario, not a universal ranking.', experiment: 'Start walking at the wrist and compare the PPG with acceleration. Switch wavelengths, then try running to see how motion can obscure the pulse.' },
 ];
 
-export default function LearnPage({ ready, onTry, onSources, onLocationTry }: {
+export default function LearnPage({ ready, onTry, onSources, onLocationTry, onStartTour }: {
   ready: boolean; onTry: (topic: LearnTopic, settings: { band: Wavelength; age: number; activity: Activity; site: SiteId }) => void; onSources: () => void;
   onLocationTry: (action: 'move' | 'compare' | 'wrist') => void;
+  onStartTour: () => void;
 }) {
   const [chapter, setChapter] = useState<LearnTopic | 'overview' | 'science'>('overview');
   const previewClock = useRef({ time: 12, running: false });
@@ -58,6 +59,7 @@ export default function LearnPage({ ready, onTry, onSources, onLocationTry }: {
       </header>
       {topic && <p className="learn-objective"><strong>What you’ll learn</strong> {topic.description}</p>}
       {chapter === 'overview' ? <>
+        <button className="learn-primary" disabled={!ready} onClick={onStartTour}>{ready ? 'Start guided tour' : 'Preparing the body…'} <ArrowRight size={18} /></button>
         <div className="learn-topic-grid">{topics.map((item, index) => <button className="learn-topic-card" key={item.id} onClick={() => select(item.id)}>
           <span className="learn-eyebrow">LESSON 0{index + 1}</span><WaveSine size={42} weight="thin" aria-hidden="true" />
           <h3>{item.title}</h3><p>{item.description}</p><span className="learn-card-link">Open lesson <ArrowRight size={18} /></span>

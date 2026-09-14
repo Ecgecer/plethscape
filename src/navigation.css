@@ -1,0 +1,43 @@
+/* A quiet application header, with the model remaining the focal point. */
+.immersive-shell .app-header {
+  height: 66px;
+  min-height: 66px;
+  gap: 16px;
+  padding: 8px 22px;
+  border: 0;
+  background: linear-gradient(180deg, #10100ff2, #10100f00);
+}
+.immersive-shell .app-header .brand { gap: 9px; }
+.immersive-shell .app-header .brand-wordmark { font-size: 21px; font-weight: 560; letter-spacing: -.7px; color: #e8ded1; }
+.immersive-shell .app-header .brand small { display: none; }
+.immersive-shell .app-header .brand-icon { width: 30px; height: 30px; border-radius: 0; color: #edb57b; background: transparent; box-shadow: none; }
+.immersive-shell .app-header .brand-icon svg { width: 28px; height: 28px; }
+.immersive-shell .app-header nav { height: auto; margin: 0 auto; gap: 4px; padding: 3px; border: 1px solid #ead5bc12; background: #211d1880; border-radius: 12px; }
+.immersive-shell .app-header .nav-item { height: 36px; padding: 0 15px; border-radius: 9px; font-size: 13px; font-weight: 500; color: #aea497; transition: background .15s, color .15s; }
+.immersive-shell .app-header .nav-item.active { background: #dca87317; color: #f0c493; }
+.immersive-shell .app-header .nav-item::after { display: none; }
+.immersive-shell .app-header .nav-item:hover { background: #ffffff0b; color: #f2e5d5; }
+.immersive-shell .app-header .header-actions { display: flex; gap: 8px; }
+.immersive-shell .app-header .simulation-badge { display: inline-flex; padding: 0; border: 0; background: transparent; }
+.immersive-shell .app-header .replay-demo { padding: 8px 12px; border: 1px solid #dfbf952c; border-radius: 10px; color: #d7c2aa; background: #201b1680; font-size: 12px; font-weight: 500; }
+.immersive-shell .app-header .replay-demo:hover:not(:disabled) { background: #38291d; border-color: #d7a46770; }
+.immersive-shell .app-header .replay-demo:disabled { opacity: .45; }
+.immersive-shell .app-header .mobile-menu-toggle { width: 40px; height: 40px; border: 0; border-radius: 10px; background: transparent; color: #d8cabb; }
+.immersive-shell .app-header .mobile-menu-toggle:hover { background: #e0ba8414; }
+.immersive-shell .app-header :is(a,button):focus-visible { outline: 2px solid #eab779; outline-offset: 3px; }
+.immersive-shell .learning-page .learning-navigation { position: sticky; inset: 0 0 auto; z-index: 3; display: flex; flex-shrink: 0; width: 100%; background: #10110ff5; border-bottom: 1px solid #ead5bc12; }
+.learning-header-spacer { width: 100px; }
+@media (max-width: 700px) {
+  .immersive-shell .app-header,
+  .immersive-shell:not(.studio-open) .app-header { height: calc(60px + env(safe-area-inset-top)); min-height: 60px; padding: calc(8px + env(safe-area-inset-top)) 16px 8px; }
+  .immersive-shell .app-header nav,
+  .immersive-shell .app-header .header-actions { display: none; }
+  .immersive-shell .app-header .brand-wordmark { font-size: 20px; }
+  .immersive-shell .app-header .mobile-menu-toggle { display: grid; margin-left: auto; }
+  .immersive-shell .learning-page .learning-navigation { gap: 8px; }
+  .immersive-shell .learning-page .learning-navigation nav { display: flex; width: auto; flex: 0 0 auto; margin-left: auto; margin-right: 0; }
+  .immersive-shell .learning-page .learning-navigation .nav-item { padding: 0 10px; font-size: 12px; min-height: 40px; }
+  .immersive-shell .learning-page .learning-navigation .nav-item svg { display: none; }
+  .learning-header-spacer { display: none; }
+  .immersive-shell .learning-page .learning-navigation .brand-wordmark { font-size: 18px; }
+}
