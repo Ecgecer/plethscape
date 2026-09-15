@@ -130,6 +130,7 @@ export default function AnatomyViewer(props: Props) {
     if (!host.current) return;
     const element = host.current;
     let renderer: THREE.WebGLRenderer;
+    let softwareRenderer = false;
     try {
       renderer = new THREE.WebGLRenderer({
         antialias: true,
@@ -137,6 +138,15 @@ export default function AnatomyViewer(props: Props) {
         alpha: true,
         powerPreference: "high-performance",
       });
+      const gl = renderer.getContext();
+      const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
+      const rendererName = debugInfo
+        ? String(gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL))
+        : "";
+      softwareRenderer =
+        /swiftshader|llvmpipe|software rasterizer/i.test(rendererName) ||
+        navigator.hardwareConcurrency <= 2 ||
+        navigator.webdriver;
     } catch {
       setError(true);
       // The signal workspace (PPG waveform, controls) does not depend on the
@@ -145,7 +155,9 @@ export default function AnatomyViewer(props: Props) {
       current.current.onReady?.();
       return;
     }
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.65));
+    renderer.setPixelRatio(
+      softwareRenderer ? 0.25 : Math.min(window.devicePixelRatio, 1.65),
+    );
     // The static CSS floor sits behind the canvas, outside the depth buffer.
     renderer.setClearColor(0x010202, 0);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -621,7 +633,7 @@ export default function AnatomyViewer(props: Props) {
     const pickPoints: Record<WearableSite, THREE.Vector3> = {
       finger: new THREE.Vector3(0, 0, 0.0288),
       wrist: new THREE.Vector3(0, 0, 0.084),
-      ear: new THREE.Vector3(0, -0.029, 0.001),
+      ear: new THREE.Vector3(0, -0.033, 0.001),
       forehead: new THREE.Vector3(0, 0, 0.012),
       carotid: new THREE.Vector3(0, 0, 0.006),
       upperarm: new THREE.Vector3(0, 0, 0.151),
@@ -631,6 +643,7 @@ export default function AnatomyViewer(props: Props) {
     let lastRenderedRevision = -1;
     let lastRenderedTime = NaN;
     let lastRenderedHover: string | null = null;
+    let lastSoftwareFrame = -Infinity;
     let previousPresentation: Presentation = "atlas";
     let disposed = false;
     let loaded = false;
@@ -664,11 +677,16 @@ export default function AnatomyViewer(props: Props) {
         disposed ||
         current.current.active === false ||
         document.hidden ||
+        !loaded ||
         (!sceneVisible && !sceneDirty)
       ) {
         last = now;
         return;
       }
+      // Software WebGL can monopolize a small CI or fallback CPU at 60 fps.
+      // A bounded cadence keeps controls, camera motion, and simulation
+      // rendering live while leaving enough main-thread time for interaction.
+      if (softwareRenderer && now - lastSoftwareFrame < 250) return;
       if (pendingResize) {
         const bounds = element.getBoundingClientRect();
         const width = Math.round(bounds.width);
@@ -684,7 +702,10 @@ export default function AnatomyViewer(props: Props) {
           sceneDirty = true;
         }
       }
-      const delta = Math.min((now - last) / 1000, 0.05);
+      const delta = Math.min(
+        (now - last) / 1000,
+        softwareRenderer ? 0.25 : 0.05,
+      );
       last = now;
       controls.autoRotate =
         rotateRef.current && p.clock.current.running && !gestures.active;
@@ -878,8 +899,12 @@ export default function AnatomyViewer(props: Props) {
         projected.copy(anatomy.sites[site.id]);
         anatomy.group.localToWorld(projected);
         projected.project(camera);
-        marker.style.left = `${(projected.x * 0.5 + 0.5) * element.clientWidth}px`;
-        marker.style.top = `${(-projected.y * 0.5 + 0.5) * element.clientHeight}px`;
+        marker.style.left = `${Math.round(
+          (projected.x * 0.5 + 0.5) * element.clientWidth,
+        )}px`;
+        marker.style.top = `${Math.round(
+          (-projected.y * 0.5 + 0.5) * element.clientHeight,
+        )}px`;
         marker.dataset.align = projected.x > 0.2 ? "left" : "right";
         marker.style.visibility =
           Boolean(deviceFocusRef.current) ||
@@ -893,6 +918,7 @@ export default function AnatomyViewer(props: Props) {
       }
       renderer.info.reset();
       renderer.render(scene, camera);
+      if (softwareRenderer) lastSoftwareFrame = performance.now();
       sceneDirty = false;
       lastRenderedTime = p.clock.current.time;
       lastRenderedRevision = renderRevision.current;
